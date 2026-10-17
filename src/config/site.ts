@@ -5,4 +5,5 @@ export const SERVER = {
   core: 'Paper 26.1.2',
   statusApi: 'https://api.mcsrvstat.us/3/Inside-Darkness-v2.exaroton.me',
   repo: 'https://github.com/xx-arteeem-xx/inside-darkness',
+  mapUrl: 'https://inside-darkness-v2.exaroton.me/',
 } as const;

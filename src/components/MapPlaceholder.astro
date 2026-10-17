@@ -1,4 +1,5 @@
 ---
+import { SERVER } from '../config/site';
 // Условная местность из клеток: вода, луга, лес, горы. Это не карта сервера, а заставка.
 let seed = 7341;
 const rand = () => {
@@ -43,13 +44,48 @@ for (let y = 0; y < ROWS; y++) {
         {cells.map((c) => <rect x={c.x} y={c.y} width={c.w} height="1" fill={c.fill} />)}
       </svg>
       <div class="map__fog" aria-hidden="true"></div>
-      <div class="map__label">
-        <h2 class="map__title" id="map-title">Карта появится позже</h2>
-        <p>Здесь будет карта мира, которую можно листать прямо в браузере.</p>
+      <div class="map__label" data-map-label>
+        <h2 class="map__title" id="map-title">Карта мира</h2>
+        <p data-map-text>Проверяю, запущен ли сервер…</p>
+        <div class="map__actions" data-map-actions hidden>
+          <button type="button" class="btn" data-map-open>Показать карту</button>
+          <a class="map__link" href={SERVER.mapUrl} target="_blank" rel="noopener">Открыть в новой вкладке</a>
+        </div>
       </div>
+      <iframe class="map__iframe" data-map-iframe title="Карта мира Inside Darkness" hidden loading="lazy"></iframe>
     </div>
   </div>
 </section>
+
+<script define:vars={{ statusApi: SERVER.statusApi, mapUrl: SERVER.mapUrl }}>
+  const root = document.getElementById('map');
+  const text = root.querySelector('[data-map-text]');
+  const actions = root.querySelector('[data-map-actions]');
+  const label = root.querySelector('[data-map-label]');
+  const iframe = root.querySelector('[data-map-iframe]');
+  root.querySelector('[data-map-open]').addEventListener('click', () => {
+    iframe.src = mapUrl;
+    iframe.hidden = false;
+    label.hidden = true;
+    root.querySelector('.map__fog').hidden = true;
+  });
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), 10000);
+  fetch(statusApi, { signal: ctrl.signal })
+    .then((r) => r.json())
+    .then((s) => {
+      if (s.online) {
+        text.textContent = '3D-карта столицы и окрестностей. Видно игроков онлайн, постройки обновляются сами.';
+        actions.hidden = false;
+      } else {
+        text.textContent = 'Карта работает, пока запущен сервер. Сейчас он спит — загляните, когда в игре кто-то будет.';
+      }
+    })
+    .catch(() => {
+      text.textContent = 'Не удалось проверить сервер. Карту можно открыть напрямую.';
+      actions.hidden = false;
+    });
+</script>
 
 <style>
   .map {
@@ -99,4 +135,26 @@ for (let y = 0; y < ROWS; y++) {
     margin-top: 0.6rem;
     color: var(--iron);
   }
+
+  .map__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.1rem;
+  }
+
+
+  .map__link { color: var(--iron); }
+
+  .map__iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  [hidden] { display: none !important; }
 </style>
