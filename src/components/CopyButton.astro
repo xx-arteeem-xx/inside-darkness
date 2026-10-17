@@ -1,0 +1,94 @@
+---
+interface Props {
+  text: string;
+  label?: string;
+  done?: string;
+  /** id элемента, текст которого выделить, если буфер обмена недоступен */
+  target?: string;
+  quiet?: boolean;
+  small?: boolean;
+}
+const { text, label = 'Скопировать', done = 'Скопировано', target, quiet = false, small = false } = Astro.props;
+---
+<span class="copy">
+  <button
+    type="button"
+    class:list={['btn', { 'btn--quiet': quiet, 'btn--small': small }]}
+    data-copy={text}
+    data-copy-target={target}
+    data-copy-label={label}
+    data-copy-done={done}
+  >{label}</button>
+  <span class="copy__status visually-hidden" role="status" aria-live="polite"></span>
+</span>
+
+<style>
+  .copy {
+    display: inline-flex;
+  }
+</style>
+
+<script>
+  const RESET_MS = 2200;
+
+  function selectTarget(id: string | undefined) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  }
+
+  function legacyCopy(text: string): boolean {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      ok = false;
+    }
+    area.remove();
+    return ok;
+  }
+
+  async function copy(text: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      /* перейдём к запасному способу */
+    }
+    return legacyCopy(text);
+  }
+
+  document.addEventListener('click', async (event) => {
+    const btn = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>('button[data-copy]');
+    if (!btn) return;
+    const status = btn.parentElement?.querySelector<HTMLElement>('.copy__status');
+    const label = btn.dataset.copyLabel ?? 'Скопировать';
+    const ok = await copy(btn.dataset.copy ?? '');
+    if (ok) {
+      btn.textContent = 'Скопировано';
+      if (status) status.textContent = btn.dataset.copyDone ?? 'Скопировано';
+    } else {
+      selectTarget(btn.dataset.copyTarget);
+      btn.textContent = 'Нажми Ctrl+C';
+      if (status) status.textContent = 'Скопировать не вышло. Текст выделен, нажми Ctrl+C.';
+    }
+    window.setTimeout(() => {
+      btn.textContent = label;
+      if (status) status.textContent = '';
+    }, RESET_MS);
+  });
+</script>

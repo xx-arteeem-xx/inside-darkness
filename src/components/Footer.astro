@@ -1,0 +1,104 @@
+---
+import { url } from '../lib/url';
+import { SERVER } from '../config/site';
+---
+<footer class="site-footer">
+  <svg class="site-footer__edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+    <path fill="var(--bedrock)" d="M0 24V12h48V4h72v12h96V8h40v8h120V0h56v12h88V8h112v8h64V4h96v12h72V8h104v8h48V0h80v16h96V8h56v8h112V4h48v8h72V24z" />
+  </svg>
+  <div class="wrap site-footer__inner">
+    <div class="site-footer__main">
+      <p class="site-footer__name">Inside Darkness</p>
+      <p class="site-footer__addr"><code>{SERVER.address}</code></p>
+      <p class="site-footer__ver">Minecraft Java Edition {SERVER.versions}</p>
+    </div>
+    <nav class="site-footer__nav" aria-label="Ссылки в подвале">
+      <a href={url('/#join')}>Как зайти</a>
+      <a href={url('/docs/')}>Документация</a>
+      <a href={url('/#telegram')}>Telegram</a>
+      <a href={url('/#donate')}>Поддержать</a>
+      <a href={SERVER.repo}>Исходники сайта</a>
+    </nav>
+    <p class="site-footer__legal">
+      Не является официальным продуктом Minecraft. Не одобрено и не связано с Mojang или Microsoft.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    background: var(--bedrock);
+    color: var(--iron);
+    font-family: var(--font-ui);
+    font-size: 1rem;
+  }
+
+  .site-footer__edge {
+    position: absolute;
+    left: 0;
+    top: -23px;
+    width: 100%;
+    height: 24px;
+    display: block;
+  }
+
+  .site-footer__inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem 3rem;
+    padding-block: 3rem 2.5rem;
+  }
+
+  .site-footer__name {
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  .site-footer__addr {
+    margin-top: 0.4rem;
+  }
+
+  .site-footer__addr code {
+    color: var(--torch-soft);
+    font-size: 0.95rem;
+    word-break: break-all;
+  }
+
+  .site-footer__ver {
+    margin-top: 0.2rem;
+  }
+
+  .site-footer__nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .site-footer__nav a {
+    color: var(--bone);
+    text-decoration: none;
+  }
+
+  .site-footer__nav a:hover {
+    color: var(--torch-soft);
+    text-decoration: underline;
+  }
+
+  .site-footer__legal {
+    grid-column: 1 / -1;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    color: var(--iron-dim);
+    font-size: 0.9375rem;
+  }
+
+  @media (max-width: 40rem) {
+    .site-footer__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

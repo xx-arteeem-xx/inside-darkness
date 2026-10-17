@@ -1,0 +1,60 @@
+---
+import '@fontsource/alegreya/400.css';
+import '@fontsource/alegreya/400-italic.css';
+import '@fontsource/alegreya/700.css';
+import '@fontsource/alegreya/800.css';
+import '@fontsource/alegreya-sc/700.css';
+import '@fontsource/alegreya-sc/800.css';
+import '@fontsource/alegreya-sans/400.css';
+import '@fontsource/alegreya-sans/500.css';
+import '@fontsource/alegreya-sans/700.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { url } from '../lib/url';
+import { SERVER } from '../config/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  variant?: 'home' | 'inner';
+}
+
+const {
+  title,
+  description = `Средневековый RPG-сервер Minecraft на русском. Java ${SERVER.versions}, пиратские клиенты пускаются. Адрес: ${SERVER.address}`,
+  variant = 'inner',
+} = Astro.props;
+
+const fullTitle = title ? `${title} | ${SERVER.name}` : `${SERVER.name}: средневековый RPG-сервер Minecraft`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    <meta name="theme-color" content="#272d44" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body data-variant={variant}>
+    <a class="skip-link" href="#main">К содержимому</a>
+    <Header variant={variant} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,322 @@
+---
+import CopyButton from './CopyButton.astro';
+import ServerStatus from './ServerStatus.astro';
+import { SERVER } from '../config/site';
+
+// Звёзды: детерминированный генератор, чтобы небо не менялось от сборки к сборке.
+let seed = 20261017;
+const rand = () => {
+  seed = (seed * 1664525 + 1013904223) % 4294967296;
+  return seed / 4294967296;
+};
+const stars = Array.from({ length: 90 }, () => {
+  const size = rand() > 0.82 ? 3 : 2;
+  return {
+    x: Math.round(rand() * 1440),
+    y: Math.round(Math.pow(rand(), 1.6) * 520),
+    size,
+    o: (0.25 + rand() * 0.55).toFixed(2),
+  };
+});
+
+// Луна в Minecraft квадратная: 6×6 пикселей, несколько тёмных «кратеров».
+const craters = [
+  [1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4],
+];
+
+// Замок собран из прямоугольников на сетке 4 px: [x, y, ширина, высота].
+const merlons = (from: number, to: number, y: number, h: number, w = 16, step = 32) => {
+  const out: Array<[number, number, number, number]> = [];
+  for (let x = from; x + w <= to; x += step) out.push([x, y, w, h]);
+  return out;
+};
+const castle: Array<[number, number, number, number]> = [
+  [984, 216, 360, 72], // стена
+  ...merlons(1032, 1304, 200, 16),
+  [960, 144, 72, 144], // левая башня
+  ...merlons(960, 1032, 128, 16, 16, 28),
+  [1304, 160, 72, 128], // правая башня
+  ...merlons(1304, 1376, 144, 16, 16, 28),
+  [1104, 88, 112, 200], // донжон
+  ...merlons(1104, 1216, 72, 16),
+  [1136, 40, 40, 48], // башенка
+  ...merlons(1136, 1176, 28, 12, 16, 24),
+  [1154, 2, 4, 26], // древко
+];
+
+// Окна замка: [x, y, задержка зажигания]. Пара окон остаётся тёмной.
+const windows: Array<[number, number, number, boolean]> = [
+  [976, 168, 0, true],
+  [1008, 224, 3, true],
+  [1124, 120, 1, true],
+  [1188, 120, 5, false],
+  [1156, 176, 2, true],
+  [1124, 224, 6, true],
+  [1152, 52, 4, true],
+  [1320, 192, 7, true],
+  [1352, 240, 8, false],
+  [1056, 244, 9, true],
+  [1256, 244, 10, true],
+];
+---
+<section class="hero" id="server" aria-labelledby="hero-title">
+  <svg class="hero__sky" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMin slice" aria-hidden="true" shape-rendering="crispEdges">
+    {stars.map((s) => <rect x={s.x} y={s.y} width={s.size} height={s.size} fill="#ece4d1" opacity={s.o} />)}
+  </svg>
+  <svg class="hero__moon" viewBox="0 0 48 48" aria-hidden="true" shape-rendering="crispEdges">
+    <rect width="48" height="48" fill="#e9e2cf" />
+    {craters.map(([cx, cy]) => <rect x={cx * 8} y={cy * 8} width="8" height="8" fill="#cfc7b2" />)}
+  </svg>
+
+  <div class="wrap hero__content">
+    <h1 class="hero__title" id="hero-title">Inside Darkness</h1>
+    <p class="hero__lead">
+      Средневековый RPG-сервер Minecraft на русском. Расы и классы, навыки, профессии, замки и подземелья. Пиратские
+      клиенты пускаем, моды не нужны.
+    </p>
+
+    <div class="plaque">
+      <p class="plaque__label" id="address-label">Адрес сервера</p>
+      <div class="plaque__row">
+        <code class="plaque__addr" id="server-address" aria-labelledby="address-label">{SERVER.address}</code>
+        <CopyButton text={SERVER.address} target="server-address" label="Скопировать адрес" done="Адрес скопирован" />
+      </div>
+    </div>
+
+    <ServerStatus />
+
+    <dl class="hero__facts">
+      <div>
+        <dt>Версия</dt>
+        <dd>Java Edition {SERVER.versions}</dd>
+      </div>
+      <div>
+        <dt>Лицензия</dt>
+        <dd>не нужна</dd>
+      </div>
+      <div>
+        <dt>Моды</dt>
+        <dd>не нужны</dd>
+      </div>
+    </dl>
+  </div>
+
+  <svg class="hero__land" viewBox="0 0 1440 400" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" shape-rendering="crispEdges">
+    <path class="land-far" d="M0 400V312h88v-12h112v8h112v-20h80v8h120v-16h88v20h112v-8h120v16h112v-20h88v-16h80v16h120v12h120v-8h88v108z" />
+    <g class="land-near">
+      <path d="M0 400v-40h136v-8h160v8h160v-8h160v-8h120v-8h80v-8h64v-16h40v-16h40v-8h416v16h32v16h32v80z" />
+      <!-- ели -->
+      <path d="M316 360v-20h-20v-20h8v-20h8v-16h16v16h8v20h8v20h-20v20z" />
+      <path d="M404 360v-32h-28v-24h12v-24h12v-20h16v20h12v24h12v24h-28v32z" />
+      <path d="M560 352v-16h-16v-16h8v-16h8v-12h12v12h8v16h8v16h-16v16z" />
+      <path d="M760 336v-20h-24v-24h12v-20h8v-20h16v20h8v20h12v24h-24v20z" />
+      <!-- замок: стена, башни, донжон, зубцы -->
+      {castle.map(([x, y, w, h]) => <rect x={x} y={y} width={w} height={h} />)}
+    </g>
+    <rect x="1158" y="4" width="22" height="12" fill="var(--wine)" />
+    <path class="gate" d="M1144 288v-32h4v-4h4v-4h16v4h4v4h4v32z" />
+    <g class="windows">
+      {windows.map(([x, y, i, lit]) => (
+        <rect x={x} y={y} width="8" height="14" class:list={['win', { 'win--dark': !lit }]} style={`--i:${i}`} />
+      ))}
+    </g>
+  </svg>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1d2236 0%, #272d44 42%, #3b4263 82%, #4a4766 100%);
+    color: var(--bone);
+  }
+
+  .hero__moon {
+    position: absolute;
+    top: clamp(5.5rem, 12vw, 8.5rem);
+    right: clamp(1.5rem, 14vw, 16rem);
+    width: clamp(2.25rem, 3.4vw, 3.25rem);
+    height: auto;
+    z-index: -1;
+    filter: drop-shadow(0 0 22px rgb(233 226 207 / 0.35));
+  }
+
+  .hero__sky {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+
+  .hero__content {
+    position: relative;
+    padding-block: clamp(6.5rem, 14vw, 9.5rem) 2rem;
+  }
+
+  .hero__title {
+    max-width: 10ch;
+    font-family: var(--font-display);
+    font-size: clamp(3.25rem, 1.2rem + 9vw, 7.75rem);
+    font-weight: 800;
+    line-height: 0.88;
+    letter-spacing: -0.015em;
+    color: var(--bone);
+    text-shadow: 0 4px 0 rgb(13 14 17 / 0.45);
+  }
+
+  .hero__lead {
+    max-width: 34rem;
+    margin-top: 1.5rem;
+    font-size: clamp(1.1875rem, 1.05rem + 0.5vw, 1.4375rem);
+    line-height: 1.45;
+    color: #ddd6c5;
+  }
+
+  .plaque {
+    max-width: 36rem;
+    margin-top: 2.25rem;
+  }
+
+  .plaque__label {
+    margin-bottom: 0.45rem;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--iron);
+  }
+
+  .plaque__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.6rem 0.6rem 1rem;
+    background: rgb(13 14 17 / 0.55);
+    border: 2px solid #4d546d;
+    box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.35);
+  }
+
+  .plaque__addr {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--torch-soft);
+    font-size: clamp(0.95rem, 0.88rem + 0.3vw, 1.0625rem);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  .hero :global(.status) {
+    max-width: 36rem;
+    margin-top: 1.25rem;
+  }
+
+  .hero__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2rem;
+    max-width: 38rem;
+    margin: 2rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .hero__facts div {
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--wine);
+  }
+
+  .hero__facts dt {
+    color: var(--iron);
+  }
+
+  .hero__facts dd {
+    margin: 0;
+    color: var(--bone);
+    font-weight: 500;
+  }
+
+  .hero__land {
+    display: block;
+    width: 100%;
+    height: clamp(11rem, 40vw, 20rem);
+    margin-top: -1rem;
+  }
+
+  .land-far {
+    fill: #2b3048;
+  }
+
+  .land-near {
+    fill: var(--stone);
+  }
+
+  .gate {
+    fill: #121419;
+  }
+
+  .win {
+    fill: var(--torch);
+    animation: light 0.5s steps(3, end) both;
+    animation-delay: calc(var(--i) * 120ms + 350ms);
+  }
+
+  .win--dark {
+    fill: #15171d;
+    animation: none;
+  }
+
+  .windows {
+    filter: drop-shadow(0 0 5px rgb(240 173 72 / 0.55));
+  }
+
+  @keyframes light {
+    from { fill: #15171d; }
+    to { fill: var(--torch); }
+  }
+
+  /* На широком экране замок встаёт справа от текста, а не под ним. */
+  @media (min-width: 70rem) {
+    .hero__content {
+      padding-bottom: 15.5rem;
+    }
+
+    .hero__lead,
+    .plaque,
+    .hero :global(.status),
+    .hero__facts {
+      max-width: 34rem;
+    }
+
+    .plaque__addr {
+      white-space: nowrap;
+    }
+
+    .hero__land {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 27rem;
+      margin: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .hero__content {
+      z-index: 1;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .hero__lead,
+    .plaque,
+    .hero :global(.status),
+    .hero__facts {
+      max-width: 38rem;
+    }
+  }
+</style>

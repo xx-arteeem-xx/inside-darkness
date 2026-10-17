@@ -1,0 +1,198 @@
+---
+import { render } from 'astro:content';
+import DocsShell from '../../layouts/DocsShell.astro';
+import { getDocSections, flatten, type Doc } from '../../lib/docs';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const sections = await getDocSections();
+  const docs = flatten(sections);
+  return docs.map((doc, i) => ({
+    params: { slug: doc.id },
+    props: { doc, prev: docs[i - 1] ?? null, next: docs[i + 1] ?? null, sections },
+  }));
+}
+
+interface Props {
+  doc: Doc;
+  prev: Doc | null;
+  next: Doc | null;
+  sections: Awaited<ReturnType<typeof getDocSections>>;
+}
+
+const { doc, prev, next, sections } = Astro.props;
+const { Content, headings } = await render(doc);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+<DocsShell title={doc.data.title} description={doc.data.description} sections={sections} currentId={doc.id} headings={headings}>
+  <article class="doc">
+    <nav class="crumbs" aria-label="Путь">
+      <a href={url('/docs/')}>Документация</a>
+      <span aria-hidden="true">/</span>
+      <span>{doc.data.section}</span>
+    </nav>
+    <h1 class="doc__title">{doc.data.title}</h1>
+    {doc.data.description && <p class="doc__lead">{doc.data.description}</p>}
+
+    {toc.length > 1 && (
+      <details class="toc-inline">
+        <summary>На этой странице</summary>
+        <ul role="list">
+          {toc.map((h) => (
+            <li class:list={[`toc-d${h.depth}`]}><a href={`#${h.slug}`}>{h.text}</a></li>
+          ))}
+        </ul>
+      </details>
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {(prev || next) && (
+      <nav class="pager" aria-label="Соседние страницы">
+        {prev ? (
+          <a class="pager__link pager__link--prev" href={url(`/docs/${prev.id}/`)}>
+            <span class="pager__hint">Назад</span>
+            <span class="pager__title">{prev.data.title}</span>
+          </a>
+        ) : <span />}
+        {next && (
+          <a class="pager__link pager__link--next" href={url(`/docs/${next.id}/`)}>
+            <span class="pager__hint">Дальше</span>
+            <span class="pager__title">{next.data.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+  </article>
+</DocsShell>
+
+<style>
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    color: var(--iron);
+    font-family: var(--font-ui);
+    font-size: 1rem;
+  }
+
+  .crumbs a {
+    color: var(--iron);
+  }
+
+  .crumbs a:hover {
+    color: var(--torch-soft);
+  }
+
+  .doc__title {
+    margin-top: 0.75rem;
+    font-size: var(--step-3);
+    line-height: 1.05;
+  }
+
+  .doc__lead {
+    max-width: 40rem;
+    margin-top: 0.85rem;
+    color: var(--iron);
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .doc .prose {
+    margin-top: 2rem;
+  }
+
+  .toc-inline {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: #262a35;
+    border-left: 4px solid #4b5164;
+    font-family: var(--font-ui);
+  }
+
+  .toc-inline summary {
+    color: var(--bone);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .toc-inline ul {
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc-inline a {
+    display: block;
+    padding-block: 0.25rem;
+    color: #d9d2c1;
+    text-decoration: none;
+  }
+
+  .toc-inline a:hover {
+    color: var(--torch-soft);
+  }
+
+  .toc-inline .toc-d3 a {
+    padding-left: 0.9rem;
+    color: var(--iron);
+  }
+
+  @media (max-width: 75rem) {
+    .toc-inline {
+      display: block;
+    }
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-strong);
+    font-family: var(--font-ui);
+  }
+
+  .pager__link {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.85rem 1rem;
+    background: #262a35;
+    border: 3px solid;
+    border-color: #343948 #15171d #15171d #343948;
+    text-decoration: none;
+  }
+
+  .pager__link:hover {
+    border-color: var(--torch) #15171d #15171d var(--torch);
+  }
+
+  .pager__link--next {
+    text-align: right;
+  }
+
+  .pager__hint {
+    color: var(--iron);
+    font-size: 0.9375rem;
+  }
+
+  .pager__title {
+    color: var(--torch-soft);
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 36rem) {
+    .pager {
+      grid-template-columns: 1fr;
+    }
+
+    .pager__link--next {
+      text-align: left;
+    }
+  }
+</style>

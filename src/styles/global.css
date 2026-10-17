@@ -1,0 +1,287 @@
+/* Inside Darkness: токены и базовые стили.
+   Слои страницы идут сверху вниз, как в мире: сумерки, камень, глубинный сланец, бедрок. */
+
+:root {
+  color-scheme: dark;
+
+  /* слои */
+  --dusk-top: #353e5e;
+  --dusk: #272d44;
+  --stone: #1f232d;
+  --deep: #181a21;
+  --deeper: #131419;
+  --bedrock: #0d0e11;
+
+  /* текст */
+  --bone: #ece4d1;
+  --iron: #aeb1bc;
+  --iron-dim: #8b8f9b;
+
+  /* свет и знаки */
+  --torch: #f0ad48;
+  --torch-soft: #f6cf8f;
+  --torch-ink: #241703;
+  --wine: #8a2c38;
+  --moss: #8fcaa5;
+  --redstone: #f08c80;
+
+  --line: rgb(236 228 209 / 0.12);
+  --line-strong: rgb(236 228 209 / 0.22);
+
+  --font-body: 'Alegreya', 'Georgia', 'Times New Roman', serif;
+  --font-display: 'Alegreya SC', 'Alegreya', 'Georgia', serif;
+  --font-ui: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+
+  --step--1: 0.9375rem;
+  --step-0: 1.1875rem;
+  --step-1: 1.4375rem;
+  --step-2: clamp(1.75rem, 1.35rem + 1.6vw, 2.5rem);
+  --step-3: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);
+
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --wrap: 72rem;
+  --notch: 6px;
+
+  /* подсветка кода в документации (тема Shiki css-variables) */
+  --astro-code-foreground: #e4dccb;
+  --astro-code-background: #121318;
+  --astro-code-token-constant: #f6cf8f;
+  --astro-code-token-string: #a9d6b8;
+  --astro-code-token-comment: #8b8f9b;
+  --astro-code-token-keyword: #f0ad48;
+  --astro-code-token-parameter: #e4dccb;
+  --astro-code-token-function: #b9c7ef;
+  --astro-code-token-string-expression: #a9d6b8;
+  --astro-code-token-punctuation: #aeb1bc;
+  --astro-code-token-link: #f6cf8f;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 1.5rem;
+  background: var(--bedrock);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--stone);
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.15;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--torch-soft);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--torch);
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--torch);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--torch);
+  color: var(--torch-ink);
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--torch);
+  color: var(--torch-ink);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Кнопки со срезанными углами, как у блочного интерфейса. */
+.btn {
+  --btn-bg: var(--torch);
+  --btn-fg: var(--torch-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.15rem;
+  border: 0;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-ui);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  clip-path: polygon(
+    var(--notch) 0,
+    calc(100% - var(--notch)) 0,
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    var(--notch) 100%,
+    0 calc(100% - var(--notch)),
+    0 var(--notch)
+  );
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.22), inset 0 2px 0 rgb(255 255 255 / 0.28);
+}
+
+.btn:hover {
+  --btn-bg: var(--torch-soft);
+  color: var(--btn-fg);
+  text-decoration: none;
+}
+
+.btn:active {
+  box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.25);
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--bone), inset 0 0 0 5px var(--torch-ink);
+}
+
+.btn--quiet {
+  --btn-bg: #343948;
+  --btn-fg: var(--bone);
+}
+
+.btn--quiet:hover {
+  --btn-bg: #414759;
+  --btn-fg: var(--bone);
+}
+
+.btn--small {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.9375rem;
+}
+
+/* Зубцы стены: верхний край следующего слоя заходит в предыдущий. */
+.crenel {
+  --merlon: 28px;
+  --crenel-color: var(--stone);
+  display: block;
+  height: 14px;
+  margin-top: -14px;
+  position: relative;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--crenel-color) 0 var(--merlon),
+    transparent var(--merlon) calc(var(--merlon) * 2)
+  );
+}
+
+/* Ступенчатый край: как срез породы. */
+.strata-edge {
+  display: block;
+  width: 100%;
+  height: 24px;
+  margin-top: -23px;
+  position: relative;
+}
+
+.section {
+  padding-block: clamp(3.5rem, 8vw, 6.5rem);
+}
+
+.section__title {
+  font-size: var(--step-3);
+  letter-spacing: -0.01em;
+}
+
+.section__lead {
+  margin-top: 1rem;
+  max-width: 40rem;
+  color: var(--iron);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

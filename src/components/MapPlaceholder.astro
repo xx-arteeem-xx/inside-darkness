@@ -1,0 +1,102 @@
+---
+// Условная местность из клеток: вода, луга, лес, горы. Это не карта сервера, а заставка.
+let seed = 7341;
+const rand = () => {
+  seed = (seed * 1103515245 + 12345) % 2147483648;
+  return seed / 2147483648;
+};
+const COLS = 72;
+const ROWS = 28;
+const phases = Array.from({ length: 6 }, () => rand() * Math.PI * 2);
+const height = (x: number, y: number) =>
+  Math.sin(x * 0.11 + phases[0]) * 0.9 +
+  Math.cos(y * 0.19 + phases[1]) * 0.7 +
+  Math.sin((x + y) * 0.07 + phases[2]) * 0.8 +
+  Math.cos((x - y * 1.7) * 0.05 + phases[3]) * 0.6 +
+  (rand() - 0.5) * 0.35;
+const tone = (h: number) => {
+  if (h < -1.0) return '#1c2636';
+  if (h < -0.55) return '#223047';
+  if (h < -0.35) return '#3a3a35';
+  if (h < 0.6) return '#26302a';
+  if (h < 1.35) return '#1f2823';
+  if (h < 1.9) return '#2d2f37';
+  return '#3b3d46';
+};
+// Соседние клетки одного цвета склеиваются в полосы, чтобы SVG был лёгким.
+const cells: Array<{ x: number; y: number; w: number; fill: string }> = [];
+for (let y = 0; y < ROWS; y++) {
+  const row = Array.from({ length: COLS }, (_, x) => tone(height(x, y)));
+  let x = 0;
+  while (x < COLS) {
+    let w = 1;
+    while (x + w < COLS && row[x + w] === row[x]) w++;
+    cells.push({ x, y, w, fill: row[x] });
+    x += w;
+  }
+}
+---
+<section class="map section" id="map" aria-labelledby="map-title">
+  <div class="wrap">
+    <div class="map__frame">
+      <svg class="map__tiles" viewBox={`0 0 ${COLS} ${ROWS}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" shape-rendering="crispEdges">
+        {cells.map((c) => <rect x={c.x} y={c.y} width={c.w} height="1" fill={c.fill} />)}
+      </svg>
+      <div class="map__fog" aria-hidden="true"></div>
+      <div class="map__label">
+        <h2 class="map__title" id="map-title">Карта появится позже</h2>
+        <p>Здесь будет карта мира, которую можно листать прямо в браузере.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .map {
+    background: var(--deep);
+    padding-top: 0;
+  }
+
+  .map__frame {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: clamp(16rem, 38vw, 26rem);
+    overflow: hidden;
+    border: 6px solid #2a2e3a;
+    outline: 2px solid #121318;
+    outline-offset: -2px;
+    box-shadow: 0 0 0 2px #3c4253;
+  }
+
+  .map__tiles {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.9;
+  }
+
+  .map__fog {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 55% 60% at 50% 50%, rgb(24 26 33 / 0.92) 0%, rgb(24 26 33 / 0.7) 45%, rgb(24 26 33 / 0.15) 100%);
+  }
+
+  .map__label {
+    position: relative;
+    max-width: 30rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .map__title {
+    font-size: var(--step-2);
+  }
+
+  .map__label p {
+    margin-top: 0.6rem;
+    color: var(--iron);
+  }
+</style>

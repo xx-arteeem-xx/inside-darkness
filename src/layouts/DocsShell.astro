@@ -1,0 +1,278 @@
+---
+import Base from './Base.astro';
+import '../styles/prose.css';
+import { url } from '../lib/url';
+import type { DocSection } from '../lib/docs';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+interface Props {
+  title: string;
+  description?: string;
+  sections: DocSection[];
+  currentId?: string;
+  headings?: Heading[];
+}
+
+const { title, description, sections, currentId, headings = [] } = Astro.props;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const isIndex = !currentId;
+---
+<Base title={title} description={description || undefined}>
+  <div class="docs">
+    <aside class="docs__side" aria-label="Разделы документации">
+      <button class="docs__toggle" type="button" aria-expanded="false" aria-controls="docs-nav" hidden>
+        Все страницы
+      </button>
+      <nav class="docs__nav" id="docs-nav">
+        <a class="docs__home" href={url('/docs/')} aria-current={isIndex ? 'page' : undefined}>Документация</a>
+        {sections.length === 0 && <p class="docs__empty">Страницы пока пишутся.</p>}
+        {sections.map((section) => (
+          <div class="docs__group">
+            <p class="docs__section">{section.name}</p>
+            <ul role="list">
+              {section.docs.map((doc) => (
+                <li>
+                  <a href={url(`/docs/${doc.id}/`)} aria-current={doc.id === currentId ? 'page' : undefined}>
+                    {doc.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <div class="docs__main">
+      <slot />
+    </div>
+
+    {toc.length > 1 && (
+      <aside class="docs__toc" aria-labelledby="toc-title">
+        <p class="docs__toc-title" id="toc-title">На этой странице</p>
+        <ul role="list">
+          {toc.map((h) => (
+            <li class:list={[`toc-d${h.depth}`]}>
+              <a href={`#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )}
+  </div>
+</Base>
+
+<style>
+  .docs {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 46rem) 14rem;
+    justify-content: center;
+    gap: 0 clamp(2rem, 4vw, 3.5rem);
+    max-width: 88rem;
+    margin-inline: auto;
+    padding: 2.5rem var(--gutter) 5rem;
+    background: var(--stone);
+  }
+
+  :global(body[data-variant='inner']) {
+    background: var(--stone);
+  }
+
+  .docs__side,
+  .docs__toc {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    font-family: var(--font-ui);
+    scrollbar-width: thin;
+  }
+
+  .docs__nav {
+    display: grid;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .docs__home {
+    color: var(--bone);
+    font-family: var(--font-body);
+    font-size: 1.35rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .docs__home[aria-current='page'],
+  .docs__home:hover {
+    color: var(--torch-soft);
+  }
+
+  .docs__empty {
+    color: var(--iron);
+  }
+
+  .docs__section {
+    margin-bottom: 0.4rem;
+    color: var(--iron);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .docs__group ul,
+  .docs__toc ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .docs__group a {
+    display: block;
+    padding: 0.3rem 0 0.3rem 0.85rem;
+    border-left: 3px solid #343948;
+    color: #d9d2c1;
+    font-size: 1.0625rem;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+
+  .docs__group a:hover {
+    border-left-color: var(--iron);
+    color: var(--bone);
+  }
+
+  .docs__group a[aria-current='page'] {
+    border-left-color: var(--torch);
+    color: var(--torch-soft);
+    font-weight: 700;
+  }
+
+  .docs__toc-title {
+    margin-bottom: 0.6rem;
+    color: var(--iron);
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .docs__toc a {
+    display: block;
+    padding-block: 0.25rem;
+    color: var(--iron);
+    font-size: 0.975rem;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+
+  .docs__toc a:hover,
+  .docs__toc a[aria-current='true'] {
+    color: var(--torch-soft);
+  }
+
+  .docs__toc .toc-d3 a {
+    padding-left: 0.85rem;
+    font-size: 0.925rem;
+  }
+
+  .docs__toggle {
+    display: none;
+  }
+
+  @media (max-width: 75rem) {
+    .docs {
+      grid-template-columns: 15rem minmax(0, 46rem);
+    }
+
+    .docs__toc {
+      display: none;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .docs {
+      grid-template-columns: minmax(0, 1fr);
+      padding-top: 1.25rem;
+    }
+
+    .docs__side {
+      position: static;
+      max-height: none;
+      overflow: visible;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .docs__toggle:not([hidden]) {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      min-height: 2.75rem;
+      padding: 0.5rem 1rem;
+      background: #2a2e3a;
+      border: 3px solid;
+      border-color: #4b5164 #121318 #121318 #4b5164;
+      color: var(--bone);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .docs__toggle::after {
+      content: '';
+      width: 0.6rem;
+      height: 0.6rem;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: translateY(-2px) rotate(45deg);
+    }
+
+    .docs__toggle[aria-expanded='true']::after {
+      transform: translateY(2px) rotate(-135deg);
+    }
+
+    :global(html.js) .docs__toggle[aria-expanded='false'] + .docs__nav {
+      display: none;
+    }
+
+    .docs__toggle + .docs__nav {
+      margin-top: 1.25rem;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.docs__toggle');
+  if (toggle) {
+    toggle.hidden = false;
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!open));
+    });
+  }
+
+  // Подсветка текущего пункта оглавления при прокрутке.
+  const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.docs__toc a')];
+  if (tocLinks.length && 'IntersectionObserver' in window) {
+    const byId = new Map(tocLinks.map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (!visible.length) return;
+        const link = byId.get(visible[0].target.id);
+        if (!link) return;
+        tocLinks.forEach((a) => a.removeAttribute('aria-current'));
+        link.setAttribute('aria-current', 'true');
+      },
+      { rootMargin: '0px 0px -70% 0px' },
+    );
+    byId.forEach((_, id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  }
+</script>

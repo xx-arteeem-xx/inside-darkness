@@ -1,0 +1,97 @@
+---
+import links from '../config/links.json';
+
+const channel = (links.telegram?.channel ?? '').trim();
+const chat = (links.telegram?.chat ?? '').trim();
+const rows = [
+  { name: 'Канал', text: 'Новости сервера.', href: channel, cta: 'Открыть канал' },
+  { name: 'Чат', text: 'Общение игроков.', href: chat, cta: 'Открыть чат' },
+];
+const any = Boolean(channel || chat);
+---
+<section class="tg section" id="telegram" aria-labelledby="tg-title">
+  <svg class="strata-edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+    <path fill="var(--deeper)" d="M0 24V12h88V4h136v12h160V8h96v8h120V0h72v12h184V8h104v8h112V4h128v12h96V8h144V24z" />
+  </svg>
+  <div class="wrap tg__grid">
+    <div>
+      <h2 class="section__title" id="tg-title">Telegram</h2>
+      <p class="section__lead">
+        {any ? 'Новости и общение игроков.' : 'Канал и чат скоро появятся. Ссылки будут здесь.'}
+      </p>
+    </div>
+    <ul class="tg__list" role="list">
+      {rows.map((r) => (
+        <li class="tg__row">
+          <div>
+            <h3 class="tg__name">{r.name}</h3>
+            <p class="tg__text">{r.text}</p>
+          </div>
+          {r.href ? (
+            <a class="btn" href={r.href} rel="noopener">{r.cta}</a>
+          ) : (
+            <span class="tg__soon">скоро</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .tg {
+    position: relative;
+    background: var(--deeper);
+    padding-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .tg__grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
+    gap: 2rem clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .tg__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tg__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    padding-block: 1.1rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .tg__row:last-child {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .tg__name {
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+
+  .tg__text {
+    color: var(--iron);
+  }
+
+  .tg__soon {
+    padding: 0.3rem 0.75rem;
+    border: 1px dashed var(--iron-dim);
+    color: var(--iron);
+    font-family: var(--font-ui);
+    font-size: 1rem;
+  }
+
+  @media (max-width: 56rem) {
+    .tg__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

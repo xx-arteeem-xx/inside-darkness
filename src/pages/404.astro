@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
+---
+<Base title="Страница не найдена">
+  <section class="nf wrap">
+    <p class="nf__code" aria-hidden="true">Y −64</p>
+    <h1>Такой страницы нет</h1>
+    <p class="nf__text">Ниже только бедрок. Ссылка устарела или в адресе опечатка.</p>
+    <p class="nf__links">
+      <a class="btn" href={url('/')}>На главную</a>
+      <a class="btn btn--quiet" href={url('/docs/')}>Документация</a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    padding-block: clamp(4rem, 12vw, 8rem);
+  }
+
+  .nf__code {
+    color: var(--iron-dim);
+    font-family: var(--font-mono);
+    font-size: 1.125rem;
+  }
+
+  .nf h1 {
+    margin-top: 0.5rem;
+    font-size: var(--step-3);
+  }
+
+  .nf__text {
+    margin-top: 1rem;
+    color: var(--iron);
+  }
+
+  .nf__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+</style>

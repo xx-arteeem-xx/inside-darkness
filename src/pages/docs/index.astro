@@ -1,0 +1,107 @@
+---
+import DocsShell from '../../layouts/DocsShell.astro';
+import { getDocSections } from '../../lib/docs';
+import { url } from '../../lib/url';
+
+const sections = await getDocSections();
+const total = sections.reduce((n, s) => n + s.docs.length, 0);
+---
+<DocsShell title="Документация" description="Как устроены механики Inside Darkness: навыки, профессии, расы и классы, постройки и команды." sections={sections}>
+  <header class="doc-head">
+    <h1 class="doc-head__title">Документация</h1>
+    <p class="doc-head__lead">Как устроены механики сервера и какими командами ими пользоваться.</p>
+  </header>
+
+  {total === 0 ? (
+    <div class="docs-empty">
+      <p class="docs-empty__title">Страницы пока пишутся.</p>
+      <p>Здесь будут навыки, профессии, расы и классы, постройки и команды. Как зайти на сервер, уже есть на <a href={url('/#join')}>главной</a>.</p>
+    </div>
+  ) : (
+    <div class="docs-index">
+      {sections.map((section) => (
+        <section class="docs-index__section" aria-labelledby={`s-${section.name}`}>
+          <h2 class="docs-index__name" id={`s-${section.name}`}>{section.name}</h2>
+          <ul role="list">
+            {section.docs.map((doc) => (
+              <li>
+                <a class="docs-index__link" href={url(`/docs/${doc.id}/`)}>{doc.data.title}</a>
+                {doc.data.description && <p class="docs-index__desc">{doc.data.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )}
+</DocsShell>
+
+<style>
+  .doc-head__title {
+    font-size: var(--step-3);
+  }
+
+  .doc-head__lead {
+    max-width: 40rem;
+    margin-top: 0.75rem;
+    color: var(--iron);
+    font-size: 1.25rem;
+  }
+
+  .docs-empty {
+    margin-top: 2.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 2px dashed #3a3f4f;
+    color: var(--iron);
+  }
+
+  .docs-empty__title {
+    color: var(--bone);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+
+  .docs-empty p + p {
+    margin-top: 0.5rem;
+  }
+
+  .docs-index {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: 2.5rem;
+  }
+
+  .docs-index__name {
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line-strong);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+
+  .docs-index ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1.25rem 2rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .docs-index__link {
+    color: var(--torch-soft);
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .docs-index__link:hover {
+    text-decoration: underline;
+  }
+
+  .docs-index__desc {
+    margin-top: 0.25rem;
+    color: var(--iron);
+    font-size: 1.0625rem;
+    line-height: 1.45;
+  }
+</style>

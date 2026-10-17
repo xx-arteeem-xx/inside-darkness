@@ -1,0 +1,196 @@
+---
+import CopyButton from './CopyButton.astro';
+import { SERVER } from '../config/site';
+import { url } from '../lib/url';
+---
+<section class="join section" id="join" aria-labelledby="join-title">
+  <svg class="strata-edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+    <path fill="var(--deep)" d="M0 24V8h120v8h96V4h168v12h72V8h144v8h112V0h96v12h160V4h88v12h120V8h136v8h128V24z" />
+  </svg>
+  <div class="wrap join__grid">
+    <div class="join__intro">
+      <h2 class="section__title" id="join-title">Как зайти</h2>
+      <p class="section__lead">Пять шагов, моды не нужны. Подойдёт и лицензия, и пиратский лаунчер.</p>
+
+      <aside class="join__note" aria-label="Важно знать">
+        <p>
+          Сервер стоит на хостинге exaroton и засыпает, когда в нём никого нет. Если статус наверху показывает, что сервер
+          выключен, сейчас он спит.
+        </p>
+        <p>
+          Для сервера придумай отдельный пароль. Пароль от почты или другого аккаунта сюда не вводи.
+        </p>
+      </aside>
+    </div>
+
+    <ol class="steps" role="list">
+      <li class="step">
+        <h3 class="step__title">Запусти Minecraft Java Edition</h3>
+        <p>Подходит любая версия от 1.21.11 до 26.1.2.</p>
+      </li>
+      <li class="step">
+        <h3 class="step__title">Добавь сервер</h3>
+        <p>В меню «Сетевая игра» нажми «Добавить сервер» и вставь адрес:</p>
+        <div class="cmd cmd--copy">
+          <code id="join-address">{SERVER.address}</code>
+          <CopyButton text={SERVER.address} target="join-address" label="Скопировать адрес" done="Адрес скопирован" quiet small />
+        </div>
+      </li>
+      <li class="step">
+        <h3 class="step__title">Прими ресурспак</h3>
+        <p>
+          При входе сервер предложит набор ресурсов. Соглашайся: без него не будет текстур рас, классов и оружия.
+        </p>
+      </li>
+      <li class="step">
+        <h3 class="step__title">Зарегистрируйся</h3>
+        <p>В первый раз напиши в чат пароль два раза:</p>
+        <p class="cmd"><code>/register &lt;пароль&gt; &lt;пароль&gt;</code></p>
+        <p class="step__after">В следующие разы хватит одного:</p>
+        <p class="cmd"><code>/login &lt;пароль&gt;</code></p>
+      </li>
+      <li class="step">
+        <h3 class="step__title">Открой меню</h3>
+        <p>Команда <code class="inline">/menu</code> открывает главное меню сервера. Остальное есть в <a href={url('/docs/')}>документации</a>.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<style>
+  .join {
+    position: relative;
+    background: var(--deep);
+  }
+
+  .join__grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
+    gap: 2.5rem clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .join__note {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding: 1.1rem 1.25rem;
+    background: #1f2129;
+    border-left: 4px solid var(--wine);
+    color: #d9d2c1;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+
+  .steps {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .step {
+    position: relative;
+    display: grid;
+    gap: 0.5rem;
+    padding: 0 0 2rem 4.25rem;
+    counter-increment: step;
+  }
+
+  /* Номер шага в квадратной ячейке и вертикальная «лестница» между шагами. */
+  .step::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: -0.1rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: #2a2e3a;
+    border: 3px solid;
+    border-color: #121318 #4b5164 #4b5164 #121318;
+    color: var(--torch);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: calc(1.375rem - 2px);
+    top: 2.9rem;
+    bottom: 0.35rem;
+    width: 4px;
+    background: repeating-linear-gradient(180deg, #343948 0 8px, transparent 8px 14px);
+  }
+
+  .step__title {
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .step p {
+    color: #d9d2c1;
+  }
+
+  .step__after {
+    margin-top: 0.4rem;
+  }
+
+  .cmd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.55rem 0.9rem;
+    background: #101116;
+    border: 1px solid #343948;
+  }
+
+  .cmd code {
+    color: var(--torch-soft);
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .cmd--copy {
+    padding-right: 0.5rem;
+  }
+
+  .inline {
+    padding: 0.05em 0.3em;
+    background: #2c303c;
+    color: var(--torch-soft);
+  }
+
+  @media (max-width: 56rem) {
+    .join__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .step {
+      padding-left: 3.5rem;
+    }
+
+    .step::before {
+      width: 2.4rem;
+      height: 2.4rem;
+      font-size: 1.3rem;
+    }
+
+    .step:not(:last-child)::after {
+      left: calc(1.2rem - 2px);
+      top: 2.6rem;
+    }
+  }
+</style>

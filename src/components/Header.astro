@@ -1,0 +1,113 @@
+---
+import { url } from '../lib/url';
+
+interface Props {
+  variant?: 'home' | 'inner';
+}
+const { variant = 'inner' } = Astro.props;
+const path = Astro.url.pathname;
+const inDocs = path.includes('/docs');
+---
+<header class:list={['site-header', `site-header--${variant}`]}>
+  <div class="wrap site-header__row">
+    <a class="site-header__mark" href={url('/')} aria-label="Inside Darkness, на главную">
+      <svg class="site-header__glyph" viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges">
+        <path fill="currentColor" d="M3 4h2v1h2V4h2v1h2V4h2v11H3z" />
+        <path fill="var(--glyph-door, #1f232d)" d="M7 10h2v5H7z" />
+        <path fill="var(--torch)" d="M5 7h1v2H5zM10 7h1v2h-1z" />
+      </svg>
+      <span>Inside Darkness</span>
+    </a>
+    <nav class="site-header__nav" aria-label="Основная навигация">
+      <a href={url('/#join')}>Как зайти</a>
+      <a href={url('/docs/')} aria-current={inDocs ? 'page' : undefined}>Документация</a>
+      <a href={url('/#donate')}>Поддержать</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: relative;
+    z-index: 10;
+    font-family: var(--font-ui);
+  }
+
+  .site-header--home {
+    position: absolute;
+    inset: 0 0 auto 0;
+  }
+
+  .site-header--inner {
+    background: var(--deep);
+    border-bottom: 1px solid var(--line);
+    --glyph-door: var(--deep);
+  }
+
+  .site-header--home {
+    --glyph-door: var(--dusk-top);
+  }
+
+  .site-header__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    padding-block: 1rem;
+  }
+
+  .site-header__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
+  .site-header__mark:hover {
+    color: var(--torch-soft);
+  }
+
+  .site-header__glyph {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: #6a7083;
+  }
+
+  .site-header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.4rem;
+    font-size: 1.0625rem;
+    font-weight: 500;
+  }
+
+  .site-header__nav a {
+    padding-block: 0.35rem;
+    color: var(--bone);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .site-header__nav a:hover {
+    color: var(--torch-soft);
+    border-bottom-color: currentColor;
+  }
+
+  .site-header__nav a[aria-current='page'] {
+    color: var(--torch-soft);
+    border-bottom-color: var(--torch);
+  }
+
+  @media (max-width: 30rem) {
+    .site-header__nav {
+      gap: 0.25rem 1rem;
+      font-size: 1rem;
+    }
+  }
+</style>
