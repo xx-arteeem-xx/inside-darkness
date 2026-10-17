@@ -4,7 +4,8 @@ import { docSlug } from './slug.mjs';
  * Обработка HTML документации:
  * - таблицы оборачиваются в прокручиваемый контейнер (на телефоне не ломают вёрстку);
  * - цитаты вида `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`... превращаются во врезки;
- * - ссылки `/docs/x/`, `x.md`, `/rp/...` получают префикс base (`/inside-darkness`).
+ * - ссылки `/docs/x/`, `x.md`, `/rp/...` получают префикс base (`/inside-darkness`);
+ * - ведущий `# Заголовок` убирается: h1 страницы рисуется из frontmatter.
  */
 const CALLOUTS = {
   NOTE: 'Заметка',
@@ -88,5 +89,11 @@ export function rehypeDocs(options = {}) {
     }
   };
 
-  return (tree) => visit(tree);
+  return (tree) => {
+    // Заголовок страницы берётся из frontmatter. Если файл начинается с `# Заголовок`,
+    // убираем его, чтобы на странице не было двух h1.
+    const first = tree.children?.findIndex((c) => c.type === 'element');
+    if (first !== undefined && first >= 0 && tree.children[first].tagName === 'h1') tree.children.splice(first, 1);
+    visit(tree);
+  };
 }
