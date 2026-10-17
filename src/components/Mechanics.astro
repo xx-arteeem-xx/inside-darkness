@@ -192,6 +192,8 @@ const frames = ['fighter', 'miner', 'cleric', 'scout', 'survivor', 'archer', 'ba
   /* День: тёплый камень, свет факела сверху. */
   .day {
     position: relative;
+    display: flex;
+    flex-direction: column;
     padding: clamp(1.75rem, 4vw, 3rem);
     background:
       radial-gradient(120% 70% at 30% 0%, rgb(237 163 60 / 0.12), transparent 60%),
@@ -202,7 +204,8 @@ const frames = ['fighter', 'miner', 'cleric', 'scout', 'survivor', 'archer', 'ba
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 2.25rem;
+    margin-top: auto;
+    padding-top: 2.25rem;
   }
 
   /* Полоса опыта как в игре: сегменты и заполнение. */

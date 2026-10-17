@@ -360,7 +360,7 @@ const craters = [[1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4]];
 
   /* Глубина при прокрутке: дальние слои отстают. Только если браузер умеет scroll-timeline
      и человек не просил убрать движение. */
-  @media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 48rem) {
     @supports (animation-timeline: scroll()) {
       .hero__stars,
       .hero__moon,
