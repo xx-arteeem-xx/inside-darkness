@@ -57,7 +57,7 @@ for (let y = 0; y < ROWS; y++) {
   </div>
 </section>
 
-<script define:vars={{ statusApi: SERVER.statusApi, mapUrl: SERVER.mapUrl }}>
+<script define:vars={{ liveApi: SERVER.liveApi, mapUrl: SERVER.mapUrl }}>
   const root = document.getElementById('map');
   const text = root.querySelector('[data-map-text]');
   const actions = root.querySelector('[data-map-actions]');
@@ -71,20 +71,18 @@ for (let y = 0; y < ROWS; y++) {
   });
   const ctrl = new AbortController();
   setTimeout(() => ctrl.abort(), 10000);
-  fetch(statusApi, { signal: ctrl.signal })
-    .then((r) => r.json())
+  fetch(liveApi, { signal: ctrl.signal, cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null)
     .then((s) => {
-      if (s.online) {
+      if (s && Array.isArray(s.players)) {
         text.textContent = '3D-карта столицы и окрестностей. Видно игроков онлайн, постройки обновляются сами.';
         actions.hidden = false;
       } else {
         text.textContent = 'Карта работает, пока запущен сервер. Сейчас он спит — загляните, когда в игре кто-то будет.';
       }
     })
-    .catch(() => {
-      text.textContent = 'Не удалось проверить сервер. Карту можно открыть напрямую.';
-      actions.hidden = false;
-    });
+    ;
 </script>
 
 <style>

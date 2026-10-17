@@ -1,7 +1,7 @@
 ---
 import { SERVER } from '../config/site';
 ---
-<div class="status" data-server-status data-state="loading" data-api={SERVER.statusApi}>
+<div class="status" data-server-status data-state="loading" data-api={SERVER.liveApi}>
   <span class="status__dot" aria-hidden="true"></span>
   <div class="status__body">
     <p class="status__text" data-status-text role="status" aria-live="polite">Проверяю, запущен ли сервер…</p>
@@ -80,23 +80,7 @@ import { SERVER } from '../config/site';
 </style>
 
 <script>
-  type Status = {
-    online?: boolean;
-    players?: { online?: number; max?: number };
-    version?: string;
-    motd?: { clean?: string[] };
-    debug?: { cachetime?: number };
-  };
-
   const TIMEOUT_MS = 10000;
-
-  function ago(cachetime?: number): string {
-    if (!cachetime) return '';
-    const min = Math.round((Date.now() / 1000 - cachetime) / 60);
-    if (!Number.isFinite(min) || min < 0) return '';
-    if (min < 1) return 'только что';
-    return `${min} мин назад`;
-  }
 
   function plural(n: number): string {
     const m10 = n % 10;
@@ -119,12 +103,6 @@ import { SERVER } from '../config/site';
     if (r) r.hidden = !retry;
   }
 
-  /** exaroton может отвечать на пинг заглушкой, пока сервер выключен. */
-  function looksAsleep(data: Status): boolean {
-    const motd = (data.motd?.clean ?? []).join(' ');
-    return /offline|выключен/i.test(`${data.version ?? ''} ${motd}`);
-  }
-
   async function check(root: HTMLElement) {
     const api = root.dataset.api;
     if (!api) return;
@@ -133,43 +111,26 @@ import { SERVER } from '../config/site';
     const ctrl = new AbortController();
     const timer = window.setTimeout(() => ctrl.abort(), TIMEOUT_MS);
     try {
-      const res = await fetch(api, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as Status;
-      const when = ago(data.debug?.cachetime);
-      const meta = `Данные mcsrvstat.us${when ? `, проверено ${when}` : ''}. Сервис обновляет их раз в несколько минут.`;
-
-      if (data.online === true && !looksAsleep(data)) {
-        const on = data.players?.online;
-        const max = data.players?.max;
-        let text = 'Сервер запущен, можно заходить.';
-        if (typeof on === 'number' && typeof max === 'number') {
-          text = `Сервер запущен. Сейчас ${on} ${plural(on)} из ${max}.`;
-        } else if (typeof on === 'number') {
-          text = `Сервер запущен. Сейчас ${on} ${plural(on)}.`;
-        }
+      let data: { players?: Array<{ name?: string }> } | null = null;
+      try {
+        const res = await fetch(api, { signal: ctrl.signal, cache: 'no-store' });
+        if (res.ok) data = await res.json();
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') throw err;
+        data = null; // заглушка exaroton без CORS или не JSON — сервер спит
+      }
+      if (data && Array.isArray(data.players)) {
+        const names = data.players.map((p) => p.name).filter(Boolean) as string[];
+        const on = names.length;
+        const text = on ? `Сервер запущен. Сейчас ${on} ${plural(on)}.` : 'Сервер запущен, можно заходить.';
+        const meta = on ? `В игре: ${names.slice(0, 5).join(', ')}${on > 5 ? ' и другие' : ''}.` : '';
         render(root, 'online', text, meta);
-      } else if (data.online === false || looksAsleep(data)) {
-        render(
-          root,
-          'offline',
-          'Сервер сейчас выключен. На хостинге exaroton он засыпает, когда в игре никого нет.',
-          meta,
-        );
       } else {
-        throw new Error('unexpected payload');
+        render(root, 'offline', 'Сервер сейчас выключен. На хостинге exaroton он засыпает, когда в игре никого нет.');
       }
     } catch (err) {
-      const aborted = err instanceof DOMException && err.name === 'AbortError';
-      render(
-        root,
-        'error',
-        aborted
-          ? 'Статус не загрузился: сервис проверки не ответил за 10 секунд.'
-          : 'Статус не загрузился: сервис проверки недоступен.',
-        'Адрес от этого не меняется, можно попробовать зайти из игры.',
-        true,
-      );
+      render(root, 'error', 'Статус не загрузился: сервер не ответил за 10 секунд.',
+        'Адрес от этого не меняется, можно попробовать зайти из игры.', true);
     } finally {
       window.clearTimeout(timer);
     }
