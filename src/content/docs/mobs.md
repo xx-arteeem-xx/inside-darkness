@@ -77,6 +77,17 @@ order: 420
 | Farlander | | Deathstrider |
 | Headless Horseman | | |
 
+### Ночные события
+
+С наступлением ночи RPG Loot с шансом 5% запускает одно из событий. Событие длится до утра, о начале пишется в чат:
+
+| Сообщение в чате | Событие |
+|---|---|
+| This is going to be a bad night... | ночь боссов |
+| It's a blood moon out... the dead hunger... | кровавая луна, нашествие нежити |
+| You hear hissing in the distance... | нашествие криперов |
+| The creepy crawlies have come out to play... | нашествие пауков |
+
 ### Мобы подземелий
 
 В подземельях RPG Loot живут свои противники: Decayed Guard, Decayed Archer, Fallen One, Plagued Defender, Scorched Conscript, Scriber, Dark Seraph, Vanguard, Ashen One. Где искать подземелья: [Мир](../world/).
