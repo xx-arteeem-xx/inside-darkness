@@ -1,7 +1,9 @@
 ---
 import CopyButton from './CopyButton.astro';
 import { SERVER } from '../config/site';
-import { url } from '../lib/url';
+import { docHref } from '../lib/docs';
+
+const startHref = await docHref('start');
 ---
 <section class="join section" id="join" aria-labelledby="join-title">
   <svg class="strata" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
@@ -48,7 +50,7 @@ import { url } from '../lib/url';
         никого нет. Попробуйте зайти позже.
       </p>
       <p>
-        Подробнее о первом входе: <a href={url('/docs/start/')}>Первые шаги</a>.
+        Подробнее о первом входе: <a href={startHref}>Первые шаги</a>.
       </p>
     </div>
   </div>

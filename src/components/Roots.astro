@@ -2,7 +2,10 @@
 import Pixel from './Pixel.astro';
 import { CRESTS, GLYPHS } from '../lib/emblems';
 import { RACES, CLASSES } from '../data/roots';
-import { url } from '../lib/url';
+import { docHref } from '../lib/docs';
+
+const racesHref = await docHref('races');
+const classesHref = await docHref('classes');
 ---
 <section class="roots section" id="roots" aria-labelledby="roots-title">
   <div class="wrap">
@@ -49,7 +52,7 @@ import { url } from '../lib/url';
           </div>
         ))}
         <p class="picker__more">
-          Плюсы, минусы и родовые постройки каждой расы: <a href={url('/docs/races/')}>Расы</a>.
+          Плюсы, минусы и родовые постройки каждой расы: <a href={racesHref}>Расы</a>.
         </p>
       </div>
     </div>
@@ -57,7 +60,7 @@ import { url } from '../lib/url';
     <section class="classes" aria-labelledby="classes-title">
       <div class="classes__head">
         <h3 class="classes__title" id="classes-title">Классы</h3>
-        <p>Класс даёт одно умение и бонусный опыт за любимое дело. Подробно: <a href={url('/docs/classes/')}>Классы</a>.</p>
+        <p>Класс даёт одно умение и бонусный опыт за любимое дело. Подробно: <a href={classesHref}>Классы</a>.</p>
       </div>
       <ul class="classes__list" role="list">
         {CLASSES.map((k) => (

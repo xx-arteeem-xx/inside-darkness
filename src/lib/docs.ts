@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { url } from './url';
 
 export type Doc = CollectionEntry<'docs'>;
 export interface DocSection {
@@ -34,4 +35,18 @@ export async function getDocSections(): Promise<DocSection[]> {
 
 export function flatten(sections: DocSection[]): Doc[] {
   return sections.flatMap((s) => s.docs);
+}
+
+/**
+ * Ссылка на страницу документации по её id. Документацию пишет отдельный процесс:
+ * если страницу переименуют или уберут, ссылка ведёт на оглавление, а не в 404.
+ */
+export async function docHref(id: string): Promise<string> {
+  let ids: string[] = [];
+  try {
+    ids = (await getCollection('docs')).map((d) => d.id);
+  } catch {
+    ids = [];
+  }
+  return ids.includes(id) ? url(`/docs/${id}/`) : url('/docs/');
 }

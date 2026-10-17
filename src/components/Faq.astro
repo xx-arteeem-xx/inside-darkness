@@ -1,6 +1,9 @@
 ---
 import { SERVER } from '../config/site';
-import { url } from '../lib/url';
+import { docHref } from '../lib/docs';
+
+const racesHref = await docHref('races');
+const commandsHref = await docHref('commands');
 
 const items: Array<{ q: string; a: string }> = [
   {
@@ -21,7 +24,7 @@ const items: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Можно ли сменить расу и класс?',
-    a: `Да, через сброс корней. Он стоит 100 уровней опыта. Как это сделать: <a href="${url('/docs/races/')}">Расы</a>.`,
+    a: `Да, через сброс корней. Он стоит 100 уровней опыта. Как это сделать: <a href="${racesHref}">Расы</a>.`,
   },
   {
     q: 'Что будет, если сломают мою постройку?',
@@ -29,11 +32,11 @@ const items: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Даёт ли донат преимущества в игре?',
-    a: 'Нет. Донат добровольный и идёт на оплату хостинга.',
+    a: 'Нет. Донат добровольный и не даёт игровых преимуществ.',
   },
   {
     q: 'Где посмотреть все команды?',
-    a: `В игре откройте <code>/menu</code>. Сводная таблица на сайте: <a href="${url('/docs/commands/')}">Команды</a>.`,
+    a: `В игре откройте <code>/menu</code>. Сводная таблица на сайте: <a href="${commandsHref}">Команды</a>.`,
   },
 ];
 ---

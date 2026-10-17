@@ -1,7 +1,9 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS } from '../lib/emblems';
-import { url } from '../lib/url';
+import { docHref } from '../lib/docs';
+
+const advHref = await docHref('advancements');
 
 // Глаза в темноте: [x, y, цвет, задержка моргания в секундах]
 const eyes: Array<[number, number, string, number]> = [
@@ -140,7 +142,7 @@ const frames = ['fighter', 'miner', 'cleric', 'scout', 'survivor', 'archer', 'ba
         <h3 class="mech__h" id="adv-title">900+ достижений</h3>
         <p>
           Расширенное дерево BlazeandCave's: вкладки по темам, награды опытом, предметами и трофеями. Список в{' '}
-          <a href={url('/docs/advancements/')}>документации</a>.
+          <a href={advHref}>документации</a>.
         </p>
       </div>
     </section>

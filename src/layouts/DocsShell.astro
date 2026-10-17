@@ -114,6 +114,9 @@ const isIndex = !currentId;
   }
 
   .docs__home {
+    justify-self: start;
+    padding: 0.15rem 0.4rem;
+    margin-left: -0.4rem;
     color: var(--bone);
     font-size: 1.0625rem;
     font-weight: 700;
@@ -175,6 +178,13 @@ const isIndex = !currentId;
     height: 8px;
     margin-top: -4px;
     background: var(--gold);
+  }
+
+  /* Колонки прокручиваются, поэтому кольцо фокуса рисуем внутри ссылки. */
+  .docs__home:focus-visible,
+  .docs__group a:focus-visible,
+  .docs__toc a:focus-visible {
+    outline-offset: -3px;
   }
 
   .docs__toc-title {
