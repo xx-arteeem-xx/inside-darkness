@@ -1,23 +1,31 @@
 ---
+import Mark from './Mark.astro';
 import { url } from '../lib/url';
 import { SERVER } from '../config/site';
+import { getDocSections, flatten } from '../lib/docs';
+
+const docs = flatten(await getDocSections());
+const hasRules = docs.some((d) => d.id === 'rules');
 ---
 <footer class="site-footer">
-  <svg class="site-footer__edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+  <svg class="strata site-footer__edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
     <path fill="var(--bedrock)" d="M0 24V12h48V4h72v12h96V8h40v8h120V0h56v12h88V8h112v8h64V4h96v12h72V8h104v8h48V0h80v16h96V8h56v8h112V4h48v8h72V24z" />
   </svg>
-  <div class="wrap site-footer__inner">
-    <div class="site-footer__main">
-      <p class="site-footer__name">Inside Darkness</p>
+  <div class="wrap site-footer__grid">
+    <div class="site-footer__id">
+      <p class="site-footer__name"><Mark class="site-footer__mark" /> Inside Darkness</p>
       <p class="site-footer__addr"><code>{SERVER.address}</code></p>
-      <p class="site-footer__ver">Minecraft Java Edition {SERVER.versions}</p>
+      <p>Minecraft Java Edition {SERVER.versions}</p>
     </div>
     <nav class="site-footer__nav" aria-label="Ссылки в подвале">
-      <a href={url('/#join')}>Как зайти</a>
-      <a href={url('/docs/')}>Документация</a>
-      <a href={url('/#telegram')}>Telegram</a>
-      <a href={url('/#donate')}>Поддержать</a>
-      <a href={SERVER.repo}>Исходники сайта</a>
+      <ul role="list">
+        <li><a href={url('/#join')}>Как зайти</a></li>
+        <li><a href={url('/docs/')}>Документация</a></li>
+        {hasRules && <li><a href={url('/docs/rules/')}>Правила</a></li>}
+        <li><a href={url('/#telegram')}>Telegram</a></li>
+        <li><a href={url('/#donate')}>Поддержать</a></li>
+        <li><a href={SERVER.repo}>Исходники сайта</a></li>
+      </ul>
     </nav>
     <p class="site-footer__legal">
       Не является официальным продуктом Minecraft. Не одобрено и не связано с Mojang или Microsoft.
@@ -29,62 +37,58 @@ import { SERVER } from '../config/site';
   .site-footer {
     position: relative;
     background: var(--bedrock);
-    color: var(--iron);
-    font-family: var(--font-ui);
+    color: var(--ash);
     font-size: 1rem;
   }
 
-  .site-footer__edge {
-    position: absolute;
-    left: 0;
-    top: -23px;
-    width: 100%;
-    height: 24px;
-    display: block;
-  }
-
-  .site-footer__inner {
+  .site-footer__grid {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 2rem 3rem;
-    padding-block: 3rem 2.5rem;
+    gap: 2.5rem 3rem;
+    padding-block: 3.5rem 2.5rem;
   }
 
-  .site-footer__name {
-    color: var(--bone);
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    font-weight: 800;
-  }
-
-  .site-footer__addr {
-    margin-top: 0.4rem;
-  }
-
-  .site-footer__addr code {
-    color: var(--torch-soft);
-    font-size: 0.95rem;
-    word-break: break-all;
-  }
-
-  .site-footer__ver {
-    margin-top: 0.2rem;
-  }
-
-  .site-footer__nav {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  .site-footer__id {
+    display: grid;
     gap: 0.35rem;
   }
 
-  .site-footer__nav a {
+  .site-footer__name {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
     color: var(--bone);
+    font-size: 1.5rem;
+    font-weight: 900;
+  }
+
+  .site-footer__name :global(.site-footer__mark) {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .site-footer__addr code {
+    color: var(--gold);
+    overflow-wrap: anywhere;
+  }
+
+  .site-footer__nav ul {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.45rem 2.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer__nav a {
+    color: var(--bone-2);
     text-decoration: none;
   }
 
   .site-footer__nav a:hover {
-    color: var(--torch-soft);
+    color: var(--gold);
     text-decoration: underline;
   }
 
@@ -92,12 +96,12 @@ import { SERVER } from '../config/site';
     grid-column: 1 / -1;
     padding-top: 1.5rem;
     border-top: 1px solid var(--line);
-    color: var(--iron-dim);
+    color: var(--ash-2);
     font-size: 0.9375rem;
   }
 
   @media (max-width: 40rem) {
-    .site-footer__inner {
+    .site-footer__grid {
       grid-template-columns: 1fr;
     }
   }

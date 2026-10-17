@@ -1,0 +1,22 @@
+---
+import { MARK } from '../lib/mark';
+import { gridLayers } from '../lib/pixel';
+
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+const layers = gridLayers(MARK);
+---
+<svg class:list={['mark', className]} viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges">
+  {layers.map((l) => <path fill={l.fill} d={l.d} />)}
+</svg>
+
+<style>
+  .mark {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+  }
+</style>

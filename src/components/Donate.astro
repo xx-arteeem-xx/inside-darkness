@@ -22,9 +22,11 @@ const qrSrc = sbp.qr ? url(sbp.qr) : '';
 ---
 <section class="donate section" id="donate" aria-labelledby="donate-title">
   <div class="wrap donate__grid">
-    <div>
-      <h2 class="section__title" id="donate-title">Поддержать сервер</h2>
-      <p class="section__lead">Донат добровольный и не даёт игровых преимуществ.</p>
+    <div class="section-head">
+      <h2 class="section-title" id="donate-title">Поддержать проект</h2>
+      <p class="section-lead">
+        Хостинг exaroton оплачивается за часы работы сервера. Донат добровольный и не даёт игровых преимуществ.
+      </p>
     </div>
 
     {hasAny ? (
@@ -78,6 +80,7 @@ const qrSrc = sbp.qr ? url(sbp.qr) : '';
       </div>
     ) : (
       <div class="donate__empty">
+        <span class="tag">скоро</span>
         <p class="donate__empty-title">Реквизиты появятся позже.</p>
         <p>Здесь будут перевод по СБП и адреса для криптовалюты.</p>
       </div>
@@ -87,32 +90,29 @@ const qrSrc = sbp.qr ? url(sbp.qr) : '';
 
 <style>
   .donate {
-    background: var(--deeper);
-    padding-top: clamp(2rem, 5vw, 3.5rem);
-    padding-bottom: clamp(4.5rem, 10vw, 7.5rem);
+    background: var(--slate-0);
   }
 
   .donate__grid {
     display: grid;
-    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
-    gap: 2rem clamp(2.5rem, 6vw, 5rem);
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: 2.5rem clamp(2.5rem, 6vw, 5rem);
     align-items: start;
   }
 
   .donate__methods {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
     gap: 2rem;
   }
 
   .method {
     padding-top: 1rem;
-    border-top: 3px solid var(--wine);
+    box-shadow: inset 0 3px 0 var(--wine-2);
   }
 
   .method__title {
-    font-size: var(--step-1);
-    font-weight: 700;
+    font-size: var(--fs-md);
   }
 
   .method__body {
@@ -125,7 +125,7 @@ const qrSrc = sbp.qr ? url(sbp.qr) : '';
 
   .method__empty {
     margin-top: 0.75rem;
-    color: var(--iron);
+    color: var(--ash);
   }
 
   .method__qr {
@@ -139,8 +139,7 @@ const qrSrc = sbp.qr ? url(sbp.qr) : '';
   }
 
   .field__label {
-    color: var(--iron);
-    font-family: var(--font-ui);
+    color: var(--ash);
     font-size: 1rem;
   }
 
@@ -153,26 +152,26 @@ const qrSrc = sbp.qr ? url(sbp.qr) : '';
   }
 
   .field__row code {
-    color: var(--torch-soft);
-    font-size: 0.95rem;
-    overflow-wrap: anywhere;
     min-width: 0;
+    color: var(--gold);
+    overflow-wrap: anywhere;
   }
 
+  /* Пустое состояние: пустой сундук, рамка из пунктира. */
   .donate__empty {
-    padding: 1.25rem 1.5rem;
-    border: 2px dashed #3a3f4f;
-    color: var(--iron);
+    display: grid;
+    justify-items: start;
+    gap: 0.6rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background: #17171c;
+    box-shadow: inset 0 0 0 2px var(--slate-3);
+    color: var(--ash);
   }
 
   .donate__empty-title {
     color: var(--bone);
-    font-size: var(--step-1);
+    font-size: var(--fs-md);
     font-weight: 700;
-  }
-
-  .donate__empty p + p {
-    margin-top: 0.4rem;
   }
 
   @media (max-width: 56rem) {

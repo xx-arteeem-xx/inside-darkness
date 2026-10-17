@@ -1,60 +1,74 @@
 /* Inside Darkness: токены и базовые стили.
-   Слои страницы идут сверху вниз, как в мире: сумерки, камень, глубинный сланец, бедрок. */
+   Палитра идёт сверху вниз, как в мире: ночное небо, камень стен, глубинный сланец, бедрок.
+   Свет на странице только от факелов: золото. Кровь-вино для знамён и тревоги. */
 
 :root {
   color-scheme: dark;
 
-  /* слои */
-  --dusk-top: #353e5e;
-  --dusk: #272d44;
-  --stone: #1f232d;
-  --deep: #181a21;
-  --deeper: #131419;
-  --bedrock: #0d0e11;
+  /* ночь */
+  --night-0: #070a14;
+  --night-1: #0d1222;
+  --night-2: #161d33;
+  --night-3: #222b47;
+
+  /* камень и сланец */
+  --bedrock: #09090c;
+  --slate-0: #101014;
+  --slate-1: #15161b;
+  --slate-2: #1c1d24;
+  --slate-3: #262832;
+  --slate-4: #353845;
+  --stone: #4a4e5c;
 
   /* текст */
-  --bone: #ece4d1;
-  --iron: #aeb1bc;
-  --iron-dim: #8b8f9b;
+  --bone: #ece4d0;
+  --bone-2: #d6cdb8;
+  --ash: #a9a496;
+  --ash-2: #8c887d;
 
-  /* свет и знаки */
-  --torch: #f0ad48;
-  --torch-soft: #f6cf8f;
-  --torch-ink: #241703;
-  --wine: #8a2c38;
-  --moss: #8fcaa5;
-  --redstone: #f08c80;
+  /* свет */
+  --torch: #eda33c;
+  --gold: #f4c770;
+  --gold-deep: #9b6a1f;
+  --ink: #1f1405;
 
-  --line: rgb(236 228 209 / 0.12);
-  --line-strong: rgb(236 228 209 / 0.22);
+  /* кровь и знаки */
+  --wine: #7c1f2c;
+  --wine-2: #a32c3c;
+  --blood: #d9505d;
+  --moss: #83c493;
 
-  --font-body: 'Alegreya', 'Georgia', 'Times New Roman', serif;
-  --font-display: 'Alegreya SC', 'Alegreya', 'Georgia', serif;
-  --font-ui: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+  --line: rgb(236 228 208 / 0.1);
+  --line-2: rgb(236 228 208 / 0.18);
 
-  --step--1: 0.9375rem;
-  --step-0: 1.1875rem;
-  --step-1: 1.4375rem;
-  --step-2: clamp(1.75rem, 1.35rem + 1.6vw, 2.5rem);
-  --step-3: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);
+  --font-serif: 'Vollkorn', 'Georgia', 'Times New Roman', serif;
+  --font-pixel: 'Tiny5', ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
 
-  --gutter: clamp(1rem, 4vw, 2.5rem);
-  --wrap: 72rem;
-  --notch: 6px;
+  /* шкала: базовый 18–19 px, отношение около 1.25, крупные кегли тянутся по ширине */
+  --fs-sm: 0.9375rem;
+  --fs-base: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --fs-md: clamp(1.25rem, 1.15rem + 0.4vw, 1.4375rem);
+  --fs-lg: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --fs-xl: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+  --fs-hero: clamp(4rem, 0.5rem + 8.4vw, 8.25rem);
+
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --wrap: 78rem;
+  --section: clamp(4.5rem, 10vw, 8.5rem);
+  --notch: 4px;
 
   /* подсветка кода в документации (тема Shiki css-variables) */
-  --astro-code-foreground: #e4dccb;
-  --astro-code-background: #121318;
-  --astro-code-token-constant: #f6cf8f;
-  --astro-code-token-string: #a9d6b8;
-  --astro-code-token-comment: #8b8f9b;
-  --astro-code-token-keyword: #f0ad48;
-  --astro-code-token-parameter: #e4dccb;
-  --astro-code-token-function: #b9c7ef;
-  --astro-code-token-string-expression: #a9d6b8;
-  --astro-code-token-punctuation: #aeb1bc;
-  --astro-code-token-link: #f6cf8f;
+  --astro-code-foreground: #e6dec9;
+  --astro-code-background: #0e0f13;
+  --astro-code-token-constant: #f4c770;
+  --astro-code-token-string: #a7d3b2;
+  --astro-code-token-comment: #8c887d;
+  --astro-code-token-keyword: #eda33c;
+  --astro-code-token-parameter: #e6dec9;
+  --astro-code-token-function: #c7cfe8;
+  --astro-code-token-string-expression: #a7d3b2;
+  --astro-code-token-punctuation: #a9a496;
+  --astro-code-token-link: #f4c770;
 }
 
 *,
@@ -74,15 +88,16 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--stone);
+  background: var(--slate-1);
   color: var(--bone);
-  font-family: var(--font-body);
-  font-size: var(--step-0);
-  line-height: 1.6;
+  font-family: var(--font-serif);
+  font-size: var(--fs-base);
+  line-height: 1.62;
   font-kerning: normal;
   font-variant-ligatures: common-ligatures;
-  text-rendering: optimizeLegibility;
+  font-variant-numeric: lining-nums;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 img,
@@ -95,42 +110,53 @@ h2,
 h3,
 h4 {
   margin: 0;
-  line-height: 1.15;
-  font-weight: 800;
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
-p {
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
   margin: 0;
+}
+
+p {
   text-wrap: pretty;
 }
 
 a {
-  color: var(--torch-soft);
+  color: var(--gold);
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
+  text-underline-offset: 0.2em;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
 a:hover {
-  color: var(--torch);
+  color: var(--bone);
   text-decoration-thickness: 2px;
 }
 
 :focus-visible {
-  outline: 3px solid var(--torch);
+  outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
 
 ::selection {
   background: var(--torch);
-  color: var(--torch-ink);
+  color: var(--ink);
 }
 
 code,
 kbd,
 samp {
-  font-family: var(--font-mono);
-  font-size: 0.86em;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
 }
 
 .wrap {
@@ -159,8 +185,7 @@ samp {
   z-index: 100;
   padding: 0.6rem 1rem;
   background: var(--torch);
-  color: var(--torch-ink);
-  font-family: var(--font-ui);
+  color: var(--ink);
   font-weight: 700;
   text-decoration: none;
 }
@@ -169,24 +194,33 @@ samp {
   top: 1rem;
 }
 
-/* Кнопки со срезанными углами, как у блочного интерфейса. */
+[hidden] {
+  display: none !important;
+}
+
+/* Кнопки. Главная: золото факела с фаской, как у блочного интерфейса.
+   Тихая: тёмный камень. Углы срезаны на один «пиксель». */
 .btn {
   --btn-bg: var(--torch);
-  --btn-fg: var(--torch-ink);
+  --btn-fg: var(--ink);
+  --btn-hi: rgb(255 240 200 / 0.45);
+  --btn-lo: rgb(60 30 0 / 0.45);
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0.55rem 1.15rem;
+  gap: 0.55rem;
+  min-height: 3rem;
+  padding: 0.6rem 1.3rem 0.7rem;
   border: 0;
   background: var(--btn-bg);
   color: var(--btn-fg);
-  font-family: var(--font-ui);
+  font-family: var(--font-serif);
   font-size: 1.0625rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
   clip-path: polygon(
     var(--notch) 0,
@@ -198,78 +232,145 @@ samp {
     0 calc(100% - var(--notch)),
     0 var(--notch)
   );
-  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.22), inset 0 2px 0 rgb(255 255 255 / 0.28);
+  box-shadow: inset 0 3px 0 var(--btn-hi), inset 0 -4px 0 var(--btn-lo);
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .btn:hover {
-  --btn-bg: var(--torch-soft);
+  --btn-bg: var(--gold);
   color: var(--btn-fg);
   text-decoration: none;
 }
 
 .btn:active {
-  box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.25);
-  transform: translateY(1px);
+  transform: translateY(2px);
+  box-shadow: inset 0 3px 0 var(--btn-lo);
 }
 
 .btn:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 3px var(--bone), inset 0 0 0 5px var(--torch-ink);
+  box-shadow: inset 0 0 0 3px var(--bone), inset 0 0 0 6px var(--ink);
 }
 
 .btn--quiet {
-  --btn-bg: #343948;
+  --btn-bg: var(--slate-4);
   --btn-fg: var(--bone);
+  --btn-hi: rgb(255 255 255 / 0.12);
+  --btn-lo: rgb(0 0 0 / 0.4);
 }
 
 .btn--quiet:hover {
-  --btn-bg: #414759;
+  --btn-bg: #444859;
   --btn-fg: var(--bone);
 }
 
+.btn--quiet:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 0 6px var(--slate-1);
+}
+
 .btn--small {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.9375rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.95rem 0.5rem;
+  font-size: 0.975rem;
 }
 
-/* Зубцы стены: верхний край следующего слоя заходит в предыдущий. */
-.crenel {
-  --merlon: 28px;
-  --crenel-color: var(--stone);
-  display: block;
-  height: 14px;
-  margin-top: -14px;
-  position: relative;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--crenel-color) 0 var(--merlon),
-    transparent var(--merlon) calc(var(--merlon) * 2)
-  );
+/* Ссылка-действие: без кнопочной плашки, с пиксельной стрелкой-указателем. */
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--bone);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 2px solid var(--gold-deep);
+  padding-bottom: 0.1rem;
 }
 
-/* Ступенчатый край: как срез породы. */
-.strata-edge {
+.more:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+/* Метка «скоро»: пиксельный шрифт, как подпись в игровом интерфейсе. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.55rem 0.2rem;
+  background: rgb(124 31 44 / 0.28);
+  box-shadow: inset 0 0 0 2px rgb(217 80 93 / 0.45);
+  color: #f2b7bd;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.tag--gold {
+  background: rgb(237 163 60 / 0.12);
+  box-shadow: inset 0 0 0 2px rgb(237 163 60 / 0.45);
+  color: var(--gold);
+}
+
+/* Ступенчатый край слоя: как срез породы в карьере. */
+.strata {
   display: block;
   width: 100%;
   height: 24px;
   margin-top: -23px;
   position: relative;
+  z-index: 1;
 }
 
 .section {
-  padding-block: clamp(3.5rem, 8vw, 6.5rem);
+  position: relative;
+  padding-block: var(--section);
 }
 
-.section__title {
-  font-size: var(--step-3);
-  letter-spacing: -0.01em;
+.section > .strata {
+  position: absolute;
+  top: -23px;
+  left: 0;
+  margin: 0;
 }
 
-.section__lead {
-  margin-top: 1rem;
+.section-head {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 46rem;
+}
+
+.section-title {
+  font-size: var(--fs-xl);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.section-lead {
   max-width: 40rem;
-  color: var(--iron);
+  color: var(--bone-2);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+}
+
+/* Команда в стиле игрового чата: полупрозрачная чёрная плашка, пиксельный шрифт. */
+.chat {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  max-width: 100%;
+  padding: 0.45rem 0.75rem 0.5rem;
+  background: rgb(0 0 0 / 0.55);
+  color: #f3f0e6;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.chat code {
+  color: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {

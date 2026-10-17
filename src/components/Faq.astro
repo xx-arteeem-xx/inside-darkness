@@ -1,0 +1,138 @@
+---
+import { SERVER } from '../config/site';
+import { url } from '../lib/url';
+
+const items: Array<{ q: string; a: string }> = [
+  {
+    q: 'Нужна ли лицензия?',
+    a: 'Нет, пиратские клиенты пускаются. При первом входе зарегистрируйтесь командой <code>/register</code>, дальше входите через <code>/login</code>.',
+  },
+  {
+    q: 'Какая версия Minecraft подойдёт?',
+    a: `Java Edition от ${SERVER.versions.replace('–', ' до ')}. Моды ставить не нужно.`,
+  },
+  {
+    q: 'Я отказался от ресурспака. Как его вернуть?',
+    a: 'Выберите сервер в списке, нажмите «Настроить» и поставьте «Наборы ресурсов: Включены». Без ресурспака у оружия, брони и свитков рас нет текстур.',
+  },
+  {
+    q: 'Почему сервер выключен?',
+    a: 'Сервер работает не круглосуточно: на хостинге exaroton он засыпает, когда в игре никого нет. Статус в начале страницы показывает, запущен ли он сейчас.',
+  },
+  {
+    q: 'Можно ли сменить расу и класс?',
+    a: `Да, через сброс корней. Он стоит 100 уровней опыта. Как это сделать: <a href="${url('/docs/races/')}">Расы</a>.`,
+  },
+  {
+    q: 'Что будет, если сломают мою постройку?',
+    a: 'Все изменения блоков и сундуков записываются. Администрация видит, кто и когда что сломал, и откатывает гриферство. В столице ломать нельзя вовсе.',
+  },
+  {
+    q: 'Даёт ли донат преимущества в игре?',
+    a: 'Нет. Донат добровольный и идёт на оплату хостинга.',
+  },
+  {
+    q: 'Где посмотреть все команды?',
+    a: `В игре откройте <code>/menu</code>. Сводная таблица на сайте: <a href="${url('/docs/commands/')}">Команды</a>.`,
+  },
+];
+---
+<section class="faq section" id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq__grid">
+    <h2 class="section-title" id="faq-title">Частые вопросы</h2>
+    <div class="faq__list">
+      {items.map((item) => (
+        <details class="qa">
+          <summary>{item.q}</summary>
+          <p set:html={item.a} />
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    background: var(--slate-1);
+  }
+
+  .faq__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: 2rem clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .faq__list {
+    border-top: 1px solid var(--line-2);
+  }
+
+  .qa {
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .qa summary {
+    position: relative;
+    display: block;
+    padding: 1.1rem 3rem 1.1rem 0;
+    color: var(--bone);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    line-height: 1.3;
+    cursor: pointer;
+    list-style: none;
+    transition: color 0.15s ease;
+  }
+
+  .qa summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Пиксельный плюс, который становится минусом. */
+  .qa summary::before,
+  .qa summary::after {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    width: 14px;
+    height: 4px;
+    margin-top: -2px;
+    background: var(--gold);
+    transition: transform 0.2s ease;
+  }
+
+  .qa summary::after {
+    transform: rotate(90deg);
+  }
+
+  .qa[open] summary::after {
+    transform: rotate(0deg);
+  }
+
+  .qa summary:hover {
+    color: var(--gold);
+  }
+
+  .qa summary:focus-visible {
+    outline-offset: 2px;
+  }
+
+  .qa p {
+    max-width: 44rem;
+    padding: 0 3rem 1.4rem 0;
+    color: var(--bone-2);
+  }
+
+  .qa :global(code) {
+    padding: 0.05em 0.35em;
+    background: rgb(0 0 0 / 0.5);
+    color: #f3f0e6;
+  }
+
+  @media (max-width: 56rem) {
+    .faq__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

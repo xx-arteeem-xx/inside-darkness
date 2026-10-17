@@ -4,56 +4,72 @@ import links from '../config/links.json';
 const channel = (links.telegram?.channel ?? '').trim();
 const chat = (links.telegram?.chat ?? '').trim();
 const rows = [
-  { name: 'Канал', text: 'Новости сервера.', href: channel, cta: 'Открыть канал' },
+  { name: 'Канал', text: 'Новости сервера и обновления.', href: channel, cta: 'Открыть канал' },
   { name: 'Чат', text: 'Общение игроков.', href: chat, cta: 'Открыть чат' },
 ];
 const any = Boolean(channel || chat);
 ---
-<section class="tg section" id="telegram" aria-labelledby="tg-title">
-  <svg class="strata-edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
-    <path fill="var(--deeper)" d="M0 24V12h88V4h136v12h160V8h96v8h120V0h72v12h184V8h104v8h112V4h128v12h96V8h144V24z" />
+<section class="community section" id="telegram" aria-labelledby="tg-title">
+  <svg class="strata" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+    <path fill="#17171c" d="M0 24V8h64v8h120V4h96v12h144V8h72v8h160V0h88v12h120V4h136v12h104V8h120v8h96V24z" />
   </svg>
-  <div class="wrap tg__grid">
-    <div>
-      <h2 class="section__title" id="tg-title">Telegram</h2>
-      <p class="section__lead">
-        {any ? 'Новости и общение игроков.' : 'Канал и чат скоро появятся. Ссылки будут здесь.'}
+  <div class="wrap community__grid">
+    <div class="tg">
+      <h2 class="section-title" id="tg-title">Сообщество</h2>
+      <p class="section-lead">
+        {any ? 'Новости и общение игроков в Telegram.' : 'Канал и чат в Telegram готовятся. Ссылки появятся здесь.'}
       </p>
+      <ul class="tg__list" role="list">
+        {rows.map((r) => (
+          <li class="tg__row">
+            <div>
+              <h3 class="tg__name">Telegram: {r.name.toLowerCase()}</h3>
+              <p class="tg__text">{r.text}</p>
+            </div>
+            {r.href ? (
+              <a class="btn btn--quiet btn--small" href={r.href} rel="noopener">{r.cta}</a>
+            ) : (
+              <span class="tag">скоро</span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
-    <ul class="tg__list" role="list">
-      {rows.map((r) => (
-        <li class="tg__row">
-          <div>
-            <h3 class="tg__name">{r.name}</h3>
-            <p class="tg__text">{r.text}</p>
-          </div>
-          {r.href ? (
-            <a class="btn" href={r.href} rel="noopener">{r.cta}</a>
-          ) : (
-            <span class="tg__soon">скоро</span>
-          )}
+
+    <div class="soon" aria-labelledby="soon-title">
+      <h3 class="soon__title" id="soon-title">В работе</h3>
+      <ul class="soon__list" role="list">
+        <li>
+          <p class="soon__name">Данжи с наградами</p>
+          <p>Подземелья, за прохождение которых платят игровой валютой.</p>
         </li>
-      ))}
-    </ul>
+        <li>
+          <p class="soon__name">Telegram</p>
+          <p>Канал с новостями и чат игроков.</p>
+        </li>
+        <li>
+          <p class="soon__name">Донаты</p>
+          <p>Перевод по СБП и криптовалюта. Реквизиты появятся в разделе ниже.</p>
+        </li>
+      </ul>
+    </div>
   </div>
 </section>
 
 <style>
-  .tg {
-    position: relative;
-    background: var(--deeper);
-    padding-bottom: clamp(2rem, 5vw, 3.5rem);
+  .community {
+    background: #17171c;
   }
 
-  .tg__grid {
+  .community__grid {
     display: grid;
-    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
-    gap: 2rem clamp(2.5rem, 6vw, 5rem);
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 3rem clamp(2.5rem, 6vw, 5rem);
     align-items: start;
   }
 
   .tg__list {
-    margin: 0;
+    margin: 2rem 0 0;
     padding: 0;
     list-style: none;
   }
@@ -65,32 +81,57 @@ const any = Boolean(channel || chat);
     justify-content: space-between;
     gap: 0.75rem 2rem;
     padding-block: 1.1rem;
-    border-top: 1px solid var(--line-strong);
+    border-top: 1px solid var(--line-2);
   }
 
   .tg__row:last-child {
-    border-bottom: 1px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-2);
   }
 
   .tg__name {
-    font-size: var(--step-1);
-    font-weight: 700;
+    font-size: var(--fs-md);
   }
 
   .tg__text {
-    color: var(--iron);
+    color: var(--ash);
   }
 
-  .tg__soon {
-    padding: 0.3rem 0.75rem;
-    border: 1px dashed var(--iron-dim);
-    color: var(--iron);
-    font-family: var(--font-ui);
+  /* Список «в работе»: пунктир строительных лесов слева. */
+  .soon {
+    padding: clamp(1.5rem, 3vw, 2rem);
+    background: var(--slate-0);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .soon__title {
+    font-size: var(--fs-lg);
+  }
+
+  .soon__list {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .soon__list li {
+    padding-left: 1.1rem;
+    background: repeating-linear-gradient(180deg, var(--gold-deep) 0 6px, transparent 6px 12px) 0 0.3rem / 2px calc(100% - 0.3rem) no-repeat;
+  }
+
+  .soon__name {
+    color: var(--bone);
+    font-weight: 700;
+  }
+
+  .soon__list p + p {
+    color: var(--ash);
     font-size: 1rem;
   }
 
   @media (max-width: 56rem) {
-    .tg__grid {
+    .community__grid {
       grid-template-columns: 1fr;
     }
   }

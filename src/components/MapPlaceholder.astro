@@ -1,55 +1,52 @@
 ---
 import { SERVER } from '../config/site';
-// Условная местность из клеток: вода, луга, лес, горы. Это не карта сервера, а заставка.
-let seed = 7341;
-const rand = () => {
-  seed = (seed * 1103515245 + 12345) % 2147483648;
-  return seed / 2147483648;
-};
-const COLS = 72;
-const ROWS = 28;
-const phases = Array.from({ length: 6 }, () => rand() * Math.PI * 2);
+import { gridLayers, rng } from '../lib/pixel';
+
+// Заставка: условная местность сверху, клетками. Это не карта сервера.
+const r = rng(7341);
+const COLS = 96;
+const ROWS = 40;
+const ph = Array.from({ length: 6 }, () => r() * Math.PI * 2);
 const height = (x: number, y: number) =>
-  Math.sin(x * 0.11 + phases[0]) * 0.9 +
-  Math.cos(y * 0.19 + phases[1]) * 0.7 +
-  Math.sin((x + y) * 0.07 + phases[2]) * 0.8 +
-  Math.cos((x - y * 1.7) * 0.05 + phases[3]) * 0.6 +
-  (rand() - 0.5) * 0.35;
+  Math.sin(x * 0.09 + ph[0]) * 0.9 +
+  Math.cos(y * 0.17 + ph[1]) * 0.7 +
+  Math.sin((x + y) * 0.06 + ph[2]) * 0.8 +
+  Math.cos((x - y * 1.7) * 0.045 + ph[3]) * 0.6 +
+  (r() - 0.5) * 0.35;
 const tone = (h: number) => {
-  if (h < -1.0) return '#1c2636';
-  if (h < -0.55) return '#223047';
-  if (h < -0.35) return '#3a3a35';
-  if (h < 0.6) return '#26302a';
-  if (h < 1.35) return '#1f2823';
-  if (h < 1.9) return '#2d2f37';
-  return '#3b3d46';
+  if (h < -1.05) return 'a';
+  if (h < -0.6) return 'b';
+  if (h < -0.4) return 's';
+  if (h < 0.55) return 'g';
+  if (h < 1.3) return 'f';
+  if (h < 1.85) return 'm';
+  return 'M';
 };
-// Соседние клетки одного цвета склеиваются в полосы, чтобы SVG был лёгким.
-const cells: Array<{ x: number; y: number; w: number; fill: string }> = [];
-for (let y = 0; y < ROWS; y++) {
-  const row = Array.from({ length: COLS }, (_, x) => tone(height(x, y)));
-  let x = 0;
-  while (x < COLS) {
-    let w = 1;
-    while (x + w < COLS && row[x + w] === row[x]) w++;
-    cells.push({ x, y, w, fill: row[x] });
-    x += w;
-  }
-}
+const rows = Array.from({ length: ROWS }, (_, y) => Array.from({ length: COLS }, (_, x) => tone(height(x, y))).join(''));
+const tiles = gridLayers({
+  rows,
+  palette: { a: '#17202f', b: '#1c2840', s: '#38362f', g: '#232c26', f: '#1b231e', m: '#2b2c33', M: '#3a3b43' },
+});
 ---
 <section class="map section" id="map" aria-labelledby="map-title">
   <div class="wrap">
+    <div class="map__head">
+      <h2 class="section-title" id="map-title">Живая карта</h2>
+      <p class="section-lead">
+        3D-карта мира на BlueMap: столица, окрестности и игроки онлайн. Работает, пока запущен сервер.
+      </p>
+    </div>
+
     <div class="map__frame">
       <svg class="map__tiles" viewBox={`0 0 ${COLS} ${ROWS}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" shape-rendering="crispEdges">
-        {cells.map((c) => <rect x={c.x} y={c.y} width={c.w} height="1" fill={c.fill} />)}
+        {tiles.map((t) => <path fill={t.fill} d={t.d} />)}
       </svg>
       <div class="map__fog" aria-hidden="true"></div>
       <div class="map__label" data-map-label>
-        <h2 class="map__title" id="map-title">Карта мира</h2>
-        <p data-map-text>Проверяю, запущен ли сервер…</p>
+        <p class="map__state" data-map-text role="status" aria-live="polite">Проверяю, запущен ли сервер…</p>
         <div class="map__actions" data-map-actions hidden>
-          <button type="button" class="btn" data-map-open>Показать карту</button>
-          <a class="map__link" href={SERVER.mapUrl} target="_blank" rel="noopener">Открыть в новой вкладке</a>
+          <button type="button" class="btn" data-map-open>Открыть карту</button>
+          <a class="map__link" href={SERVER.mapUrl} target="_blank" rel="noopener">В новой вкладке</a>
         </div>
       </div>
       <iframe class="map__iframe" data-map-iframe title="Карта мира Inside Darkness" hidden loading="lazy"></iframe>
@@ -68,6 +65,7 @@ for (let y = 0; y < ROWS; y++) {
     iframe.hidden = false;
     label.hidden = true;
     root.querySelector('.map__fog').hidden = true;
+    iframe.focus();
   });
   const ctrl = new AbortController();
   setTimeout(() => ctrl.abort(), 10000);
@@ -76,31 +74,38 @@ for (let y = 0; y < ROWS; y++) {
     .catch(() => null)
     .then((s) => {
       if (s && Array.isArray(s.players)) {
-        text.textContent = '3D-карта столицы и окрестностей. Видно игроков онлайн, постройки обновляются сами.';
+        text.textContent = 'Сервер запущен, карта доступна. Постройки и игроки обновляются сами.';
         actions.hidden = false;
       } else {
-        text.textContent = 'Карта работает, пока запущен сервер. Сейчас он спит — загляните, когда в игре кто-то будет.';
+        text.textContent = 'Сервер сейчас спит, поэтому карта не открывается. Загляните, когда в игре кто-то будет.';
       }
-    })
-    ;
+    });
 </script>
 
 <style>
   .map {
-    background: var(--deep);
-    padding-top: 0;
+    background: var(--slate-1);
+  }
+
+  .map__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem 3rem;
+    align-items: end;
   }
 
   .map__frame {
     position: relative;
     display: grid;
     place-items: center;
-    min-height: clamp(16rem, 38vw, 26rem);
+    min-height: clamp(20rem, 46vw, 34rem);
+    margin-top: clamp(2rem, 5vw, 3rem);
     overflow: hidden;
-    border: 6px solid #2a2e3a;
-    outline: 2px solid #121318;
-    outline-offset: -2px;
-    box-shadow: 0 0 0 2px #3c4253;
+    background: #0e1210;
+    box-shadow:
+      0 0 0 2px #0a0a0d,
+      0 0 0 6px #2a2b33,
+      0 0 0 8px #0a0a0d;
   }
 
   .map__tiles {
@@ -108,43 +113,41 @@ for (let y = 0; y < ROWS; y++) {
     inset: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.9;
   }
 
   .map__fog {
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(ellipse 55% 60% at 50% 50%, rgb(24 26 33 / 0.92) 0%, rgb(24 26 33 / 0.7) 45%, rgb(24 26 33 / 0.15) 100%);
+    background: radial-gradient(ellipse 50% 55% at 50% 50%, rgb(10 10 13 / 0.9) 0%, rgb(10 10 13 / 0.6) 50%, rgb(10 10 13 / 0.2) 100%);
   }
 
   .map__label {
     position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
     max-width: 30rem;
     padding: 1.5rem;
     text-align: center;
   }
 
-  .map__title {
-    font-size: var(--step-2);
-  }
-
-  .map__label p {
-    margin-top: 0.6rem;
-    color: var(--iron);
+  .map__state {
+    color: var(--bone);
+    font-size: var(--fs-md);
+    line-height: 1.4;
   }
 
   .map__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
+    gap: 0.75rem 1.5rem;
     justify-content: center;
     align-items: center;
-    margin-top: 1.1rem;
   }
 
-
-  .map__link { color: var(--iron); }
+  .map__link {
+    color: var(--bone-2);
+  }
 
   .map__iframe {
     position: absolute;
@@ -154,5 +157,9 @@ for (let y = 0; y < ROWS; y++) {
     border: 0;
   }
 
-  [hidden] { display: none !important; }
+  @media (max-width: 52rem) {
+    .map__head {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>

@@ -1,0 +1,23 @@
+---
+import { gridLayers, type Grid } from '../lib/pixel';
+
+interface Props {
+  grid: Grid;
+  class?: string;
+  label?: string;
+}
+const { grid, class: className, label } = Astro.props;
+const w = Math.max(...grid.rows.map((r) => r.length));
+const h = grid.rows.length;
+const layers = gridLayers(grid);
+---
+<svg
+  class:list={['pixel', className]}
+  viewBox={`0 0 ${w} ${h}`}
+  shape-rendering="crispEdges"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  {layers.map((l) => <path fill={l.fill} d={l.d} />)}
+</svg>
