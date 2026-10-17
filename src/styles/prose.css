@@ -1,10 +1,11 @@
-/* Типографика документации: длинный текст, таблицы, списки, команды, врезки. */
+/* Типографика документации: длинный текст, таблицы, списки, команды, врезки.
+   Тот же Vollkorn, что на главной; команды пиксельным Tiny5, как в игровом чате. */
 
 .prose {
   max-width: 46rem;
-  color: #e2dbca;
-  font-size: var(--step-0);
-  line-height: 1.68;
+  color: var(--bone-2);
+  font-size: var(--fs-base);
+  line-height: 1.7;
   overflow-wrap: break-word;
 }
 
@@ -20,41 +21,38 @@
 }
 
 .prose h2 {
-  margin-top: 2.4em;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--line-strong);
-  font-size: var(--step-2);
-  line-height: 1.15;
+  margin-top: 2.6em;
+  font-size: var(--fs-lg);
+  line-height: 1.12;
 }
 
-/* маленький зубец над заголовком второго уровня */
+/* Над заголовком второго уровня зубцы стены. */
 .prose h2::before {
   content: '';
   display: block;
-  width: 3rem;
+  width: 100%;
   height: 6px;
-  margin: calc(-1.1rem - 4px) 0 1.1rem;
-  background: repeating-linear-gradient(90deg, var(--torch) 0 9px, transparent 9px 15px);
+  margin-bottom: 1.1rem;
+  background:
+    repeating-linear-gradient(90deg, var(--slate-4) 0 12px, transparent 12px 20px) 0 0 / 100% 4px no-repeat,
+    linear-gradient(var(--slate-4), var(--slate-4)) 0 4px / 100% 2px no-repeat;
 }
 
 .prose h3 {
-  margin-top: 1.9em;
-  font-size: var(--step-1);
-  font-weight: 700;
+  margin-top: 2em;
+  font-size: var(--fs-md);
   line-height: 1.25;
 }
 
 .prose h4 {
   margin-top: 1.6em;
-  font-family: var(--font-ui);
   font-size: 1.125rem;
-  font-weight: 700;
 }
 
 .prose h2 + *,
 .prose h3 + *,
 .prose h4 + * {
-  margin-top: 0.6em;
+  margin-top: 0.65em;
 }
 
 .prose strong {
@@ -66,11 +64,19 @@
   font-style: italic;
 }
 
+.prose a {
+  color: var(--gold);
+}
+
+.prose a:hover {
+  color: var(--bone);
+}
+
 .prose hr {
-  height: 6px;
+  height: 4px;
   margin-block: 2.5em;
   border: 0;
-  background: repeating-linear-gradient(90deg, #3a3f4f 0 18px, transparent 18px 30px);
+  background: repeating-linear-gradient(90deg, var(--slate-4) 0 16px, transparent 16px 28px);
 }
 
 /* Списки: квадратные маркеры, как пиксель. */
@@ -90,21 +96,20 @@
 .prose ul > li::before {
   content: '';
   position: absolute;
-  left: -1.05em;
+  left: -1.1em;
   top: 0.68em;
-  width: 0.4em;
-  height: 0.4em;
+  width: 6px;
+  height: 6px;
   background: var(--torch);
 }
 
 .prose ul ul > li::before {
   background: transparent;
-  box-shadow: inset 0 0 0 2px var(--iron);
+  box-shadow: inset 0 0 0 2px var(--ash);
 }
 
 .prose ol > li::marker {
   color: var(--torch);
-  font-family: var(--font-ui);
   font-weight: 700;
 }
 
@@ -120,11 +125,10 @@
 
 /* Команды и код */
 .prose :not(pre) > code {
-  padding: 0.1em 0.35em;
-  background: #2c303c;
-  border: 1px solid #3a3f4f;
-  color: var(--torch-soft);
-  font-size: 0.84em;
+  padding: 0.1em 0.4em 0.15em;
+  background: rgb(0 0 0 / 0.5);
+  color: #f3f0e6;
+  font-size: 1rem;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -137,10 +141,9 @@
   margin-top: 1.25em;
   padding: 1rem 1.15rem;
   overflow-x: auto;
-  background: var(--astro-code-background, #121318) !important;
-  border: 1px solid #343948;
-  border-left: 4px solid var(--torch);
-  font-size: 0.95rem;
+  background: var(--astro-code-background, #0e0f13) !important;
+  box-shadow: inset 0 0 0 1px var(--slate-3), inset 4px 0 0 var(--torch);
+  font-size: 1rem;
   line-height: 1.6;
   tab-size: 2;
 }
@@ -152,24 +155,23 @@
 
 .prose kbd {
   display: inline-block;
-  min-width: 1.6em;
-  padding: 0.05em 0.45em;
-  background: #2a2e3a;
-  border: 2px solid;
-  border-color: #4b5164 #121318 #121318 #4b5164;
+  min-width: 1.7em;
+  padding: 0.1em 0.45em;
+  background: var(--slate-3);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.45), inset 0 2px 0 rgb(255 255 255 / 0.1);
   color: var(--bone);
-  font-family: var(--font-ui);
-  font-size: 0.85em;
-  font-weight: 700;
+  font-size: 1rem;
   line-height: 1.4;
   text-align: center;
 }
 
-/* Таблицы: прокрутка вбок на узком экране, заголовок плотнее, строки через одну. */
+/* Таблицы: прокрутка вбок на узком экране, плотная шапка, строки через одну. */
 .prose .table-wrap {
   margin-top: 1.4em;
   overflow-x: auto;
-  border: 1px solid #343948;
+  box-shadow: inset 0 0 0 1px var(--slate-3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--slate-4) transparent;
 }
 
 .prose .table-wrap:focus-visible {
@@ -180,9 +182,9 @@
   width: 100%;
   min-width: 32rem;
   border-collapse: collapse;
-  font-family: var(--font-ui);
   font-size: 1rem;
   line-height: 1.45;
+  font-variant-numeric: tabular-nums;
 }
 
 .prose .table-wrap > table {
@@ -191,21 +193,29 @@
 
 .prose th,
 .prose td {
-  padding: 0.6rem 0.85rem;
+  padding: 0.6rem 0.9rem;
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid #2f3340;
+  border-bottom: 1px solid var(--slate-3);
 }
 
 .prose th {
-  background: #2a2e3a;
+  background: var(--slate-3);
   color: var(--bone);
   font-weight: 700;
   white-space: nowrap;
 }
 
+.prose td {
+  color: var(--bone-2);
+}
+
 .prose tbody tr:nth-child(even) td {
-  background: rgb(255 255 255 / 0.025);
+  background: rgb(255 255 255 / 0.022);
+}
+
+.prose tbody tr:hover td {
+  background: rgb(237 163 60 / 0.05);
 }
 
 .prose tbody tr:last-child td {
@@ -220,8 +230,8 @@
 .prose blockquote {
   margin-inline: 0;
   padding: 0.25rem 0 0.25rem 1.25rem;
-  border-left: 4px solid var(--wine);
-  color: #d4cdbc;
+  box-shadow: inset 4px 0 0 var(--wine-2);
+  color: var(--bone-2);
   font-style: italic;
 }
 
@@ -230,50 +240,61 @@
 }
 
 .prose .callout {
-  --callout: var(--iron);
-  --callout-bg: rgb(174 177 188 / 0.07);
-  margin-top: 1.4em;
-  padding: 0.95rem 1.15rem 1rem;
+  --callout: var(--ash);
+  --callout-bg: rgb(169 164 150 / 0.07);
+  position: relative;
+  margin-top: 1.5em;
+  padding: 1rem 1.25rem 1.05rem 1.5rem;
   background: var(--callout-bg);
-  border-left: 4px solid var(--callout);
+  box-shadow: inset 4px 0 0 var(--callout);
   font-size: 1.0625rem;
   line-height: 1.6;
 }
 
 .prose .callout > * + * {
-  margin-top: 0.55em;
+  margin-top: 0.5em;
 }
 
 .prose .callout__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   color: var(--callout);
-  font-family: var(--font-ui);
-  font-size: 1rem;
   font-weight: 700;
+}
+
+/* Значок врезки: пиксельный квадрат цвета врезки. */
+.prose .callout__title::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0.4);
 }
 
 .prose .callout--tip {
   --callout: var(--moss);
-  --callout-bg: rgb(143 202 165 / 0.08);
+  --callout-bg: rgb(131 196 147 / 0.08);
 }
 
 .prose .callout--important {
   --callout: var(--torch);
-  --callout-bg: rgb(240 173 72 / 0.08);
+  --callout-bg: rgb(237 163 60 / 0.08);
 }
 
 .prose .callout--warning {
-  --callout: var(--torch-soft);
-  --callout-bg: rgb(138 44 56 / 0.18);
+  --callout: var(--gold);
+  --callout-bg: rgb(163 44 60 / 0.16);
 }
 
 .prose .callout--caution {
-  --callout: var(--redstone);
-  --callout-bg: rgb(240 140 128 / 0.09);
+  --callout: var(--blood);
+  --callout-bg: rgb(217 80 93 / 0.1);
 }
 
 .prose img {
   height: auto;
-  border: 1px solid #343948;
+  box-shadow: 0 0 0 1px var(--slate-3);
 }
 
 .prose figure {
@@ -282,13 +303,13 @@
 
 .prose figcaption {
   margin-top: 0.5rem;
-  color: var(--iron);
-  font-size: var(--step--1);
+  color: var(--ash);
+  font-size: var(--fs-sm);
 }
 
 .prose dl dt {
-  font-weight: 700;
   color: var(--bone);
+  font-weight: 700;
 }
 
 .prose dl dd {
@@ -296,10 +317,6 @@
 }
 
 @media (max-width: 36rem) {
-  .prose {
-    font-size: 1.125rem;
-  }
-
   .prose table {
     font-size: 0.9375rem;
   }

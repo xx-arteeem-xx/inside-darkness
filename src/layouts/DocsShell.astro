@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import DocsSearch from '../components/DocsSearch.astro';
 import '../styles/prose.css';
 import { url } from '../lib/url';
 import type { DocSection } from '../lib/docs';
@@ -24,11 +25,12 @@ const isIndex = !currentId;
 <Base title={title} description={description || undefined}>
   <div class="docs">
     <aside class="docs__side" aria-label="Разделы документации">
+      <DocsSearch />
       <button class="docs__toggle" type="button" aria-expanded="false" aria-controls="docs-nav" hidden>
         Все страницы
       </button>
       <nav class="docs__nav" id="docs-nav">
-        <a class="docs__home" href={url('/docs/')} aria-current={isIndex ? 'page' : undefined}>Документация</a>
+        <a class="docs__home" href={url('/docs/')} aria-current={isIndex ? 'page' : undefined}>Обзор</a>
         {sections.length === 0 && <p class="docs__empty">Страницы пока пишутся.</p>}
         {sections.map((section) => (
           <div class="docs__group">
@@ -67,61 +69,71 @@ const isIndex = !currentId;
 </Base>
 
 <style>
-  .docs {
-    display: grid;
-    grid-template-columns: 16rem minmax(0, 46rem) 14rem;
-    justify-content: center;
-    gap: 0 clamp(2rem, 4vw, 3.5rem);
-    max-width: 88rem;
-    margin-inline: auto;
-    padding: 2.5rem var(--gutter) 5rem;
-    background: var(--stone);
+  :global(body[data-variant='inner']) {
+    background: var(--slate-1);
   }
 
-  :global(body[data-variant='inner']) {
-    background: var(--stone);
+  .docs {
+    display: grid;
+    grid-template-columns: 16.5rem minmax(0, 46rem) 14rem;
+    justify-content: center;
+    gap: 0 clamp(2rem, 4vw, 4rem);
+    max-width: 90rem;
+    margin-inline: auto;
+    padding: 2.5rem var(--gutter) 6rem;
   }
 
   .docs__side,
   .docs__toc {
     position: sticky;
-    top: 1.5rem;
+    top: 1.25rem;
     align-self: start;
-    max-height: calc(100vh - 3rem);
+    max-height: calc(100vh - 2.5rem);
     overflow-y: auto;
-    font-family: var(--font-ui);
     scrollbar-width: thin;
+    scrollbar-color: var(--slate-4) transparent;
+  }
+
+  /* у сайдбара видимый выпадающий список поиска не должен обрезаться */
+  .docs__side {
+    z-index: 5;
+    overflow: visible;
+    max-height: none;
   }
 
   .docs__nav {
     display: grid;
-    gap: 1.5rem;
-    padding-bottom: 1rem;
+    align-content: start;
+    gap: 1.6rem;
+    max-height: calc(100vh - 6.5rem);
+    margin-top: 1.75rem;
+    padding: 0 0.25rem 1rem 3px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--slate-4) transparent;
   }
 
   .docs__home {
     color: var(--bone);
-    font-family: var(--font-body);
-    font-size: 1.35rem;
-    font-weight: 800;
+    font-size: 1.0625rem;
+    font-weight: 700;
     text-decoration: none;
   }
 
   .docs__home[aria-current='page'],
   .docs__home:hover {
-    color: var(--torch-soft);
+    color: var(--gold);
   }
 
   .docs__empty {
-    color: var(--iron);
+    color: var(--ash);
   }
 
   .docs__section {
-    margin-bottom: 0.4rem;
-    color: var(--iron);
-    font-size: 0.9375rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    margin-bottom: 0.5rem;
+    color: var(--bone);
+    font-size: 1.0625rem;
+    font-weight: 900;
   }
 
   .docs__group ul,
@@ -132,50 +144,63 @@ const isIndex = !currentId;
   }
 
   .docs__group a {
+    position: relative;
     display: block;
-    padding: 0.3rem 0 0.3rem 0.85rem;
-    border-left: 3px solid #343948;
-    color: #d9d2c1;
-    font-size: 1.0625rem;
-    line-height: 1.3;
+    padding: 0.3rem 0 0.3rem 1rem;
+    color: var(--ash);
+    font-size: 1rem;
+    line-height: 1.35;
     text-decoration: none;
+    box-shadow: inset 2px 0 0 var(--slate-3);
   }
 
   .docs__group a:hover {
-    border-left-color: var(--iron);
     color: var(--bone);
+    box-shadow: inset 2px 0 0 var(--stone);
   }
 
+  /* Текущая страница: золотой «пиксель» на линии. */
   .docs__group a[aria-current='page'] {
-    border-left-color: var(--torch);
-    color: var(--torch-soft);
+    color: var(--gold);
     font-weight: 700;
+    box-shadow: inset 2px 0 0 var(--gold-deep);
+  }
+
+  .docs__group a[aria-current='page']::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    background: var(--gold);
   }
 
   .docs__toc-title {
     margin-bottom: 0.6rem;
-    color: var(--iron);
-    font-size: 0.9375rem;
+    color: var(--bone);
+    font-size: 1rem;
     font-weight: 700;
   }
 
   .docs__toc a {
     display: block;
     padding-block: 0.25rem;
-    color: var(--iron);
-    font-size: 0.975rem;
-    line-height: 1.3;
+    color: var(--ash);
+    font-size: 0.9375rem;
+    line-height: 1.35;
     text-decoration: none;
   }
 
   .docs__toc a:hover,
   .docs__toc a[aria-current='true'] {
-    color: var(--torch-soft);
+    color: var(--gold);
   }
 
   .docs__toc .toc-d3 a {
     padding-left: 0.85rem;
-    font-size: 0.925rem;
+    font-size: 0.875rem;
   }
 
   .docs__toggle {
@@ -200,9 +225,7 @@ const isIndex = !currentId;
 
     .docs__side {
       position: static;
-      max-height: none;
-      overflow: visible;
-      margin-bottom: 1.75rem;
+      margin-bottom: 2rem;
       padding-bottom: 1.25rem;
       border-bottom: 1px solid var(--line);
     }
@@ -212,10 +235,11 @@ const isIndex = !currentId;
       align-items: center;
       gap: 0.6rem;
       min-height: 2.75rem;
+      margin-top: 0.75rem;
       padding: 0.5rem 1rem;
-      background: #2a2e3a;
-      border: 3px solid;
-      border-color: #4b5164 #121318 #121318 #4b5164;
+      border: 0;
+      background: var(--slate-3);
+      box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.08), inset 0 -3px 0 rgb(0 0 0 / 0.35);
       color: var(--bone);
       font: inherit;
       font-weight: 700;
@@ -224,8 +248,8 @@ const isIndex = !currentId;
 
     .docs__toggle::after {
       content: '';
-      width: 0.6rem;
-      height: 0.6rem;
+      width: 0.55rem;
+      height: 0.55rem;
       border-right: 2px solid currentColor;
       border-bottom: 2px solid currentColor;
       transform: translateY(-2px) rotate(45deg);
@@ -239,8 +263,10 @@ const isIndex = !currentId;
       display: none;
     }
 
-    .docs__toggle + .docs__nav {
+    .docs__nav {
+      max-height: none;
       margin-top: 1.25rem;
+      overflow: visible;
     }
   }
 </style>

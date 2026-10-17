@@ -9,7 +9,8 @@ export default defineConfig({
   site: 'https://xx-arteeem-xx.github.io',
   base,
   trailingSlash: 'ignore',
-  build: { format: 'directory' },
+  // CSS встраивается в страницу: на медленном канале до GitHub Pages это на один-два запроса меньше.
+  build: { format: 'directory', inlineStylesheets: 'always' },
   devToolbar: { enabled: false },
   markdown: {
     shikiConfig: { theme: 'css-variables', wrap: true },

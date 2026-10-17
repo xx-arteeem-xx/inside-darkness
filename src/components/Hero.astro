@@ -401,6 +401,22 @@ const craters = [[1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4]];
     }
   }
 
+  /* Ноутбук: колонка текста широкая относительно экрана, поэтому панорама шире экрана
+     и донжон уезжает вправо, чтобы не встать за адресом. */
+  @media (min-width: 64rem) and (max-width: 82rem) {
+    .hero {
+      --pw: max(100vw, 82rem);
+      --focus: 0.64;
+      --anchor: 0.8;
+    }
+
+    @supports (width: 1cqw) {
+      .hero {
+        --pw: max(100cqw, 82rem);
+      }
+    }
+  }
+
   @media (max-width: 40rem) {
     .plate__row {
       flex-direction: column;

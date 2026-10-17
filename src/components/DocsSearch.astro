@@ -1,0 +1,330 @@
+---
+import { url } from '../lib/url';
+---
+<div class="search" data-search data-index={url('/docs/search.json')} data-base={url('/docs/')}>
+  <label class="visually-hidden" for="docs-q">Поиск по документации</label>
+  <div class="search__box">
+    <svg class="search__icon" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
+      <path fill="currentColor" d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2zM6 6h1v1H6zM7 7h1v1H7z" />
+    </svg>
+    <input
+      id="docs-q"
+      class="search__input"
+      type="search"
+      placeholder="Поиск по документации"
+      autocomplete="off"
+      spellcheck="false"
+      aria-controls="docs-results"
+      aria-expanded="false"
+      aria-autocomplete="list"
+      role="combobox"
+    />
+    <kbd class="search__key" aria-hidden="true">/</kbd>
+  </div>
+  <div class="search__panel" id="docs-results" hidden>
+    <p class="search__status" role="status" aria-live="polite"></p>
+    <ul class="search__list" role="listbox" aria-label="Результаты поиска"></ul>
+  </div>
+</div>
+
+<style>
+  .search {
+    position: relative;
+  }
+
+  .search__box {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search__icon {
+    position: absolute;
+    left: 0.8rem;
+    width: 1rem;
+    height: 1rem;
+    color: var(--ash);
+    pointer-events: none;
+  }
+
+  .search__input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 2.5rem 0.55rem 2.4rem;
+    border: 0;
+    background: var(--slate-0);
+    box-shadow: inset 0 0 0 2px var(--slate-4), inset 0 0 0 4px rgb(0 0 0 / 0.4);
+    color: var(--bone);
+    font: inherit;
+    font-size: 1rem;
+    appearance: none;
+  }
+
+  .search__input::placeholder {
+    color: var(--ash-2);
+  }
+
+  .search__input:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--gold), inset 0 0 0 4px rgb(0 0 0 / 0.4);
+  }
+
+  .search__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search__key {
+    position: absolute;
+    right: 0.6rem;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--slate-3);
+    color: var(--ash);
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .search__input:focus + .search__key {
+    display: none;
+  }
+
+  .search__panel {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    width: min(32rem, calc(100vw - 2 * var(--gutter)));
+    max-height: min(70vh, 34rem);
+    overflow-y: auto;
+    background: #1b1b21;
+    box-shadow:
+      0 0 0 2px #0b0b0e,
+      0 0 0 3px var(--slate-4),
+      0 18px 40px rgb(0 0 0 / 0.55);
+  }
+
+  .search__status {
+    padding: 0.7rem 1rem;
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  .search__status:empty {
+    display: none;
+  }
+
+  .search__list {
+    margin: 0;
+    padding: 0 0 0.4rem;
+    list-style: none;
+  }
+
+  .search__list :global(a) {
+    display: block;
+    padding: 0.65rem 1rem;
+    color: var(--bone);
+    text-decoration: none;
+    box-shadow: inset 0 1px 0 var(--line);
+  }
+
+  .search__list :global(a[aria-selected='true']),
+  .search__list :global(a:hover) {
+    background: #26252d;
+    box-shadow: inset 3px 0 0 var(--gold), inset 0 1px 0 var(--line);
+  }
+
+  .search__list :global(.r-title) {
+    display: block;
+    font-weight: 700;
+  }
+
+  .search__list :global(.r-where) {
+    display: block;
+    color: var(--ash);
+    font-size: 0.875rem;
+  }
+
+  .search__list :global(.r-snip) {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--bone-2);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+
+  .search__list :global(mark) {
+    background: rgb(237 163 60 / 0.25);
+    color: var(--gold);
+  }
+
+  @media (max-width: 52rem) {
+    .search__panel {
+      width: 100%;
+    }
+
+    .search__key {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  type Entry = {
+    id: string;
+    title: string;
+    section: string;
+    description: string;
+    headings: Array<{ text: string; slug: string }>;
+    text: string;
+  };
+
+  const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е');
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  function highlight(text: string, words: string[]): string {
+    let out = esc(text);
+    for (const w of words) {
+      if (!w) continue;
+      const re = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]'), 'gi');
+      out = out.replace(re, (m) => `<mark>${m}</mark>`);
+    }
+    return out;
+  }
+
+  function snippet(text: string, word: string): string {
+    const i = norm(text).indexOf(word);
+    if (i < 0) return text.slice(0, 140) + (text.length > 140 ? '…' : '');
+    const start = Math.max(0, i - 60);
+    const end = Math.min(text.length, i + 100);
+    return (start > 0 ? '…' : '') + text.slice(start, end).trim() + (end < text.length ? '…' : '');
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-search]').forEach((root) => {
+    const input = root.querySelector<HTMLInputElement>('input')!;
+    const panel = root.querySelector<HTMLElement>('.search__panel')!;
+    const list = root.querySelector<HTMLUListElement>('.search__list')!;
+    const status = root.querySelector<HTMLElement>('.search__status')!;
+    const base = root.dataset.base!;
+    let index: Entry[] | null = null;
+    let loading: Promise<Entry[]> | null = null;
+    let active = -1;
+
+    const load = () => {
+      if (index) return Promise.resolve(index);
+      loading ??= fetch(root.dataset.index!)
+        .then((r) => r.json())
+        .then((data: Entry[]) => (index = data))
+        .catch(() => {
+          loading = null;
+          return [];
+        });
+      return loading;
+    };
+
+    const open = (on: boolean) => {
+      panel.hidden = !on;
+      input.setAttribute('aria-expanded', String(on));
+    };
+
+    const links = () => [...list.querySelectorAll<HTMLAnchorElement>('a')];
+    const setActive = (i: number) => {
+      const all = links();
+      active = Math.max(-1, Math.min(all.length - 1, i));
+      all.forEach((a, k) => a.setAttribute('aria-selected', String(k === active)));
+      if (active >= 0) {
+        all[active].scrollIntoView({ block: 'nearest' });
+        input.setAttribute('aria-activedescendant', all[active].id);
+      } else input.removeAttribute('aria-activedescendant');
+    };
+
+    async function run() {
+      const q = norm(input.value.trim());
+      if (q.length < 2) {
+        list.innerHTML = '';
+        status.textContent = q ? 'Введите хотя бы две буквы.' : '';
+        open(Boolean(q));
+        return;
+      }
+      open(true);
+      if (!index) status.textContent = 'Загружаю…';
+      const data = await load();
+      if (norm(input.value.trim()) !== q) return;
+      const words = q.split(/\s+/).filter(Boolean);
+      const results = data
+        .map((d) => {
+          const title = norm(d.title);
+          const desc = norm(d.description);
+          const text = norm(d.text);
+          const heads = d.headings.map((h) => ({ ...h, n: norm(h.text) }));
+          let score = 0;
+          for (const w of words) {
+            const inTitle = title.includes(w);
+            const head = heads.find((h) => h.n.includes(w));
+            const inDesc = desc.includes(w);
+            const inText = text.includes(w);
+            if (!inTitle && !head && !inDesc && !inText) return null;
+            score += (inTitle ? 10 : 0) + (head ? 5 : 0) + (inDesc ? 3 : 0) + (inText ? 1 : 0);
+          }
+          const head = heads.find((h) => words.some((w) => h.n.includes(w)));
+          return { d, score, head };
+        })
+        .filter(Boolean)
+        .sort((a, b) => b!.score - a!.score)
+        .slice(0, 8) as Array<{ d: Entry; score: number; head?: { text: string; slug: string } }>;
+
+      if (!results.length) {
+        list.innerHTML = '';
+        status.textContent = 'Ничего не нашлось. Попробуйте другое слово или команду без слеша.';
+        active = -1;
+        return;
+      }
+      status.textContent = '';
+      list.innerHTML = results
+        .map(({ d, head }, i) => {
+          const href = `${base}${d.id}/${head ? '#' + head.slug : ''}`;
+          const where = head ? `${d.section} / ${esc(head.text)}` : esc(d.section);
+          const snip = highlight(snippet(d.text, words[0]), words);
+          return `<li role="presentation"><a id="r-${i}" role="option" href="${href}"><span class="r-title">${highlight(d.title, words)}</span><span class="r-where">${where}</span><span class="r-snip">${snip}</span></a></li>`;
+        })
+        .join('');
+      setActive(-1);
+    }
+
+    input.addEventListener('focus', () => {
+      load();
+      if (input.value.trim()) run();
+    });
+    input.addEventListener('input', run);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActive(active + 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActive(active - 1);
+      } else if (e.key === 'Enter') {
+        const target = links()[active >= 0 ? active : 0];
+        if (target) {
+          e.preventDefault();
+          window.location.href = target.href;
+        }
+      } else if (e.key === 'Escape') {
+        open(false);
+        input.blur();
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target as Node)) open(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      const t = e.target as HTMLElement;
+      const typing = t.closest('input, textarea, select, [contenteditable="true"]');
+      if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        input.focus();
+      }
+    });
+  });
+</script>

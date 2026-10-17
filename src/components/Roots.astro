@@ -34,7 +34,7 @@ import { url } from '../lib/url';
 
       <div class="picker__panels">
         {RACES.map((race, i) => (
-          <article class="race" id={`race-${race.id}`} role="tabpanel" aria-labelledby={`tab-${race.id}`} hidden={i !== 0}>
+          <div class="race" id={`race-${race.id}`} role="tabpanel" aria-labelledby={`tab-${race.id}`} hidden={i !== 0}>
             <Pixel grid={CRESTS[race.id]} class="race__crest" />
             <div class="race__body">
               <h3 class="race__name">{race.name} <span lang="en">{race.en}</span></h3>
@@ -46,7 +46,7 @@ import { url } from '../lib/url';
                 <div><dt>Рост</dt><dd>{race.height}</dd></div>
               </dl>
             </div>
-          </article>
+          </div>
         ))}
         <p class="picker__more">
           Плюсы, минусы и родовые постройки каждой расы: <a href={url('/docs/races/')}>Расы</a>.
