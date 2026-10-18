@@ -1,15 +1,19 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS } from '../lib/emblems';
-import { CRAFTS, INCOME, INCOME_MAX } from '../data/game';
+import { CRAFTS, INCOME, INCOME_MAX, TROPHIES, TROPHY_CHANCE, VILLAGE_BUY_FACTOR, type Trophy } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const craftsHref = await docHref('crafts');
 const huntingHref = await docHref('hunting');
 
-const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 const ticks = Array.from({ length: INCOME_MAX / 1000 + 1 }, (_, i) => i * 1000);
 const pct = (n: number) => `${(n / INCOME_MAX) * 100}%`;
+const income = Object.fromEntries(INCOME.map((r) => [r.id, `${fmt(r.min)}–${fmt(r.max)}`]));
+
+const lootRows = (list: Trophy[]) =>
+  list.map((t) => [t.name, t.rare ? `редко, ${t.rare}` : `ур. ${t.levels}`, fmt(t.price)] as const);
 
 const hunts = [
   {
@@ -21,11 +25,9 @@ const hunts = [
     facts: [
       'Мобы появляются снова и снова: даже если до тебя всё зачистили, найдёшь кого убить.',
       'Чем дальше подземелье от столицы и чем глубже моб, тем выше уровень. Он виден над головой.',
+      `Трофей падает с ${TROPHY_CHANCE.dungeons} мобов: чем выше уровень, тем чаще и дороже.`,
     ],
-    loot: [
-      ['Трофей', '12–80'],
-      ['Реликвия, изредка', '300'],
-    ],
+    loot: lootRows(TROPHIES.dungeons),
   },
   {
     id: 'dark',
@@ -35,12 +37,9 @@ const hunts = [
     where: 'за Большой стеной, 1000–1500 блоков от столицы',
     facts: [
       'Твари в разы сильнее самого злого моба подземелий.',
-      'Лут оттуда — «иксы»: тёмные трофеи.',
+      `Трофей падает с ${TROPHY_CHANCE.dark} тварей.`,
     ],
-    loot: [
-      ['Тёмный трофей', '150–500'],
-      ['Сердце тьмы, редкое', '1500'],
-    ],
+    loot: lootRows(TROPHIES.dark),
   },
 ];
 ---
@@ -86,7 +85,7 @@ const hunts = [
           <h3 class="path__title" id="craft-title">Ремёсла</h3>
           <span class="tag tag--moss">надёжно</span>
         </div>
-        <p class="path__lead">Ломать блоки можно только здесь. Доход ровный: 400–700 монет в час.</p>
+        <p class="path__lead">Ломать блоки можно только здесь. Доход ровный: {income.crafts} монет в час.</p>
         <ul class="crafts" role="list">
           {CRAFTS.map((c) => (
             <li class="craft">
@@ -114,7 +113,7 @@ const hunts = [
           <h3 class="path__title" id="hunt-title">Охота</h3>
           <span class="tag">выгоднее</span>
         </div>
-        <p class="path__lead">Трофеи и обычный лут с мобов берёт скупщик диковин на рынке.</p>
+        <p class="path__lead">Трофеи и обычный лут с мобов берёт скупщик диковин на рынке. В подземельях {income.dungeons} монет в час, в тёмных землях {income.dark}.</p>
         <ul class="hunts" role="list">
           {hunts.map((h) => (
             <li class:list={['hunt', `hunt--${h.id}`]}>
@@ -130,8 +129,8 @@ const hunts = [
                 {h.facts.map((f) => <li>{f}</li>)}
               </ul>
               <dl class="loot">
-                {h.loot.map(([name, price]) => (
-                  <div><dt>{name}</dt><dd>{price}</dd></div>
+                {h.loot.map(([name, note, price]) => (
+                  <div><dt>{name} <span>{note}</span></dt><dd>{price}</dd></div>
                 ))}
               </dl>
             </li>
@@ -147,6 +146,7 @@ const hunts = [
         <li><b>Ремесленник за вечер</b> (2–3 часа) снимает жильё и одевается в железо.</li>
         <li><b>Охотник за несколько вечеров</b> собирает алмазную экипировку и покупает свой дом.</li>
         <li><b>Дом за 8000</b> — цель на неделю ремесла. Комната за 20 в сутки — копейки.</li>
+        <li><b>До рынка далеко?</b> Сельский скупщик в деревне берёт то же самое за {VILLAGE_BUY_FACTOR * 100}% цены.</li>
       </ul>
     </section>
   </div>
@@ -459,6 +459,13 @@ const hunts = [
     font-size: 1rem;
   }
 
+  .loot dt span {
+    margin-left: 0.3rem;
+    color: var(--ash);
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
   .loot dd {
     margin: 0;
     color: var(--gold);
@@ -483,7 +490,7 @@ const hunts = [
 
   .marks__list {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem 2rem;
     margin: 0;
     padding: 0;

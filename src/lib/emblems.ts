@@ -125,7 +125,8 @@ export const CRESTS: Record<RaceId, Grid> = {
 /* ——— значки 12×12 ——— */
 export type GlyphId =
   | 'pickaxe' | 'hoe' | 'axe' | 'rod' | 'sword' | 'skull' | 'darkheart'
-  | 'coin' | 'pouch' | 'anvil' | 'house' | 'bed' | 'arena' | 'bread';
+  | 'coin' | 'pouch' | 'anvil' | 'house' | 'bed' | 'arena' | 'bread'
+  | 'tome' | 'lantern' | 'shulker';
 
 const WOOD = { h: '#8a5a2b', H: '#5c3a19' };
 const IRON = { i: '#e2e5ec', I: '#8f96a8' };
@@ -372,6 +373,60 @@ export const GLYPHS: Record<GlyphId, Grid> = {
       '..AAAAAAAA..',
       '............',
       '............',
+      '............',
+    ],
+  },
+  /** Зачарованная книга: фиолетовый переплёт, золотой знак, искры чар. */
+  tome: {
+    palette: { r: '#4a1a4f', R: '#7b3a8a', g: '#e3b04f', w: '#ece4d0', W: '#b9b09a', s: '#d6a8ec' },
+    rows: [
+      '..........s.',
+      '..rrrrrrrw..',
+      '..rRRRRRrw.s',
+      '..rRRgRRrw..',
+      '..rRgRgRrw..',
+      '..rRRgRRrw..',
+      's.rRRRRRrw..',
+      '..rRRRRRrw..',
+      '..rRRRRRrw..',
+      '..rrrrrrrw.s',
+      '...WWWWWWW..',
+      '.s..........',
+    ],
+  },
+  /** Фонарь: колпак, решётка, огонь внутри. */
+  lantern: {
+    palette: { a: '#8f96a8', A: '#3d404c', y: '#e3a03c', Y: '#ffe08a' },
+    rows: [
+      '.....aa.....',
+      '....a..a....',
+      '.....aa.....',
+      '...AAAAAA...',
+      '...A.yy.A...',
+      '...AyYYyA...',
+      '...AyYYyA...',
+      '...AyYYyA...',
+      '...A.yy.A...',
+      '...AAAAAA...',
+      '....aaaa....',
+      '............',
+    ],
+  },
+  /** Шалкер: ящик с крышкой. */
+  shulker: {
+    palette: { p: '#4a2b5c', P: '#a77fbb', Q: '#86599c', d: '#2a1735' },
+    rows: [
+      '............',
+      '.pppppppppp.',
+      '.pPPPPPPPPp.',
+      '.pPPPPPPPPp.',
+      '.pPPPPPPPPp.',
+      '.dddddddddd.',
+      '.pQQQQQQQQp.',
+      '.pQQQPPQQQp.',
+      '.pQQQQQQQQp.',
+      '.pQQQQQQQQp.',
+      '.pppppppppp.',
       '............',
     ],
   },

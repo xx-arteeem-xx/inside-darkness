@@ -1,19 +1,22 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS, type GlyphId } from '../lib/emblems';
-import { START_COINS } from '../data/game';
+import { START_COINS, ENCHANT, enchantStep, SHULKER_PRICE } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const economyHref = await docHref('economy');
+const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+const sharp = ROMAN.map((r, i) => [r, enchantStep(ENCHANT.sharpness.base, i + 1)] as const);
 
 const steps: Array<{ glyph: GlyphId; title: string; text: string }> = [
   { glyph: 'pickaxe', title: 'Добываешь', text: 'Руда в шахте, урожай на поле, брёвна в саду, рыба. Или трофеи с мобов в подземельях и тёмных землях.' },
   { glyph: 'pouch', title: 'Продаёшь купцу', text: 'Купцы на центральном рынке скупают добычу. Товар в руку, ПКМ по купцу — и стопка продана.' },
   { glyph: 'coin', title: 'Получаешь монеты', text: 'Баланс всплывает над хотбаром. Монеты нельзя передать — только заработать.' },
-  { glyph: 'anvil', title: 'Качаешься у мастера', text: 'Мастера в деревне за монеты учат навыкам: шанс двойной добычи, урон, сердца.' },
+  { glyph: 'anvil', title: 'Качаешься у мастера', text: 'Мастера в деревне за монеты учат навыкам: шанс двойной добычи, урон, сердца. Чародей на рынке зачаровывает снаряжение.' },
 ];
 
-// Пример разговора с оружейником: цены из концепта, формулировки условные.
+// Пример разговора с оружейником: цены из конфига плагина 1.6.3, формулировки условные.
 const offers = [
   ['Каменный меч', 15],
   ['Железный меч', 80],
@@ -99,6 +102,74 @@ const hotbar: Array<GlyphId | null> = ['sword', 'pickaxe', 'bread', null, null, 
         </figcaption>
       </figure>
     </div>
+
+    <section class="market" aria-labelledby="market-title">
+      <div class="market__head">
+        <h3 class="npc__title" id="market-title">Кто ещё есть на рынке</h3>
+        <p>Кроме купцов и лавок с оружием, бронёй, инструментами и едой.</p>
+      </div>
+      <ul class="market__list" role="list">
+        <li class="mcard mcard--enchant">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.tome} /></span>
+            <h4 class="mcard__name">Чародей <span>прокачка снаряжения</span></h4>
+          </div>
+          <p class="mcard__text">
+            Возьми вещь в руку и нажми ПКМ по чародею: в чате появятся чары, которые к ней подходят. Цена ступени —
+            база × ступень².
+          </p>
+          <figure class="steps">
+            <figcaption>{ENCHANT.sharpness.name}, база {ENCHANT.sharpness.base}</figcaption>
+            <ol class="steps__list" role="list">
+              {sharp.map(([r, price]) => (
+                <li style={`--h:${(price / sharp[sharp.length - 1][1]).toFixed(3)}`}>
+                  <span class="steps__price">{fmt(price)}</span>
+                  <span class="steps__bar" aria-hidden="true"></span>
+                  <span class="steps__lvl">{r}</span>
+                </li>
+              ))}
+            </ol>
+          </figure>
+          <dl class="mcard__prices">
+            {ENCHANT.examples.map((e) => (
+              <div><dt>{e.name}</dt><dd>{fmt(e.price)}</dd></div>
+            ))}
+          </dl>
+          <p class="mcard__note">Удачи и шёлкового касания у чародея нет.</p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.pouch} /></span>
+            <h4 class="mcard__name">Старьёвщик</h4>
+          </div>
+          <p class="mcard__text">
+            Берёт всё, что не берут другие купцы, за копейки: мелочь по 0,01 за штуку, железную вещь за 1, алмазную за 3.
+            Купленное у NPC, трофеи и шалкеры не берёт.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.lantern} /></span>
+            <h4 class="mcard__name">Фонарщик</h4>
+          </div>
+          <p class="mcard__text">
+            Факелы ×16 за 8, фонарь за 30. Ставить их нельзя, зато в любой руке они светят вокруг тебя, и свет видят все
+            рядом.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.shulker} /></span>
+            <h4 class="mcard__name">Шалкер <span>у инструментщика</span></h4>
+          </div>
+          <p class="mcard__text">
+            {SHULKER_PRICE} монет. Ставится где угодно, кроме карьера шахты. Открыть и забрать его может только тот, кто
+            поставил.
+          </p>
+        </li>
+      </ul>
+      <a class="more market__more" href={`${economyHref}#чародей`}>Все чары, старьёвщик и лавки</a>
+    </section>
   </div>
 </section>
 
@@ -358,6 +429,173 @@ const hotbar: Array<GlyphId | null> = ['sword', 'pickaxe', 'bread', null, null, 
     font-size: var(--fs-sm);
   }
 
+  /* ——— кто ещё на рынке ——— */
+  .market {
+    margin-top: clamp(4rem, 9vw, 6rem);
+  }
+
+  .market__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .market__head p {
+    color: var(--bone-2);
+  }
+
+  .market__more {
+    margin-top: 1.5rem;
+  }
+
+  .market__list {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: 1rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mcard {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    padding: 1.1rem 1.15rem 1.2rem;
+    background: #1d1c22;
+    box-shadow:
+      inset 0 0 0 2px #0b0b0e,
+      inset 2px 2px 0 2px #33323c,
+      inset -2px -2px 0 2px #121116;
+  }
+
+  .mcard--enchant {
+    grid-row: span 3;
+    gap: 1rem;
+    background:
+      radial-gradient(80% 60% at 100% 0%, rgb(123 58 138 / 0.22), transparent 70%),
+      #1b1922;
+  }
+
+  .mcard__top {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .mcard__name {
+    font-size: var(--fs-md);
+    line-height: 1.15;
+  }
+
+  .mcard__name span {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--ash);
+    font-size: 0.9375rem;
+    font-weight: 400;
+  }
+
+  .mcard__text {
+    color: var(--bone-2);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .slot--sm {
+    width: 3rem;
+    height: 3rem;
+    flex: none;
+  }
+
+  .slot--sm :global(.pixel) {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  /* Цена ступеней остроты: столбики растут как база × N². */
+  .steps figcaption {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  .steps__list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: end;
+    gap: 0.5rem;
+    height: 9rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps__list li {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    align-items: end;
+    gap: 0.3rem;
+    height: 100%;
+  }
+
+  .steps__price {
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+    white-space: nowrap;
+  }
+
+  .steps__bar {
+    width: 100%;
+    max-width: 3rem;
+    height: calc(var(--h) * 100%);
+    min-height: 4px;
+    background: linear-gradient(90deg, #b88ad0 0 45%, #7b3a8a 45%);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.18);
+  }
+
+  .steps__lvl {
+    color: var(--bone);
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+  }
+
+  .mcard__prices {
+    display: grid;
+    margin: 0;
+    border-top: 1px dashed var(--line-2);
+  }
+
+  .mcard__prices div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.55rem;
+  }
+
+  .mcard__prices dt {
+    color: var(--bone-2);
+    font-size: 1rem;
+  }
+
+  .mcard__prices dd {
+    margin: 0;
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1.0625rem;
+    white-space: nowrap;
+  }
+
+  .mcard__note {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
   @media (max-width: 64rem) {
     .cycle {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -369,6 +607,16 @@ const hotbar: Array<GlyphId | null> = ['sword', 'pickaxe', 'bread', null, null, 
 
     .npc {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .market__list {
+      grid-template-columns: 1fr;
+    }
+
+    .mcard--enchant {
+      grid-row: auto;
     }
   }
 
