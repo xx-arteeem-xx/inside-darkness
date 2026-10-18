@@ -1,0 +1,526 @@
+---
+import Pixel from './Pixel.astro';
+import { GLYPHS } from '../lib/emblems';
+import { CRAFTS, INCOME, INCOME_MAX } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const craftsHref = await docHref('crafts');
+const huntingHref = await docHref('hunting');
+
+const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+const ticks = Array.from({ length: INCOME_MAX / 1000 + 1 }, (_, i) => i * 1000);
+const pct = (n: number) => `${(n / INCOME_MAX) * 100}%`;
+
+const hunts = [
+  {
+    id: 'dungeons',
+    name: 'Подземелья',
+    glyph: 'skull' as const,
+    levels: '1–8',
+    where: '5 подземелий в обычных землях',
+    facts: [
+      'Мобы появляются снова и снова: даже если до тебя всё зачистили, найдёшь кого убить.',
+      'Чем дальше подземелье от столицы и чем глубже моб, тем выше уровень. Он виден над головой.',
+    ],
+    loot: [
+      ['Трофей', '12–80'],
+      ['Реликвия, изредка', '300'],
+    ],
+  },
+  {
+    id: 'dark',
+    name: 'Тёмные земли',
+    glyph: 'darkheart' as const,
+    levels: '12–20',
+    where: 'за Большой стеной, 1000–1500 блоков от столицы',
+    facts: [
+      'Твари в разы сильнее самого злого моба подземелий.',
+      'Лут оттуда — «иксы»: тёмные трофеи.',
+    ],
+    loot: [
+      ['Тёмный трофей', '150–500'],
+      ['Сердце тьмы, редкое', '1500'],
+    ],
+  },
+];
+---
+<section class="earn section" id="earn" aria-labelledby="earn-title">
+  <svg class="strata" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+    <path fill="#17171c" d="M0 24V8h120v8h96V4h168v12h72V8h144v8h112V0h96v12h160V4h88v12h120V8h136v8h128V24z" />
+  </svg>
+  <div class="wrap">
+    <header class="section-head">
+      <h2 class="section-title" id="earn-title">Пути заработка</h2>
+      <p class="section-lead">
+        Ремесло — ровный доход. Охота — в разы выгоднее, а в тёмных землях легко умереть. За само убийство моба не
+        платят: деньги только за лут, донесённый до купца.
+      </p>
+    </header>
+
+    <figure class="income">
+      <figcaption class="income__title">Доход в час, монет</figcaption>
+      <ul class="income__rows" role="list">
+        {INCOME.map((r) => (
+          <li class:list={['bar', `bar--${r.id}`]}>
+            <p class="bar__head">
+              <span class="bar__name">{r.name}</span>
+              <span class="bar__note">{r.note}</span>
+              <span class="bar__value">{fmt(r.min)}–{fmt(r.max)}</span>
+            </p>
+            <span class="bar__track" aria-hidden="true">
+              <span class="bar__fill" style={`left:${pct(r.min)};width:${pct(r.max - r.min)}`}></span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div class="income__axis" aria-hidden="true">
+        {ticks.map((t) => (
+          <span style={`left:${pct(t)}`}>{t === 0 ? '0' : `${t / 1000}k`}</span>
+        ))}
+      </div>
+    </figure>
+
+    <div class="paths">
+      <section class="path path--craft" aria-labelledby="craft-title">
+        <div class="path__head">
+          <h3 class="path__title" id="craft-title">Ремёсла</h3>
+          <span class="tag tag--moss">надёжно</span>
+        </div>
+        <p class="path__lead">Ломать блоки можно только здесь. Доход ровный: 400–700 монет в час.</p>
+        <ul class="crafts" role="list">
+          {CRAFTS.map((c) => (
+            <li class="craft">
+              <div class="craft__top">
+                <span class="slot" aria-hidden="true"><Pixel grid={GLYPHS[c.glyph]} /></span>
+                <div>
+                  <h4 class="craft__name">{c.name}</h4>
+                  <p class="craft__where">
+                    {c.where}{c.coords && <> · <code>{c.coords}</code></>}
+                  </p>
+                </div>
+              </div>
+              <ul class="craft__facts" role="list">
+                {c.facts.map((f) => <li>{f}</li>)}
+              </ul>
+              <p class="craft__sells">{c.sells}</p>
+            </li>
+          ))}
+        </ul>
+        <a class="more" href={craftsHref}>Всё о ремёслах</a>
+      </section>
+
+      <section class="path path--hunt" aria-labelledby="hunt-title">
+        <div class="path__head">
+          <h3 class="path__title" id="hunt-title">Охота</h3>
+          <span class="tag">выгоднее</span>
+        </div>
+        <p class="path__lead">Трофеи и обычный лут с мобов берёт скупщик диковин на рынке.</p>
+        <ul class="hunts" role="list">
+          {hunts.map((h) => (
+            <li class:list={['hunt', `hunt--${h.id}`]}>
+              <div class="hunt__top">
+                <span class="slot slot--dark" aria-hidden="true"><Pixel grid={GLYPHS[h.glyph]} /></span>
+                <div>
+                  <h4 class="hunt__name">{h.name}</h4>
+                  <p class="hunt__where">{h.where}</p>
+                </div>
+                <p class="lvl"><span>ур.</span> {h.levels}</p>
+              </div>
+              <ul class="hunt__facts" role="list">
+                {h.facts.map((f) => <li>{f}</li>)}
+              </ul>
+              <dl class="loot">
+                {h.loot.map(([name, price]) => (
+                  <div><dt>{name}</dt><dd>{price}</dd></div>
+                ))}
+              </dl>
+            </li>
+          ))}
+        </ul>
+        <a class="more" href={huntingHref}>Всё об охоте</a>
+      </section>
+    </div>
+
+    <section class="marks" aria-labelledby="marks-title">
+      <h3 class="marks__title" id="marks-title">Ориентиры</h3>
+      <ul class="marks__list" role="list">
+        <li><b>Ремесленник за вечер</b> (2–3 часа) снимает жильё и одевается в железо.</li>
+        <li><b>Охотник за несколько вечеров</b> собирает алмазную экипировку и покупает свой дом.</li>
+        <li><b>Дом за 8000</b> — цель на неделю ремесла. Комната за 20 в сутки — копейки.</li>
+      </ul>
+    </section>
+  </div>
+</section>
+
+<style>
+  .earn {
+    background: #17171c;
+  }
+
+  /* ——— доход в час ——— */
+  .income {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem) 2.75rem;
+    background: var(--slate-0);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .income__title {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  .income__rows {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bar__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.75rem;
+  }
+
+  .bar__name {
+    color: var(--bone);
+    font-weight: 700;
+  }
+
+  .bar__note {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  .bar__value {
+    margin-left: auto;
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Дорожка с сеткой по тысячам, полоса как шкала опыта. */
+  .bar__track {
+    position: relative;
+    display: block;
+    height: 14px;
+    margin-top: 0.4rem;
+    background:
+      repeating-linear-gradient(90deg, rgb(236 228 208 / 0.08) 0 1px, transparent 1px calc(100% / 6)),
+      #0b0c0f;
+    box-shadow: inset 0 0 0 1px var(--slate-3);
+  }
+
+  .bar__fill {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    min-width: 6px;
+    background: linear-gradient(#f8d98f 0 45%, var(--torch) 45%);
+    box-shadow: inset 0 -2px 0 rgb(60 30 0 / 0.45);
+  }
+
+  .income__axis {
+    position: relative;
+    height: 1rem;
+    margin-top: 0.6rem;
+    color: var(--ash-2);
+    font-family: var(--font-pixel);
+    font-size: 0.875rem;
+  }
+
+  .income__axis span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  .income__axis span:first-child {
+    transform: none;
+  }
+
+  .income__axis span:last-child {
+    transform: translateX(-100%);
+  }
+
+  /* ——— два пути ——— */
+  .paths {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 3rem clamp(2rem, 5vw, 4rem);
+    margin-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .path {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+  }
+
+  .path > .more {
+    justify-self: start;
+    margin-top: 0.5rem;
+  }
+
+  .path__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 2px solid var(--slate-4);
+  }
+
+  .path__title {
+    font-size: var(--fs-lg);
+  }
+
+  .path__lead {
+    color: var(--bone-2);
+  }
+
+  .tag--moss {
+    background: rgb(131 196 147 / 0.1);
+    box-shadow: inset 0 0 0 2px rgb(131 196 147 / 0.4);
+    color: var(--moss);
+  }
+
+  .crafts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .craft,
+  .hunt {
+    display: grid;
+    align-content: start;
+    gap: 0.9rem;
+    padding: 1.1rem 1.15rem 1.2rem;
+    background: #1d1c22;
+    box-shadow:
+      inset 0 0 0 2px #0b0b0e,
+      inset 2px 2px 0 2px #33323c,
+      inset -2px -2px 0 2px #121116;
+  }
+
+  .craft__top,
+  .hunt__top {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .craft__name,
+  .hunt__name {
+    font-size: var(--fs-md);
+    line-height: 1.15;
+  }
+
+  .craft__where,
+  .hunt__where {
+    margin-top: 0.15rem;
+    color: var(--ash);
+    font-size: 0.9375rem;
+    line-height: 1.35;
+  }
+
+  .craft__where code {
+    color: var(--bone-2);
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  .craft__facts,
+  .hunt__facts {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--bone-2);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .craft__facts li,
+  .hunt__facts li {
+    position: relative;
+    padding-left: 1rem;
+  }
+
+  .craft__facts li::before,
+  .hunt__facts li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 5px;
+    height: 5px;
+    background: var(--torch);
+  }
+
+  .craft__sells {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--line-2);
+    color: var(--gold);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .slot {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: #26272f;
+    box-shadow:
+      inset 3px 3px 0 #0e0e12,
+      inset -3px -3px 0 #464856;
+  }
+
+  .slot :global(.pixel) {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+
+  .slot--dark {
+    background: #1a1320;
+  }
+
+  .hunts {
+    display: grid;
+    gap: 1rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hunt__top {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .hunt--dark {
+    background:
+      radial-gradient(90% 70% at 100% 0%, rgb(124 31 44 / 0.35), transparent 70%),
+      #120f16;
+    box-shadow:
+      inset 0 0 0 2px #050406,
+      inset 2px 2px 0 2px #3a2233,
+      inset -2px -2px 0 2px #0b0710;
+  }
+
+  /* Уровень моба: пиксельная плашка, как подпись над головой. */
+  .lvl {
+    align-self: start;
+    padding: 0.2rem 0.5rem;
+    background: rgb(0 0 0 / 0.55);
+    color: #ff8a7a;
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .lvl span {
+    color: var(--ash);
+    font-size: 0.875rem;
+  }
+
+  .hunt--dungeons .lvl {
+    color: var(--gold);
+  }
+
+  .loot {
+    display: grid;
+    margin: 0;
+    border-top: 1px dashed var(--line-2);
+  }
+
+  .loot div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.55rem;
+  }
+
+  .loot dt {
+    color: var(--bone-2);
+    font-size: 1rem;
+  }
+
+  .loot dd {
+    margin: 0;
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1.0625rem;
+    white-space: nowrap;
+  }
+
+  /* ——— ориентиры ——— */
+  .marks {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 4fr);
+    gap: 1rem 3rem;
+    margin-top: clamp(3rem, 7vw, 4.5rem);
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .marks__title {
+    font-size: var(--fs-md);
+  }
+
+  .marks__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--bone-2);
+  }
+
+  .marks__list li {
+    padding-left: 1rem;
+    box-shadow: inset 2px 0 0 var(--gold-deep);
+  }
+
+  .marks__list b {
+    color: var(--bone);
+  }
+
+  @media (max-width: 64rem) {
+    .paths,
+    .marks {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .marks__list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .crafts {
+      grid-template-columns: 1fr;
+    }
+
+    .bar__value {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>

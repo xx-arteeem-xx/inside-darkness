@@ -8,10 +8,11 @@ interface Props {
 const { variant = 'inner' } = Astro.props;
 const inDocs = Astro.url.pathname.includes('/docs');
 const links = [
-  { href: url('/#mechanics'), text: 'Механики' },
-  { href: url('/#capital'), text: 'Столица' },
-  { href: url('/#roots'), text: 'Расы и классы' },
-  { href: url('/#map'), text: 'Карта' },
+  { href: url('/#how'), text: 'Как играть' },
+  { href: url('/#earn'), text: 'Заработок' },
+  { href: url('/#places'), text: 'Места' },
+  { href: url('/#village'), text: 'Деревня' },
+  { href: url('/#arena'), text: 'Ристалище' },
   { href: url('/docs/'), text: 'Документация', current: inDocs },
 ];
 ---
@@ -112,8 +113,9 @@ const links = [
     box-shadow: inset 0 -2px 0 var(--gold);
   }
 
-  /* На телефоне навигация уходит во вторую строку и прокручивается вбок, без скрытого меню. */
-  @media (max-width: 56rem) {
+  /* На узком экране навигация уходит во вторую строку и прокручивается вбок, без скрытого меню.
+     Шесть ссылок и знак в одну строку помещаются только от 62rem. */
+  @media (max-width: 62rem) {
     .site-header__row {
       flex-wrap: wrap;
       padding-top: 0.6rem;

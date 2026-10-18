@@ -20,6 +20,7 @@ const hasRules = docs.some((d) => d.id === 'rules');
     <nav class="site-footer__nav" aria-label="Ссылки в подвале">
       <ul role="list">
         <li><a href={url('/#join')}>Как зайти</a></li>
+        <li><a href={url('/#first')}>Новичку</a></li>
         <li><a href={url('/docs/')}>Документация</a></li>
         {hasRules && <li><a href={url('/docs/rules/')}>Правила</a></li>}
         <li><a href={url('/#telegram')}>Telegram</a></li>

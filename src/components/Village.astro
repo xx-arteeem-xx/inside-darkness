@@ -1,0 +1,323 @@
+---
+import Pixel from './Pixel.astro';
+import { CRESTS } from '../lib/emblems';
+import { RACES, RACE_CHANGE, MASTERS, LEVEL_COSTS } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const villageHref = await docHref('village');
+const top = Math.max(...LEVEL_COSTS);
+const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+---
+<section class="village section" id="village" aria-labelledby="village-title">
+  <svg class="strata" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
+    <path fill="#1a181d" d="M0 24V12h88V4h136v12h160V8h96v8h120V0h72v12h184V8h104v8h112V4h128v12h96V8h144V24z" />
+  </svg>
+  <div class="wrap">
+    <header class="section-head">
+      <h2 class="section-title" id="village-title">Деревня: расы и мастера</h2>
+      <p class="section-lead">
+        Сразу за южными воротами столицы. Старейшина даёт расу, мастера за монеты учат навыкам, староста сдаёт и
+        продаёт дома.
+      </p>
+    </header>
+
+    <div class="races-head">
+      <h3 class="sub-title">Четыре расы</h3>
+      <p>
+        Выбираются у старейшины. Первый раз бесплатно, сменить — <b>{fmt(RACE_CHANGE)} монет</b>.
+      </p>
+    </div>
+    <ul class="races" role="list">
+      {RACES.map((race) => (
+        <li class:list={['race', `race--${race.id}`]}>
+          <Pixel grid={CRESTS[race.id]} class="race__crest" />
+          <h4 class="race__name">{race.name}</h4>
+          <p class="race__who">{race.who}</p>
+          <ul class="race__bonus" role="list">
+            {race.bonus.map((b) => <li>{b}</li>)}
+          </ul>
+          <p class="race__fits"><span>Кому:</span> {race.fits}</p>
+        </li>
+      ))}
+    </ul>
+
+    <div class="masters">
+      <div class="masters__text">
+        <h3 class="sub-title">Пять мастеров</h3>
+        <p>
+          У каждого мастера свой навык, в нём пять уровней. Заплатил — получил следующий уровень. Навыки ремёсел дают
+          шанс двойной добычи, боевые — урон и сердца.
+        </p>
+        <dl class="skills">
+          {MASTERS.map((m) => (
+            <div>
+              <dt>{m.master} <span>{m.skill}</span></dt>
+              <dd>{m.per} <span>за уровень</span></dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <figure class="ladder">
+        <figcaption class="ladder__title">Цена уровня, монет</figcaption>
+        <ol class="ladder__steps" role="list">
+          {LEVEL_COSTS.map((cost, i) => (
+            <li style={`--h:${Math.max(0.05, cost / top).toFixed(3)}`}>
+              <span class="ladder__cost">{fmt(cost)}</span>
+              <span class="ladder__bar" aria-hidden="true"></span>
+              <span class="ladder__lvl">{i + 1} ур.</span>
+            </li>
+          ))}
+        </ol>
+      </figure>
+    </div>
+
+    <p class="village__more">
+      <a class="more" href={villageHref}>Расы и мастера подробно</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .village {
+    background:
+      radial-gradient(70% 50% at 85% 0%, rgb(124 31 44 / 0.12), transparent 70%),
+      #1a181d;
+  }
+
+  .sub-title {
+    font-size: var(--fs-lg);
+  }
+
+  .races-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .races-head p {
+    color: var(--bone-2);
+  }
+
+  .races-head b {
+    color: var(--gold);
+  }
+
+  .races {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Карточка расы: вставка в каменной раме, герб поднят над полем. */
+  .race {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    justify-items: start;
+    gap: 0.5rem;
+    padding: 1.4rem 1.25rem 1.25rem;
+    background: #1f1d24;
+    box-shadow:
+      inset 0 0 0 2px #0b0b0e,
+      inset 2px 2px 0 2px #36343f,
+      inset -2px -2px 0 2px #121116;
+  }
+
+  .race :global(.race__crest) {
+    width: 4.5rem;
+    height: 4.8rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 5px 0 rgb(0 0 0 / 0.45));
+  }
+
+  .race__name {
+    font-size: var(--fs-md);
+    line-height: 1.15;
+  }
+
+  .race__who {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  .race__bonus {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .race__bonus li {
+    position: relative;
+    padding-left: 1.1rem;
+    color: var(--gold);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .race__bonus li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    top: 0.05em;
+    color: var(--moss);
+    font-family: var(--font-pixel);
+  }
+
+  .race__fits {
+    margin-top: 0.5rem;
+    padding-top: 0.6rem;
+    width: 100%;
+    border-top: 1px dashed var(--line-2);
+    color: var(--bone-2);
+    font-size: 1rem;
+  }
+
+  .race__fits span {
+    color: var(--ash);
+  }
+
+  /* ——— мастера ——— */
+  .masters {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 2.5rem clamp(2.5rem, 6vw, 5rem);
+    align-items: end;
+    margin-top: clamp(3.5rem, 8vw, 5.5rem);
+  }
+
+  .masters__text > p {
+    margin-top: 0.9rem;
+    color: var(--bone-2);
+  }
+
+  .skills {
+    display: grid;
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .skills div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.2rem 1.5rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .skills dt {
+    color: var(--bone);
+    font-weight: 700;
+  }
+
+  .skills dt span {
+    display: block;
+    color: var(--ash);
+    font-size: 0.9375rem;
+    font-weight: 400;
+  }
+
+  .skills dd {
+    margin: 0;
+    color: var(--gold);
+  }
+
+  .skills dd span {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  /* Лестница цен: высота столбца — цена уровня. */
+  .ladder {
+    padding: 1.25rem 1.25rem 1rem;
+    background: var(--slate-0);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .ladder__title {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  .ladder__steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: end;
+    gap: 0.6rem;
+    height: 15rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ladder__steps li {
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    align-items: end;
+    height: 100%;
+  }
+
+  .ladder__cost {
+    align-self: end;
+    margin-bottom: 0.35rem;
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .ladder__bar {
+    display: block;
+    height: calc(11rem * var(--h));
+    background:
+      repeating-linear-gradient(180deg, transparent 0 10px, rgb(60 30 0 / 0.35) 10px 12px),
+      linear-gradient(90deg, #f8d98f 0 28%, var(--torch) 28% 78%, #b97a25 78%);
+    box-shadow: inset 0 3px 0 rgb(255 240 200 / 0.45);
+  }
+
+  .ladder__lvl {
+    padding-top: 0.4rem;
+    border-top: 2px solid var(--slate-4);
+    color: var(--ash);
+    font-size: 0.9375rem;
+    text-align: center;
+  }
+
+  .village__more {
+    margin-top: 2.5rem;
+  }
+
+  @media (max-width: 64rem) {
+    .races {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .masters {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .races {
+      grid-template-columns: 1fr;
+    }
+
+    .skills div {
+      grid-template-columns: 1fr;
+    }
+
+    .ladder__cost {
+      font-size: 0.875rem;
+    }
+  }
+</style>

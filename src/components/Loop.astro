@@ -1,0 +1,393 @@
+---
+import Pixel from './Pixel.astro';
+import { GLYPHS, type GlyphId } from '../lib/emblems';
+import { START_COINS } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const economyHref = await docHref('economy');
+
+const steps: Array<{ glyph: GlyphId; title: string; text: string }> = [
+  { glyph: 'pickaxe', title: 'Добываешь', text: 'Руда в шахте, урожай на поле, брёвна в саду, рыба. Или трофеи с мобов в подземельях и тёмных землях.' },
+  { glyph: 'pouch', title: 'Продаёшь купцу', text: 'Купцы на центральном рынке скупают добычу. Товар в руку, ПКМ по купцу — и стопка продана.' },
+  { glyph: 'coin', title: 'Получаешь монеты', text: 'Баланс всплывает над хотбаром. Монеты нельзя передать — только заработать.' },
+  { glyph: 'anvil', title: 'Качаешься у мастера', text: 'Мастера в деревне за монеты учат навыкам: шанс двойной добычи, урон, сердца.' },
+];
+
+// Пример разговора с оружейником: цены из концепта, формулировки условные.
+const offers = [
+  ['Каменный меч', 15],
+  ['Железный меч', 80],
+  ['Лук', 70],
+  ['Стрелы ×32', 15],
+  ['Щит', 50],
+] as const;
+const bought = 80;
+const hotbar: Array<GlyphId | null> = ['sword', 'pickaxe', 'bread', null, null, null, null, null, null];
+---
+<section class="loop section" id="how" aria-labelledby="how-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 class="section-title" id="how-title">Как устроена игра</h2>
+      <p class="section-lead">
+        Один круг на всю игру: добыл, продал, получил монеты, прокачался. Со следующим кругом тот же час работы
+        приносит больше.
+      </p>
+    </header>
+
+    <ol class="cycle" role="list">
+      {steps.map((s, i) => (
+        <li class="cycle__step">
+          <span class="slot" aria-hidden="true"><Pixel grid={GLYPHS[s.glyph]} /></span>
+          <p class="cycle__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</p>
+          <h3 class="cycle__title">{s.title}</h3>
+          <p class="cycle__text">{s.text}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="cycle__back">
+      <span class="cycle__arrow" aria-hidden="true"></span>
+      И снова к шахте, полю или в подземелье, но уже с навыками.
+    </p>
+
+    <div class="npc">
+      <div class="npc__text">
+        <h3 class="npc__title">Всё через NPC</h3>
+        <p>
+          Меню, магазинов-окон и <code>/sell</code> нет. Подходишь к NPC, жмёшь ПКМ, он отвечает в чате. Варианты
+          ответа — строки в чате: кликнул и выбрал.
+        </p>
+        <dl class="gestures">
+          <div>
+            <dt><kbd>ПКМ</kbd> с товаром в руке</dt>
+            <dd>продана вся стопка</dd>
+          </div>
+          <div>
+            <dt><kbd>Shift</kbd> + <kbd>ПКМ</kbd></dt>
+            <dd>продан весь такой товар из инвентаря</dd>
+          </div>
+          <div>
+            <dt><kbd>ПКМ</kbd> пустой рукой</dt>
+            <dd>купец называет цены</dd>
+          </div>
+        </dl>
+        <p class="npc__more">Цены скупки и покупки: <a href={economyHref}>Монеты и рынок</a>.</p>
+      </div>
+
+      <figure class="screen">
+        <div class="screen__view" aria-hidden="true">
+          <div class="screen__chat">
+            <p><span class="c-npc">Оружейник:</span> Что берёшь?</p>
+            {offers.map(([name, price]) => (
+              <p class:list={['c-opt', { 'c-opt--hover': price === bought && name === 'Железный меч' }]}>
+                [{name} — {price}]
+              </p>
+            ))}
+          </div>
+          <div class="screen__hud">
+            <p class="screen__balance">−{bought} · {START_COINS - bought} монет</p>
+            <div class="hotbar">
+              {hotbar.map((g, i) => (
+                <span class:list={['hotbar__slot', { 'hotbar__slot--on': i === 0 }]}>
+                  {g && <Pixel grid={GLYPHS[g]} />}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          Пример разговора с оружейником. Строки в скобках кликабельны, после покупки баланс всплывает над хотбаром.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .loop {
+    background: var(--slate-0);
+  }
+
+  /* ——— круг ——— */
+  .cycle {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem clamp(1.5rem, 3vw, 2.75rem);
+    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cycle__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-content: start;
+    gap: 0.25rem 1rem;
+  }
+
+  .cycle__step .slot {
+    grid-row: span 2;
+  }
+
+  /* Пиксельная стрелка к следующему шагу. */
+  .cycle__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 1.35rem;
+    right: calc(-1 * clamp(1.5rem, 3vw, 2.75rem) + 0.35rem);
+    width: calc(clamp(1.5rem, 3vw, 2.75rem) - 0.7rem);
+    height: 10px;
+    background:
+      linear-gradient(var(--gold-deep), var(--gold-deep)) left 0 top 4px / calc(100% - 6px) 2px no-repeat,
+      linear-gradient(var(--gold), var(--gold)) right 4px top 0 / 2px 10px no-repeat,
+      linear-gradient(var(--gold), var(--gold)) right 2px top 2px / 2px 6px no-repeat,
+      linear-gradient(var(--gold), var(--gold)) right 0 top 4px / 2px 2px no-repeat;
+  }
+
+  .cycle__n {
+    align-self: end;
+    color: var(--torch);
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .cycle__title {
+    align-self: start;
+    font-size: var(--fs-md);
+    line-height: 1.15;
+  }
+
+  .cycle__text {
+    grid-column: 1 / -1;
+    margin-top: 0.75rem;
+    color: var(--bone-2);
+  }
+
+  .cycle__back {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2.25rem;
+    padding: 0.85rem 1.1rem;
+    background: rgb(237 163 60 / 0.06);
+    box-shadow: inset 0 0 0 1px rgb(237 163 60 / 0.25);
+    color: var(--bone);
+  }
+
+  /* Стрелка «назад к началу»: уголок из пикселей. */
+  .cycle__arrow {
+    flex: none;
+    width: 22px;
+    height: 16px;
+    background:
+      linear-gradient(var(--gold), var(--gold)) 4px 2px / 18px 3px no-repeat,
+      linear-gradient(var(--gold), var(--gold)) 19px 2px / 3px 12px no-repeat,
+      linear-gradient(var(--gold), var(--gold)) 0 1px / 3px 5px no-repeat,
+      linear-gradient(var(--gold), var(--gold)) 3px 0 / 2px 7px no-repeat;
+  }
+
+  /* Ячейка инвентаря. */
+  .slot {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: #26272f;
+    box-shadow:
+      inset 3px 3px 0 #0e0e12,
+      inset -3px -3px 0 #464856;
+  }
+
+  .slot :global(.pixel) {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  /* ——— NPC ——— */
+  .npc {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 2.5rem clamp(2.5rem, 6vw, 5rem);
+    align-items: center;
+    margin-top: clamp(4rem, 9vw, 6rem);
+  }
+
+  .npc__title {
+    font-size: var(--fs-lg);
+  }
+
+  .npc__text > p {
+    margin-top: 0.9rem;
+    color: var(--bone-2);
+  }
+
+  .npc code {
+    padding: 0.05em 0.35em;
+    background: rgb(0 0 0 / 0.5);
+    color: #f3f0e6;
+  }
+
+  .gestures {
+    display: grid;
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .gestures div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.25rem 1.25rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .gestures dt {
+    color: var(--bone);
+  }
+
+  .gestures dd {
+    margin: 0;
+    color: var(--bone-2);
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.8em;
+    padding: 0.1em 0.45em;
+    background: var(--slate-3);
+    box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.45), inset 0 2px 0 rgb(255 255 255 / 0.1);
+    color: var(--gold);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .npc .npc__more {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  /* Игровой экран: ночное небо, чат слева сверху, хотбар внизу. */
+  .screen__view {
+    position: relative;
+    display: grid;
+    align-content: space-between;
+    gap: 2.5rem;
+    min-height: 22rem;
+    padding: 1rem;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, transparent 62%, rgb(0 0 0 / 0.25) 62% 64%, transparent 64%),
+      repeating-linear-gradient(90deg, #1b2017 0 32px, #20271c 32px 64px) 0 100% / 100% 36% no-repeat,
+      linear-gradient(180deg, #0a0f1d 0%, #16203a 60%, #1c2543 100%);
+    box-shadow:
+      0 0 0 2px #0a0a0d,
+      0 0 0 6px #2a2b33,
+      0 0 0 8px #0a0a0d;
+  }
+
+  .screen__chat {
+    justify-self: start;
+    max-width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: rgb(0 0 0 / 0.55);
+    color: #f3f0e6;
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .c-npc {
+    color: #ffd27a;
+  }
+
+  .c-opt {
+    padding-left: 1rem;
+    color: #8fd06f;
+  }
+
+  .c-opt--hover {
+    color: #ffffa0;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .screen__hud {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+  }
+
+  .screen__balance {
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1.0625rem;
+    text-shadow: 2px 2px 0 #3a2a0c;
+  }
+
+  .hotbar {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 2.5rem));
+    gap: 0;
+    max-width: 100%;
+    padding: 3px;
+    background: rgb(0 0 0 / 0.55);
+    box-shadow: inset 0 0 0 2px #5a5b63;
+  }
+
+  .hotbar__slot {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  }
+
+  .hotbar__slot--on {
+    box-shadow: inset 0 0 0 3px #f3f0e6;
+  }
+
+  .hotbar__slot :global(.pixel) {
+    width: 66%;
+    height: 66%;
+  }
+
+  .screen figcaption {
+    margin-top: 1.1rem;
+    color: var(--ash);
+    font-size: var(--fs-sm);
+  }
+
+  @media (max-width: 64rem) {
+    .cycle {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cycle__step::after {
+      display: none;
+    }
+
+    .npc {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .cycle {
+      grid-template-columns: 1fr;
+    }
+
+    .gestures div {
+      grid-template-columns: 1fr;
+    }
+
+    .screen__view {
+      min-height: 18rem;
+      padding: 0.75rem;
+    }
+
+    .screen__chat {
+      font-size: 0.875rem;
+    }
+  }
+</style>

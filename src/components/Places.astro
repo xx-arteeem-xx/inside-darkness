@@ -1,0 +1,298 @@
+---
+import { gridLayers, rng } from '../lib/pixel';
+import { PLACES, WALL_R, DARK_R } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const worldHref = await docHref('world');
+
+/* Схема государства клетками. Направления верные, расстояния сжаты к краю (корень из расстояния),
+   иначе столица, рынок и места ремёсел слиплись бы в точку рядом с кольцом тёмных земель. */
+const N = 81;
+const S = 6; // пикселей на клетку
+const C = N / 2;
+const R_SHOW = 1650; // блоков до края схемы
+const RC = C - 0.5; // клеток до края
+const toCells = (blocks: number) => RC * Math.sqrt(blocks / R_SHOW);
+const toBlocks = (cells: number) => R_SHOW * (cells / RC) ** 2;
+
+const CAP_R = 70;
+const r = rng(4242);
+const cells: string[][] = Array.from({ length: N }, () => Array(N).fill('.'));
+for (let y = 0; y < N; y++) {
+  for (let x = 0; x < N; x++) {
+    const d = toBlocks(Math.hypot(x + 0.5 - C, y + 0.5 - C));
+    const n = r();
+    if (d <= CAP_R - 12) cells[y][x] = 'c';
+    else if (d <= CAP_R) cells[y][x] = 'w';
+    else if (d < WALL_R - 35) {
+      // обычные земли темнеют к Стене: дальше от столицы — сильнее мобы
+      const t = d / WALL_R;
+      const band = t < 0.25 ? 0 : t < 0.5 ? 1 : t < 0.75 ? 2 : 3;
+      cells[y][x] = n > 0.82 ? '1234'[Math.min(3, band + 1)] : '1234'[band];
+    } else if (d < WALL_R + 75) cells[y][x] = n > 0.7 ? 'W' : 'V';
+    else if (d <= DARK_R) cells[y][x] = n > 0.985 ? 'x' : n > 0.6 ? 'D' : 'e';
+  }
+}
+// цитадель в центре
+for (let y = Math.floor(C) - 1; y <= Math.floor(C) + 1; y++) for (let x = Math.floor(C) - 1; x <= Math.floor(C) + 1; x++) cells[y][x] = 'k';
+cells[Math.floor(C) - 1][Math.floor(C)] = 'y';
+
+const map = gridLayers(
+  {
+    rows: cells.map((row) => row.join('')),
+    palette: {
+      c: '#3a3d4b',
+      w: '#9a9eb0',
+      k: '#121318',
+      y: '#f4c770',
+      1: '#2b3b25',
+      2: '#24311f',
+      3: '#2a2a20',
+      4: '#331f22',
+      W: '#c9c2ad',
+      V: '#8a8676',
+      e: '#140d16',
+      D: '#1d1220',
+      x: '#d9505d',
+    },
+  },
+  S,
+);
+
+const VIEW = N * S;
+const pins = PLACES.map((p) => {
+  const dist = Math.hypot(p.x, p.z);
+  const rc = p.id === 'capital' ? 0 : toCells(dist);
+  const a = Math.atan2(p.z, p.x);
+  const cx = (C + rc * Math.cos(a)) * S;
+  const cy = (C + rc * Math.sin(a)) * S;
+  const left = cx > VIEW * 0.72;
+  return { ...p, cx, cy, left };
+});
+
+const lvlY = (C - toCells(520)) * S;
+const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
+---
+<section class="places section" id="places" aria-labelledby="places-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 class="section-title" id="places-title">Карта государства</h2>
+      <p class="section-lead">
+        Столица в центре, рядом рынок и деревня, вокруг места ремёсел. Подземелья разбросаны по обычным землям, а за
+        Большой стеной начинаются тёмные земли.
+      </p>
+    </header>
+
+    <div class="places__grid">
+      <figure class="atlas">
+        <svg class="atlas__map" viewBox={`0 0 ${VIEW} ${VIEW}`} role="img" aria-labelledby="atlas-cap" shape-rendering="crispEdges">
+          {map.map((l) => <path fill={l.fill} d={l.d} />)}
+          <g class="atlas__zone" font-size="14">
+            <text x={VIEW / 2} y={lvlY} text-anchor="middle">подземелья ур. 1–8</text>
+            <text x={VIEW / 2} y={darkY} text-anchor="middle" class="atlas__dark">тёмные земли ур. 12–20</text>
+          </g>
+          <text x={VIEW - 10} y="22" text-anchor="end" class="atlas__north" font-size="14">С ↑</text>
+          {pins.map((p) => (
+            <g class:list={['pin', `pin--${p.id}`]}>
+              {p.id !== 'capital' && <rect x={p.cx - 7} y={p.cy - 7} width="14" height="14" fill="#0b0c10" />}
+              {p.id !== 'capital' && <rect x={p.cx - 4} y={p.cy - 4} width="8" height="8" class="pin__dot" />}
+              <rect
+                x={p.id === 'capital' ? p.cx - 11 : p.left ? p.cx - 34 : p.cx + 10}
+                y={p.id === 'capital' ? p.cy - 42 : p.cy - 11}
+                width="22"
+                height="22"
+                class="pin__badge"
+              />
+              <text
+                x={p.id === 'capital' ? p.cx : p.left ? p.cx - 23 : p.cx + 21}
+                y={p.id === 'capital' ? p.cy - 25 : p.cy + 6}
+                text-anchor="middle"
+                class="pin__n"
+                font-size="16"
+              >{p.n}</text>
+            </g>
+          ))}
+        </svg>
+        <figcaption id="atlas-cap">
+          Схема, не в масштабе: направления верные, расстояния сжаты к краю. Чем темнее земля, тем дальше от столицы и
+          тем сильнее мобы в подземельях. Светлое кольцо — Большая стена, за ней тёмные земли.
+        </figcaption>
+      </figure>
+
+      <div class="legend">
+        <ol class="legend__list" role="list">
+          {PLACES.map((p) => (
+            <li class="spot">
+              <span class="spot__n" aria-hidden="true">{p.n}</span>
+              <div>
+                <p class="spot__name">
+                  {p.name} <span class="spot__dir">{p.dir}</span>
+                </p>
+                <p class="spot__what">{p.what}</p>
+                {p.coords && <p class="spot__xyz"><code>{p.coords}</code></p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+        <ul class="legend__extra" role="list">
+          <li><b>Подземелья.</b> Пять штук в обычных землях, внутри Стены. Мобы 1–8 уровня.</li>
+          <li><b>Тёмные земли.</b> За Большой стеной, 1000–1500 блоков от столицы. Мобы 12–20 уровня.</li>
+          <li><b>Рыбалка.</b> В любой воде.</li>
+        </ul>
+        <p class="legend__more">Координаты в порядке X, Y, Z. Подробно: <a href={worldHref}>Карта и места</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .places {
+    background: var(--slate-1);
+  }
+
+  .places__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: 2.5rem clamp(2.5rem, 6vw, 4.5rem);
+    align-items: start;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .atlas__map {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #08080b;
+    box-shadow:
+      0 0 0 2px #0a0a0d,
+      0 0 0 6px #2a2b33,
+      0 0 0 8px #0a0a0d;
+  }
+
+  .atlas text {
+    font-family: var(--font-pixel);
+  }
+
+  .atlas__zone text {
+    fill: rgb(236 228 208 / 0.6);
+  }
+
+  .atlas__zone .atlas__dark {
+    fill: #f2b7bd;
+  }
+
+  .atlas__north {
+    fill: var(--ash);
+  }
+
+  .pin__dot {
+    fill: var(--gold);
+  }
+
+  .pin--arena .pin__dot {
+    fill: var(--blood);
+  }
+
+  .pin__badge {
+    fill: #0b0c10;
+    stroke: var(--gold-deep);
+    stroke-width: 2;
+  }
+
+  .pin__n {
+    fill: var(--gold);
+  }
+
+  .atlas figcaption {
+    margin-top: 1.1rem;
+    color: var(--ash);
+    font-size: var(--fs-sm);
+  }
+
+  .legend__list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .spot {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0.9rem;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .spot__n {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    background: #0b0c10;
+    box-shadow: inset 0 0 0 2px var(--gold-deep);
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+  }
+
+  .spot__name {
+    color: var(--bone);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .spot__dir {
+    margin-left: 0.35rem;
+    color: var(--ash);
+    font-size: 0.9375rem;
+    font-weight: 400;
+  }
+
+  .spot__what {
+    margin-top: 0.15rem;
+    color: var(--bone-2);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .spot__xyz code {
+    display: inline-block;
+    margin-top: 0.35rem;
+    padding: 0.05rem 0.45rem;
+    background: rgb(0 0 0 / 0.5);
+    color: var(--gold);
+    font-size: 0.9375rem;
+  }
+
+  .legend__extra {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--bone-2);
+    font-size: 1rem;
+  }
+
+  .legend__extra b {
+    color: var(--bone);
+  }
+
+  .legend__more {
+    margin-top: 1.25rem;
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  @media (max-width: 60rem) {
+    .places__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .atlas {
+      max-width: 34rem;
+    }
+  }
+</style>

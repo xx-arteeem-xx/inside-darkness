@@ -11,46 +11,46 @@ const startHref = await docHref('start');
   </svg>
   <div class="wrap">
     <header class="section-head">
-      <h2 class="section-title" id="join-title">Как начать</h2>
+      <h2 class="section-title" id="join-title">Как зайти</h2>
       <p class="section-lead">Три шага. Подойдёт и лицензия, и пиратский лаунчер.</p>
     </header>
 
     <ol class="steps" role="list">
       <li class="step">
-        <h3 class="step__title">Добавьте сервер</h3>
-        <p>Запустите Java Edition от 1.21.11 до 26.1.2. В «Сетевой игре» нажмите «Добавить сервер» и вставьте адрес:</p>
+        <h3 class="step__title">Добавь сервер</h3>
+        <p>Запусти Java Edition от {SERVER.versions.replace('–', ' до ')}. В «Сетевой игре» нажми «Добавить сервер» и вставь адрес:</p>
         <div class="step__cmd">
           <span class="chat"><code id="join-address">{SERVER.address}</code></span>
           <CopyButton text={SERVER.address} target="join-address" label="Скопировать" done="Адрес скопирован" quiet small />
         </div>
       </li>
       <li class="step">
-        <h3 class="step__title">Примите ресурспак</h3>
+        <h3 class="step__title">Прими ресурспак</h3>
         <p>
-          При входе сервер предложит свой набор ресурсов, нажмите «Да». Без него у оружия, брони и свитков рас не будет
+          При входе сервер предложит свой набор ресурсов, нажми «Да». Без него у части предметов не будет своих
           текстур.
         </p>
       </li>
       <li class="step">
-        <h3 class="step__title">Зарегистрируйтесь</h3>
-        <p>В первый раз напишите в чат пароль дважды:</p>
+        <h3 class="step__title">Зарегистрируйся</h3>
+        <p>В первый раз напиши в чат пароль дважды:</p>
         <p class="chat"><code>/register &lt;пароль&gt; &lt;пароль&gt;</code></p>
         <p>Дальше хватит одного:</p>
         <p class="chat"><code>/login &lt;пароль&gt;</code></p>
-        <p>Потом выберите расу и класс. <code class="inline">/menu</code> открывает главное меню.</p>
+        <p>Дальше никаких меню: иди к NPC. С чего начать — в блоке ниже.</p>
       </li>
     </ol>
 
     <div class="join__notes">
       <p>
-        <strong>Пароль.</strong> Придумайте для сервера отдельный. Пароль от почты или другого аккаунта сюда не вводите.
+        <strong>Пароль.</strong> Придумай для сервера отдельный. Пароль от почты или другого аккаунта сюда не вводи.
       </p>
       <p>
         <strong>Сервер не отвечает.</strong> Он работает не круглосуточно: на хостинге exaroton засыпает, когда в игре
-        никого нет. Попробуйте зайти позже.
+        никого нет. Попробуй зайти позже.
       </p>
       <p>
-        Подробнее о первом входе: <a href={startHref}>Первые шаги</a>.
+        Подробнее о первом входе: <a href={startHref}>Начало игры</a>.
       </p>
     </div>
   </div>
@@ -108,12 +108,6 @@ const startHref = await docHref('start');
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
-  }
-
-  .inline {
-    padding: 0.05em 0.35em;
-    background: rgb(0 0 0 / 0.5);
-    color: #f3f0e6;
   }
 
   .join__notes {

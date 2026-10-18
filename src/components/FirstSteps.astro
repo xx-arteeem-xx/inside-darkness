@@ -1,0 +1,235 @@
+---
+import { START_COINS } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const startHref = await docHref('start');
+
+type Step = { title: string; text: string; cost?: number; cmd?: string };
+const steps: Step[] = [
+  {
+    title: 'Зайди на сервер',
+    text: `Как подключиться — в блоке выше. На старте у тебя ${START_COINS} монет. Баланс всплывает над хотбаром, а в любой момент его покажет команда:`,
+    cmd: '/монеты',
+  },
+  {
+    title: 'Сними комнату',
+    text: 'Хозяин ночлежки в столице сдаёт комнаты по 20 монет в сутки. Бери на 3 суток: будет кровать и сундук для добычи.',
+    cost: 60,
+  },
+  {
+    title: 'Купи кирку',
+    text: 'Центральный рынок восточнее столицы, около (−46, 69, 97). Инструментщик продаёт железную кирку.',
+    cost: 60,
+  },
+  {
+    title: 'Купи меч',
+    text: 'Оружейник там же: железный меч. Остаток пригодится на еду у пекаря и факелы.',
+    cost: 80,
+  },
+  {
+    title: 'Выбери расу',
+    text: 'Старейшина живёт в деревне за южными воротами столицы. Первый выбор бесплатный. Для шахты бери Подгорных: Спешка I и +10% шанс двойной руды.',
+    cost: 0,
+  },
+  {
+    title: 'Спустись в шахту',
+    text: 'Шахта к западу от столицы, около (−365, 69, 34). Карьер обновляется каждые 5 минут, следи за таймером. Чем глубже, тем больше золота и алмазов.',
+  },
+  {
+    title: 'Продай руду',
+    text: 'Вернись к рудному купцу, возьми руду в руку и нажми Shift + ПКМ: уйдёт весь такой товар. Железо — 3, золото — 7, алмаз — 40.',
+  },
+];
+
+let wallet = START_COINS;
+const rows = steps.map((s, i) => {
+  if (s.cost !== undefined) wallet -= s.cost;
+  return { ...s, n: i + 1, wallet: i === 0 || s.cost !== undefined ? wallet : null };
+});
+---
+<section class="first section" id="first" aria-labelledby="first-title">
+  <div class="wrap first__grid">
+    <header class="section-head first__head">
+      <h2 class="section-title" id="first-title">Первые 15 минут</h2>
+      <p class="section-lead">
+        Стартовых {START_COINS} монет хватает на комнату, кирку и меч. Дальше всё зависит от тебя.
+      </p>
+      <p class="first__note">У каждого шага — сколько монет остаётся после него.</p>
+      <a class="more" href={startHref}>Начало игры подробно</a>
+    </header>
+
+    <ol class="route" role="list">
+      {rows.map((s) => (
+        <li class="leg">
+          <span class="leg__n" aria-hidden="true">{s.n}</span>
+          <div class="leg__body">
+            <h3 class="leg__title">{s.title}</h3>
+            <p class="leg__text">{s.text}</p>
+            {s.cmd && <p class="chat"><code>{s.cmd}</code></p>}
+          </div>
+          <p class="leg__wallet">
+            {s.cost !== undefined && <span class:list={['leg__cost', { 'leg__cost--free': s.cost === 0 }]}>{s.cost === 0 ? 'бесплатно' : `−${s.cost}`}</span>}
+            {s.wallet !== null && <span class="leg__left"><b>{s.wallet}</b> монет</span>}
+            {s.n === rows.length && <span class="leg__gain">+ монеты</span>}
+          </p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .first {
+    background: var(--slate-1);
+  }
+
+  .first__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    gap: 2.5rem clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .first__head {
+    position: sticky;
+    top: 2rem;
+  }
+
+  .first__head .more {
+    justify-self: start;
+  }
+
+  .first__note {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  .route {
+    position: relative;
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Тропа: пунктир между шагами, как следы на карте. */
+  .route::before {
+    content: '';
+    position: absolute;
+    left: calc(1.25rem - 1px);
+    top: 1.5rem;
+    bottom: 1.5rem;
+    width: 2px;
+    background: repeating-linear-gradient(180deg, var(--gold-deep) 0 8px, transparent 8px 16px);
+  }
+
+  .leg {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 8.5rem;
+    gap: 0.25rem 1.25rem;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .leg:last-child {
+    border-bottom: 0;
+  }
+
+  .leg__n {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: #0b0c10;
+    box-shadow: inset 0 0 0 2px var(--torch);
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+  }
+
+  .leg__body {
+    display: grid;
+    gap: 0.4rem;
+    align-content: start;
+  }
+
+  .leg__body .chat {
+    justify-self: start;
+  }
+
+  .leg__title {
+    font-size: var(--fs-md);
+    line-height: 1.2;
+  }
+
+  .leg__text {
+    color: var(--bone-2);
+  }
+
+  .leg__wallet {
+    display: grid;
+    align-content: start;
+    justify-items: end;
+    gap: 0.2rem;
+    padding-top: 0.2rem;
+    text-align: right;
+  }
+
+  .leg__cost {
+    color: var(--blood);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+  }
+
+  .leg__cost--free {
+    color: var(--moss);
+    font-family: var(--font-serif);
+    font-size: 1rem;
+  }
+
+  .leg__left {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  .leg__left b {
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-size: 1.25rem;
+    font-weight: 400;
+  }
+
+  .leg__gain {
+    color: var(--moss);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+  }
+
+  @media (max-width: 60rem) {
+    .first__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .first__head {
+      position: static;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .leg {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+    }
+
+    .leg__wallet {
+      grid-column: 2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: baseline;
+      gap: 0.35rem 0.9rem;
+      text-align: left;
+    }
+  }
+</style>
