@@ -126,7 +126,8 @@ export const CRESTS: Record<RaceId, Grid> = {
 export type GlyphId =
   | 'pickaxe' | 'hoe' | 'axe' | 'rod' | 'sword' | 'skull' | 'darkheart'
   | 'coin' | 'pouch' | 'anvil' | 'house' | 'bed' | 'arena' | 'bread'
-  | 'tome' | 'lantern' | 'shulker' | 'coal' | 'iron' | 'gold' | 'gem' | 'horseshoe' | 'letter';
+  | 'tome' | 'lantern' | 'shulker' | 'coal' | 'iron' | 'gold' | 'gem' | 'horseshoe' | 'letter'
+  | 'scroll' | 'map' | 'banner';
 
 /** Кусок руды 12×12: тёмная кайма, тело, блики. Цвет задаётся палитрой. */
 const LUMP = [
@@ -486,6 +487,60 @@ export const GLYPHS: Record<GlyphId, Grid> = {
       'oooooooooooo',
       '............',
       '............',
+    ],
+  },
+  /** Свиток с печатью: летопись странствий. */
+  scroll: {
+    palette: { r: '#8a7a5c', R: '#d8c79a', p: '#efe3c4', l: '#8a7a5c', s: '#a32c3c' },
+    rows: [
+      '............',
+      '..rrrrrrrr..',
+      '.rRRRRRRRRr.',
+      '..pppppppp..',
+      '..pllllplp..',
+      '..pppppppp..',
+      '..plllpllp..',
+      '..pppppppp..',
+      '..pllllllp..',
+      '.rRRRRRRRRr.',
+      '..rrrrsrrr..',
+      '.....ss.....',
+    ],
+  },
+  /** Карта сокровищ: пергамент со сгибами, тропа и красный крест. */
+  map: {
+    palette: { o: '#6b5a3a', p: '#e6d6a8', q: '#c9b47e', g: '#5d7a4a', d: '#7a5a32', r: '#b8323f' },
+    rows: [
+      '............',
+      '.oooooooooo.',
+      '.oppqppqppo.',
+      '.oggqppqppo.',
+      '.ogggpdqppo.',
+      '.opgqdpqppo.',
+      '.oppdpprpro.',
+      '.oppqddprpo.',
+      '.oppqpprpro.',
+      '.oppqppqppo.',
+      '.oooooooooo.',
+      '............',
+    ],
+  },
+  /** Чёрный стяг: набег тьмы. */
+  banner: {
+    palette: { y: '#e0a845', h: '#8a5a2b', H: '#5c3a19', o: '#5a5f73', k: '#15161c', r: '#b8323f' },
+    rows: [
+      '..y.........',
+      '..hoooooooo.',
+      '..hokkkkkko.',
+      '..hokkrrkko.',
+      '..hokrkkrko.',
+      '..hokkrrkko.',
+      '..hokkkkkko.',
+      '..hokkookko.',
+      '..hoko..oko.',
+      '..hoo....oo.',
+      '..h.........',
+      '..H.........',
     ],
   },
   /** Шалкер: ящик с крышкой. */

@@ -1,19 +1,31 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS, type GlyphId } from '../lib/emblems';
-import { START_COINS, ENCHANT, enchantStep, SHULKER_PRICE, RANKS, STATIONS, ROAD, MAIL, DEMAND, fare } from '../data/game';
+import {
+  START_COINS, ENCHANT, enchantStep, SHULKER_PRICE, RANKS, STATIONS, ROAD, MAIL, DEMAND, fare,
+  CHRONICLE, MINIMAP_PRICE, TREASURES, BOSSES, BOSS, RAID,
+} from '../data/game';
 import { docHref } from '../lib/docs';
 
 const economyHref = await docHref('economy');
 const startHref = await docHref('start');
 const roadsHref = await docHref('roads');
 const villageHref = await docHref('village');
+const exploreHref = await docHref('explore');
+const bossesHref = await docHref('bosses');
 const capital = STATIONS[0];
 const farthest = Math.max(...STATIONS.map((s) => fare(capital, s)));
 const x = (n: number) => String(n).replace('.', ',');
 const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 const sharp = ROMAN.map((r, i) => [r, enchantStep(ENCHANT.sharpness.base, i + 1)] as const);
+
+// Странствия, боссы и набеги (1.9.0).
+const placeRewards = CHRONICLE.kinds.map((k) => k.reward);
+const lastTitle = CHRONICLE.titles[CHRONICLE.titles.length - 1];
+const treasurePrices = TREASURES.map((t) => t.price).join(', ');
+const bossHp = BOSSES.map((b) => b.hp);
+const bossPots = BOSSES.map((b) => b.coins);
 
 const steps: Array<{ glyph: GlyphId; title: string; text: string }> = [
   { glyph: 'pickaxe', title: 'Добываешь', text: 'Руда в шахте, урожай на поле, брёвна в саду, рыба. Или трофеи с мобов в подземельях и тёмных землях.' },
@@ -170,6 +182,63 @@ const gain = IRON * lot;
       <p class="roads__more">
         <a class="more" href={roadsHref}>Ямская служба и почта</a>
         <a class="more" href={`${villageHref}#старосты-и-заказы`}>Заказы старост</a>
+      </p>
+    </section>
+
+    <section class="roads" aria-labelledby="explore-block-title">
+      <div class="market__head">
+        <h3 class="npc__title" id="explore-block-title">Странствия, боссы и набеги</h3>
+        <p>За новые места платит летописец, клады ищут по картам картографа, а хозяев подземелий и набеги тьмы лучше встречать компанией.</p>
+      </div>
+      <ul class="roads__list roads__list--four" role="list">
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.scroll} /></span>
+            <h4 class="mcard__name">Летописец Нестор <span>в столице</span></h4>
+          </div>
+          <p class="mcard__text">
+            Первое посещение руин, башен, подземелий, кораблей и деревень записывается само. Летописец платит за каждое
+            место {Math.min(...placeRewards)}–{Math.max(...placeRewards)} монет, за Стеной ×{x(CHRONICLE.darkMult)}. Мест
+            около {CHRONICLE.total}, за {lastTitle.count} — звание «{lastTitle.title}» и {fmt(lastTitle.bonus)} монет.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.map} /></span>
+            <h4 class="mcard__name">Картограф Ермолай <span>в деревне мастеров</span></h4>
+          </div>
+          <p class="mcard__text">
+            Карта странника за {MINIMAP_PRICE} — мини-карта во второй руке, без модов: станции, подземелья, таверны, твой
+            дом. Карты сокровищ за {treasurePrices}: подсказка ведёт к кладу, на месте ПКМ по земле. Ещё координаты мест
+            и метки для Xaero's Minimap.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.skull} /></span>
+            <h4 class="mcard__name">Боссы подземелий <span>{BOSSES.length} хозяев</span></h4>
+          </div>
+          <p class="mcard__text">
+            В глубине каждого подземелья, {Math.min(...bossHp)}–{Math.max(...bossHp)} здоровья, со свитой. Котёл
+            {' '}{Math.min(...bossPots)}–{Math.max(...bossPots)} монет делят по доле урона, лучшему и всем с долей от
+            {' '}{BOSS.relicShare * 100}% — Реликвия древних. Потом босс спит {BOSS.cooldownHours} часа.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.banner} /></span>
+            <h4 class="mcard__name">Набеги тьмы <span>на 6 деревень</span></h4>
+          </div>
+          <p class="mcard__text">
+            Раз в {RAID.everyMin[0]}–{RAID.everyMin[1]} минут твари идут на деревню: {RAID.waves} волны,
+            срок {RAID.timeMin} минут. Отстояли — {RAID.coins} монет и ещё {RAID.coinsPerKill} за каждую убитую.
+            Нет — скупщик и лавочник деревни закрыты на час.
+          </p>
+        </li>
+      </ul>
+      <p class="roads__more">
+        <a class="more" href={exploreHref}>Странствия и клады</a>
+        <a class="more" href={bossesHref}>Боссы и набеги тьмы</a>
       </p>
     </section>
 
@@ -603,6 +672,10 @@ const gain = IRON * lot;
     margin: 1.5rem 0 0;
     padding: 0;
     list-style: none;
+  }
+
+  .roads__list--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roads__more {

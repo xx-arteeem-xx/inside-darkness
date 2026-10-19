@@ -6,10 +6,10 @@ import { url } from '../../lib/url';
 const sections = await getDocSections();
 const total = sections.reduce((n, s) => n + s.docs.length, 0);
 ---
-<DocsShell title="Документация" description="Как устроен Inside Darkness: монеты и рынок, ремёсла, охота, деревня мастеров с народами и рангами, жильё, ристалище и правила." sections={sections}>
+<DocsShell title="Документация" description="Как устроен Inside Darkness: монеты и рынок, ремёсла, охота, боссы и набеги, странствия и клады, деревня мастеров с народами и рангами, жильё, ристалище и правила." sections={sections}>
   <header class="doc-head">
     <h1 class="doc-head__title">Документация</h1>
-    <p class="doc-head__lead">Как заработать монеты и на что их потратить: рынок, ремёсла, охота, ранги мастеров, жильё и ристалище. Поиск слева ищет по всем страницам.</p>
+    <p class="doc-head__lead">Как заработать монеты и на что их потратить: рынок, ремёсла, охота и боссы, странствия и клады, ранги мастеров, жильё и ристалище. Поиск слева ищет по всем страницам.</p>
   </header>
 
   {total === 0 ? (
