@@ -197,7 +197,7 @@ const TABLES = {
         ['Лесное дело', 'брёвна деревьев сада', `${fmt(x.log)} за бревно`],
         ['Рыболовство', 'улов на удочку', `${fmt(x.fish)} за улов`],
         ['Ратное дело', 'твари с уровнем в подземельях и за Стеной', `${fmt(x.killPerLevel)} × уровень твари`],
-        ['Торговое дело', 'продажи купцам', `1 за каждые ${fmt(x.tradeCoinsPerXp)} монет выручки`],
+        ['Торговое дело', 'продажи купцам', `1 за каждые ${count(x.tradeCoinsPerXp, ['монету', 'монеты', 'монет'])} выручки`],
       ],
     );
   },
@@ -351,6 +351,7 @@ export function createFacts(G) {
     first: (v) => v[0],
     last: (v) => v[v.length - 1],
     upper: (v) => String(v).charAt(0).toUpperCase() + String(v).slice(1),
+    lcfirst: (v) => String(v).charAt(0).toLowerCase() + String(v).slice(1),
     plural: (v, arg) => count(typeof v === 'number' ? v : v.length, arg.split(',')),
   };
 

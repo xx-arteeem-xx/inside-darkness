@@ -22,6 +22,13 @@ export default defineConfig({
   // CSS встраивается в страницу: на медленном канале до GitHub Pages это на один-два запроса меньше.
   build: { format: 'directory', inlineStylesheets: 'always' },
   devToolbar: { enabled: false },
+  // Страницы документации до 2.0 переехали: старые ссылки ведут на новые.
+  redirects: {
+    '/docs/economy': `${base}/docs/prices/`,
+    '/docs/village': `${base}/docs/ranks/`,
+    '/docs/explore': `${base}/docs/maps/`,
+    '/docs/bosses': `${base}/docs/dungeons/`,
+  },
   markdown: {
     shikiConfig: { theme: 'css-variables', wrap: true },
     // unified (remark/rehype), чтобы работал свой rehype-плагин документации.
