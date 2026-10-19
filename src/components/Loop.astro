@@ -1,41 +1,23 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS, type GlyphId } from '../lib/emblems';
-import {
-  START_COINS, ENCHANT, enchantStep, SHULKER_PRICE, RANKS, STATIONS, ROAD, MAIL, DEMAND, fare,
-  CHRONICLE, MINIMAP_PRICE, TREASURES, BOSSES, BOSS, RAID,
-} from '../data/game';
+import { G, START_COINS, fmt } from '../data/game';
 import { docHref } from '../lib/docs';
 
-const economyHref = await docHref('economy');
+const pricesHref = await docHref('prices');
+const tradeHref = await docHref('trade');
 const startHref = await docHref('start');
-const roadsHref = await docHref('roads');
-const villageHref = await docHref('village');
-const exploreHref = await docHref('explore');
-const bossesHref = await docHref('bosses');
-const capital = STATIONS[0];
-const farthest = Math.max(...STATIONS.map((s) => fare(capital, s)));
-const x = (n: number) => String(n).replace('.', ',');
-const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
-const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
-const sharp = ROMAN.map((r, i) => [r, enchantStep(ENCHANT.sharpness.base, i + 1)] as const);
-
-// Странствия, боссы и набеги (1.9.0).
-const placeRewards = CHRONICLE.kinds.map((k) => k.reward);
-const lastTitle = CHRONICLE.titles[CHRONICLE.titles.length - 1];
-const treasurePrices = TREASURES.map((t) => t.price).join(', ');
-const bossHp = BOSSES.map((b) => b.hp);
-const bossPots = BOSSES.map((b) => b.coins);
+const peopleHref = await docHref('people');
 
 const steps: Array<{ glyph: GlyphId; title: string; text: string }> = [
-  { glyph: 'pickaxe', title: 'Добываешь', text: 'Руда в шахте, урожай на поле, брёвна в саду, рыба. Или трофеи с мобов в подземельях и тёмных землях.' },
-  { glyph: 'pouch', title: 'Продаёшь купцу', text: 'ПКМ по купцу открывает его окно. Кликнул по товару в своём инвентаре — продано.' },
-  { glyph: 'coin', title: 'Получаешь монеты', text: 'Баланс всплывает над хотбаром. Командой монеты не передать, но другу их можно отправить посылкой у ямщика.' },
-  { glyph: 'anvil', title: 'Растёшь в ремесле', text: 'Опыт копится делом. Мастер в деревне за пробу и плату даёт новый ранг: дороже продажа, больше добычи, урон и сердца.' },
+  { glyph: 'pickaxe', title: 'Добываешь', text: 'Руда в шахте, урожай на поле, брёвна в саду, рыба. Или трофеи с тварей в подземельях и за Стеной.' },
+  { glyph: 'pouch', title: 'Продаёшь с умом', text: 'Цены живые: их двигают вести по миру и расстояние. У угодья — сразу, в дальней деревне — дороже.' },
+  { glyph: 'coin', title: 'Получаешь монеты', text: 'Платят купцы, старосты за заказы, летописец за открытые места, хозяева подземелий и отбитые набеги.' },
+  { glyph: 'anvil', title: 'Растёшь в ремесле', text: 'Мастер даёт ранг за пробу и плату. Ранг — дороже товар, больше добычи и пропуск к незериту и высоким чарам.' },
 ];
 
-// Окно рудного купца: цены из конфига плагина 1.7.0, раскладка окна упрощена.
-const IRON = 3;
+// Окно рудного купца: базовая цена рудного железа из конфига, раскладка окна упрощена.
+const IRON = G.market.price.RAW_IRON;
 const lot = 32;
 const prices: Array<GlyphId | null> = ['coal', 'iron', 'gold', 'gem', null, null, null, null, null];
 const bag: Array<[GlyphId, number] | null> = [['pickaxe', 1], ['iron', lot], ['coal', 20], ['gem', 2], ['bread', 6], null, null, null, null];
@@ -47,8 +29,8 @@ const gain = IRON * lot;
     <header class="section-head">
       <h2 class="section-title" id="how-title">Как устроена игра</h2>
       <p class="section-lead">
-        Один круг на всю игру: добыл, продал, получил монеты, вырос в ремесле. Со следующим кругом тот же час работы
-        приносит больше.
+        Один круг на всю игру: добыл, продал там, где дороже, получил монеты, вырос в ремесле. Со следующим кругом
+        тот же час работы приносит больше.
       </p>
     </header>
 
@@ -69,10 +51,10 @@ const gain = IRON * lot;
 
     <div class="npc">
       <div class="npc__text">
-        <h3 class="npc__title">Всё через NPC и их окна</h3>
+        <h3 class="npc__title">Всё через людей и их окна</h3>
         <p>
-          Команд вроде <code>/sell</code> нет. Жмёшь ПКМ по NPC — открывается его окно. Продать или выбрать вещь — клик
-          по ней в своём инвентаре.
+          Команд вроде <code>/sell</code> или телепортов нет. Жмёшь ПКМ по жителю — открывается его окно. Продать или
+          выбрать вещь — клик по ней в своём инвентаре.
         </p>
         <dl class="gestures">
           <div>
@@ -93,11 +75,11 @@ const gain = IRON * lot;
           </div>
         </dl>
         <p class="npc__nav">
-          <b>Навигатор.</b> Стрелка и расстояние сверху экрана ведут к цели, нужный NPC подсвечивается. Дорогу
-          показывают проводник Добромир у точки спавна, глашатаи у входов на рынок и провожатый у въезда в деревню
-          мастеров.
+          <b>Навигатор.</b> Стрелка и расстояние сверху экрана ведут к цели, нужный житель подсвечивается. Дорогу
+          показывают {G.npcs.who.guide.job.toLowerCase()} {G.npcs.who.guide.short} на площади столицы, глашатаи у входов на рынок и провожатый у въезда
+          в Деревню мастеров.
         </p>
-        <p class="npc__more">Цены скупки и покупки: <a href={economyHref}>Монеты и рынок</a>. Первые шаги: <a href={startHref}>Начало игры</a>.</p>
+        <p class="npc__more">Кто где: <a href={peopleHref}>Кто где</a>. Почему цены разные: <a href={tradeHref}>Торг и вести</a>. Базовые цены: <a href={pricesHref}>Купцы и базовые цены</a>. С чего начать: <a href={startHref}>Первые шаги</a>.</p>
       </div>
 
       <figure class="screen">
@@ -127,202 +109,20 @@ const gain = IRON * lot;
             </div>
             <div class="gui__tip">
               <p class="gui__tip-name">Рудное железо</p>
-              <p>Цена: <span>{IRON}</span> за шт.</p>
-              <p>У вас: {lot} шт. → <span>{gain}</span></p>
+              <p>Цена: <span>{fmt(IRON)}</span> за шт.</p>
+              <p>У вас: {lot} шт. → <span>{fmt(gain)}</span></p>
               <p class="gui__tip-act">Клик — продать стопку</p>
             </div>
           </div>
-          <p class="screen__balance">+{gain} · {START_COINS + gain} монет</p>
+          <p class="screen__balance">+{fmt(gain)} · {fmt(START_COINS + gain)} монет</p>
         </div>
         <figcaption>
-          Пример: окно рудного купца. Клик по руде в своём инвентаре — стопка продана, баланс всплывает над хотбаром.
-          Сверху — навигатор.
+          Пример: окно рудного купца с базовой ценой, без вестей. Клик по руде в своём инвентаре — стопка продана,
+          баланс всплывает над хотбаром. Сверху — навигатор.
         </figcaption>
       </figure>
     </div>
 
-    <section class="roads" aria-labelledby="roads-block-title">
-      <div class="market__head">
-        <h3 class="npc__title" id="roads-block-title">Дороги, почта и заказы</h3>
-        <p>Государство большое: по нему ездят на ямских, шлют посылки и берут заказы у старост.</p>
-      </div>
-      <ul class="roads__list" role="list">
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.horseshoe} /></span>
-            <h4 class="mcard__name">Ямская служба <span>{STATIONS.length} станций</span></h4>
-          </div>
-          <p class="mcard__text">
-            У столицы, рынка, деревни мастеров, мест ремёсел, ристалища и шести деревень. Станция открывается, когда
-            дойдёшь до неё пешком. Поездка — {ROAD.base} монет плюс 1 за каждые {ROAD.perBlocks} блоков: от столицы до
-            самой дальней деревни ≈ {farthest}. Отправление через {ROAD.countdown} с, стой на месте.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.letter} /></span>
-            <h4 class="mcard__name">Почта <span>у любого ямщика</span></h4>
-          </div>
-          <p class="mcard__text">
-            Вещи, до {MAIL.maxStacks} стопок, и монеты любому игроку, даже если его нет в игре. Доставка — {MAIL.base} +
-            {' '}{MAIL.perStack} за стопку + {MAIL.coinShare * 100}% от монет. Забрать посылку можно у любого ямщика.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.tome} /></span>
-            <h4 class="mcard__name">Заказы старост <span>в каждой из 7 деревень</span></h4>
-          </div>
-          <p class="mcard__text">
-            Каждый день 3 заказа: 2 простых и 1 для мастеров. Награда — монеты и опыт ремесла. Ещё у старосты видно,
-            что сегодня в цене: сельский скупщик платит ×{x(DEMAND.hot)} за две темы товара и ×{x(DEMAND.cold)} за одну.
-          </p>
-        </li>
-      </ul>
-      <p class="roads__more">
-        <a class="more" href={roadsHref}>Ямская служба и почта</a>
-        <a class="more" href={`${villageHref}#старосты-и-заказы`}>Заказы старост</a>
-      </p>
-    </section>
-
-    <section class="roads" aria-labelledby="explore-block-title">
-      <div class="market__head">
-        <h3 class="npc__title" id="explore-block-title">Странствия, боссы и набеги</h3>
-        <p>За новые места платит летописец, клады ищут по картам картографа, а хозяев подземелий и набеги тьмы лучше встречать компанией.</p>
-      </div>
-      <ul class="roads__list roads__list--four" role="list">
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.scroll} /></span>
-            <h4 class="mcard__name">Летописец Нестор <span>в столице</span></h4>
-          </div>
-          <p class="mcard__text">
-            Первое посещение руин, башен, подземелий, кораблей и деревень записывается само. Летописец платит за каждое
-            место {Math.min(...placeRewards)}–{Math.max(...placeRewards)} монет, за Стеной ×{x(CHRONICLE.darkMult)}. Мест
-            около {CHRONICLE.total}, за {lastTitle.count} — звание «{lastTitle.title}» и {fmt(lastTitle.bonus)} монет.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.map} /></span>
-            <h4 class="mcard__name">Картограф Ермолай <span>в деревне мастеров</span></h4>
-          </div>
-          <p class="mcard__text">
-            Карта странника за {MINIMAP_PRICE} — мини-карта во второй руке, без модов: станции, подземелья, таверны, твой
-            дом. Карты сокровищ за {treasurePrices}: подсказка ведёт к кладу, на месте ПКМ по земле. Ещё координаты мест
-            и метки для Xaero's Minimap.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.skull} /></span>
-            <h4 class="mcard__name">Боссы подземелий <span>{BOSSES.length} хозяев</span></h4>
-          </div>
-          <p class="mcard__text">
-            В глубине каждого подземелья, {Math.min(...bossHp)}–{Math.max(...bossHp)} здоровья, со свитой. Котёл
-            {' '}{Math.min(...bossPots)}–{Math.max(...bossPots)} монет делят по доле урона, лучшему и всем с долей от
-            {' '}{BOSS.relicShare * 100}% — Реликвия древних. Потом босс спит {BOSS.cooldownHours} часа.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.banner} /></span>
-            <h4 class="mcard__name">Набеги тьмы <span>на 6 деревень</span></h4>
-          </div>
-          <p class="mcard__text">
-            Раз в {RAID.everyMin[0]}–{RAID.everyMin[1]} минут твари идут на деревню: {RAID.waves} волны,
-            срок {RAID.timeMin} минут. Отстояли — {RAID.coins} монет и ещё {RAID.coinsPerKill} за каждую убитую.
-            Нет — скупщик и лавочник деревни закрыты на час.
-          </p>
-        </li>
-      </ul>
-      <p class="roads__more">
-        <a class="more" href={exploreHref}>Странствия и клады</a>
-        <a class="more" href={bossesHref}>Боссы и набеги тьмы</a>
-      </p>
-    </section>
-
-    <section class="market" aria-labelledby="market-title">
-      <div class="market__head">
-        <h3 class="npc__title" id="market-title">Кто ещё есть на рынке</h3>
-        <p>Кроме купцов и лавок с оружием, бронёй, инструментами и едой.</p>
-      </div>
-      <ul class="market__list" role="list">
-        <li class="mcard mcard--enchant">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.tome} /></span>
-            <h4 class="mcard__name">Чародей <span>прокачка снаряжения</span></h4>
-          </div>
-          <p class="mcard__text">
-            Кликни по вещи в своём инвентаре или по надетой: в окне появятся чары, которые к ней подходят. Цена ступени —
-            база × ступень².
-          </p>
-          <figure class="steps">
-            <figcaption>{ENCHANT.sharpness.name}, база {ENCHANT.sharpness.base}</figcaption>
-            <ol class="steps__list" role="list">
-              {sharp.map(([r, price]) => (
-                <li style={`--h:${(price / sharp[sharp.length - 1][1]).toFixed(3)}`}>
-                  <span class="steps__price">{fmt(price)}</span>
-                  <span class="steps__bar" aria-hidden="true"></span>
-                  <span class="steps__lvl">{r}</span>
-                </li>
-              ))}
-            </ol>
-          </figure>
-          <p class="mcard__text">
-            Ступени до III — всем. IV открывает ранг {RANKS[2]}, V — {RANKS[3]} в подходящем ремесле: для оружия и
-            брони это ратное дело.
-          </p>
-          <dl class="mcard__prices">
-            {ENCHANT.examples.map((e) => (
-              <div><dt>{e.name} <span>{e.need}</span></dt><dd>{fmt(e.price)}</dd></div>
-            ))}
-          </dl>
-          <p class="mcard__note">Удачи и шёлкового касания у чародея нет.</p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.anvil} /></span>
-            <h4 class="mcard__name">Кузнецы <span>оружейник, бронник, инструментщик</span></h4>
-          </div>
-          <p class="mcard__text">
-            Не только продают: чинят за монеты и скупают снаряжение. Снятое с тварей ценится выше: алмазный нагрудник с
-            твари, целый и без чар, — 475. Изготовленное или купленное — не дороже своих материалов.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.pouch} /></span>
-            <h4 class="mcard__name">Старьёвщик</h4>
-          </div>
-          <p class="mcard__text">
-            Берёт всё, что не берут другие купцы, за копейки: мелочь по 0,01 за штуку, железную вещь за 1, алмазную за 3.
-            Купленное у NPC, трофеи и шалкеры не берёт.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.lantern} /></span>
-            <h4 class="mcard__name">Фонарщик</h4>
-          </div>
-          <p class="mcard__text">
-            Факелы ×16 за 8, фонарь за 30. Ставить их нельзя, зато в любой руке они светят вокруг тебя, и свет видят все
-            рядом.
-          </p>
-        </li>
-        <li class="mcard">
-          <div class="mcard__top">
-            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.shulker} /></span>
-            <h4 class="mcard__name">Шалкер <span>у инструментщика</span></h4>
-          </div>
-          <p class="mcard__text">
-            {SHULKER_PRICE} монет. Ставится где угодно, кроме карьера шахты. Открыть и забрать его может только тот, кто
-            поставил.
-          </p>
-        </li>
-      </ul>
-      <a class="more market__more" href={`${economyHref}#чародей`}>Все чары, кузнецы, старьёвщик и лавки</a>
-    </section>
   </div>
 </section>
 
@@ -660,204 +460,6 @@ const gain = IRON * lot;
     font-size: var(--fs-sm);
   }
 
-  /* ——— дороги, почта, заказы ——— */
-  .roads {
-    margin-top: clamp(4rem, 9vw, 6rem);
-  }
-
-  .roads__list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
-    margin: 1.5rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .roads__list--four {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .roads__more {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 2rem;
-    margin-top: 1.5rem;
-  }
-
-  /* ——— кто ещё на рынке ——— */
-  .market {
-    margin-top: clamp(4rem, 9vw, 6rem);
-  }
-
-  .market__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem 2rem;
-    padding-bottom: 1.1rem;
-    border-bottom: 1px solid var(--line-2);
-  }
-
-  .market__head p {
-    color: var(--bone-2);
-  }
-
-  .market__more {
-    margin-top: 1.5rem;
-  }
-
-  .market__list {
-    display: grid;
-    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-    gap: 1rem;
-    margin: 1.5rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .mcard {
-    display: grid;
-    align-content: start;
-    gap: 0.75rem;
-    padding: 1.1rem 1.15rem 1.2rem;
-    background: #1d1c22;
-    box-shadow:
-      inset 0 0 0 2px #0b0b0e,
-      inset 2px 2px 0 2px #33323c,
-      inset -2px -2px 0 2px #121116;
-  }
-
-  .mcard--enchant {
-    grid-row: span 4;
-    gap: 1rem;
-    background:
-      radial-gradient(80% 60% at 100% 0%, rgb(123 58 138 / 0.22), transparent 70%),
-      #1b1922;
-  }
-
-  .mcard__top {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-  }
-
-  .mcard__name {
-    font-size: var(--fs-md);
-    line-height: 1.15;
-  }
-
-  .mcard__name span {
-    display: block;
-    margin-top: 0.2rem;
-    color: var(--ash);
-    font-size: 0.9375rem;
-    font-weight: 400;
-  }
-
-  .mcard__text {
-    color: var(--bone-2);
-    font-size: 1rem;
-    line-height: 1.5;
-  }
-
-  .slot--sm {
-    width: 3rem;
-    height: 3rem;
-    flex: none;
-  }
-
-  .slot--sm :global(.pixel) {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  /* Цена ступеней остроты: столбики растут как база × N². */
-  .steps figcaption {
-    color: var(--ash);
-    font-size: 0.9375rem;
-  }
-
-  .steps__list {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    align-items: end;
-    gap: 0.5rem;
-    height: 9rem;
-    margin: 0.6rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .steps__list li {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    justify-items: center;
-    align-items: end;
-    gap: 0.3rem;
-    height: 100%;
-  }
-
-  .steps__price {
-    color: var(--gold);
-    font-family: var(--font-pixel);
-    font-size: 0.9375rem;
-    white-space: nowrap;
-  }
-
-  .steps__bar {
-    width: 100%;
-    max-width: 3rem;
-    height: calc(var(--h) * 100%);
-    min-height: 4px;
-    background: linear-gradient(90deg, #b88ad0 0 45%, #7b3a8a 45%);
-    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.18);
-  }
-
-  .steps__lvl {
-    color: var(--bone);
-    font-family: var(--font-pixel);
-    font-size: 0.9375rem;
-  }
-
-  .mcard__prices {
-    display: grid;
-    margin: 0;
-    border-top: 1px dashed var(--line-2);
-  }
-
-  .mcard__prices div {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-top: 0.55rem;
-  }
-
-  .mcard__prices dt {
-    color: var(--bone-2);
-    font-size: 1rem;
-  }
-
-  .mcard__prices dt span {
-    display: block;
-    color: var(--ash);
-    font-size: 0.875rem;
-  }
-
-  .mcard__prices dd {
-    margin: 0;
-    color: var(--gold);
-    font-family: var(--font-pixel);
-    font-size: 1.0625rem;
-    white-space: nowrap;
-  }
-
-  .mcard__note {
-    color: var(--ash);
-    font-size: 0.9375rem;
-  }
-
   @media (max-width: 64rem) {
     .cycle {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -869,22 +471,6 @@ const gain = IRON * lot;
 
     .npc {
       grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 64rem) {
-    .roads__list {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 48rem) {
-    .market__list {
-      grid-template-columns: 1fr;
-    }
-
-    .mcard--enchant {
-      grid-row: auto;
     }
   }
 

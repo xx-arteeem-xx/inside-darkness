@@ -9,10 +9,10 @@ const { variant = 'inner' } = Astro.props;
 const inDocs = Astro.url.pathname.includes('/docs');
 const links = [
   { href: url('/#how'), text: 'Как играть' },
-  { href: url('/#earn'), text: 'Заработок' },
-  { href: url('/#places'), text: 'Места' },
-  { href: url('/#village'), text: 'Деревня' },
-  { href: url('/#arena'), text: 'Ристалище' },
+  { href: url('/#places'), text: 'Мир' },
+  { href: url('/#earn'), text: 'Ремесло' },
+  { href: url('/#trade'), text: 'Торг' },
+  { href: url('/#frontier'), text: 'Граница' },
   { href: url('/docs/'), text: 'Документация', current: inDocs },
 ];
 ---

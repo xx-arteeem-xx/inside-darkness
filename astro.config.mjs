@@ -1,7 +1,17 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
+import { readFileSync } from 'node:fs';
 import { rehypeDocs } from './src/lib/rehype-docs.mjs';
+import { remarkFacts } from './src/lib/remark-facts.mjs';
+
+// Игровые числа документации — из generated.json (tools/gen_site_data.py по config.yml плагина).
+const json = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf-8'));
+const server = json('./src/config/server.json');
+const facts = {
+  ...json('./src/data/generated.json'),
+  server: { ...server, versions: `${server.versionFrom}–${server.versionTo}` },
+};
 
 const base = '/inside-darkness';
 
@@ -18,6 +28,7 @@ export default defineConfig({
     // Кавычки не трогаем: в русском тексте нужны «ёлочки», а не “лапки”.
     processor: unified({
       smartypants: { quotes: false },
+      remarkPlugins: [[remarkFacts, { data: facts }]],
       rehypePlugins: [[rehypeDocs, { base }]],
     }),
   },

@@ -1,6 +1,9 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
 import { getDocSections, flatten } from '../../lib/docs';
+import { F } from '../../lib/site-facts';
+
+const { fill } = F;
 
 /**
  * Индекс для поиска по документации. Лёгкий JSON: заголовки, описание и текст без разметки.
@@ -30,7 +33,7 @@ export const GET: APIRoute = async () => {
         section: doc.data.section,
         description: doc.data.description,
         headings: headings.filter((h) => h.depth <= 3).map((h) => ({ text: h.text, slug: h.slug })),
-        text: plain(doc.body ?? ''),
+        text: plain(fill(doc.body ?? '')),
       };
     }),
   );

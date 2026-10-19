@@ -1,45 +1,32 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS } from '../lib/emblems';
-import {
-  CRAFTS, INCOME, INCOME_MAX, incomeText, TROPHIES, TROPHY_CHANCE, VILLAGE_BUY_FACTOR, SITE_BUY_FACTOR, HOUSE_TIERS,
-  BOSSES, CHRONICLE, type Trophy,
-} from '../data/game';
+import { G, CRAFTS, TROPHIES, TROPHY_CHANCE, LEVELS, fmt, pct, range, count, type Trophy } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const craftsHref = await docHref('crafts');
 const huntingHref = await docHref('hunting');
-const bossesHref = await docHref('bosses');
-const exploreHref = await docHref('explore');
-
-const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
-const TICK = 2000;
-const ticks = Array.from({ length: INCOME_MAX / TICK + 1 }, (_, i) => i * TICK);
-const pct = (n: number) => `${(n / INCOME_MAX) * 100}%`;
-const income = Object.fromEntries(INCOME.map((r) => [r.id, incomeText(r, fmt)]));
-const crafts = INCOME.find((r) => r.id === 'crafts')!;
-const masterHouse = HOUSE_TIERS[0];
-const cheapHouse = HOUSE_TIERS[HOUSE_TIERS.length - 1];
-// Сколько часов ремесла на дом в деревне мастеров: цена / доход в час.
-const houseHours = `${Math.floor(masterHouse.buy / crafts.max!)}–${Math.ceil(masterHouse.buy / crafts.min)}`;
-const bossPots = BOSSES.map((b) => b.coins);
-const chronicleCoins = CHRONICLE.inside.coins + CHRONICLE.outside.coins;
+const dungeonsHref = await docHref('dungeons');
+const ordersHref = await docHref('orders');
+const mapsHref = await docHref('maps');
+const pricesHref = await docHref('prices');
 
 const lootRows = (list: Trophy[]) =>
   list.map((t) => [t.name, t.rare ? `редко, ${t.rare}` : `ур. ${t.levels}`, fmt(t.price)] as const);
 
+const B = G.bosses;
 const hunts = [
   {
     id: 'dungeons',
     name: 'Подземелья',
     glyph: 'skull' as const,
-    levels: '1–8',
-    where: '5 подземелий в обычных землях',
+    levels: LEVELS.dungeons,
+    where: `${count(B.count, ['подземелье', 'подземелья', 'подземелий'])} внутри Стены`,
     facts: [
-      'Мобы появляются снова и снова: даже если до тебя всё зачистили, найдёшь кого убить.',
-      'Чем дальше подземелье от столицы и чем глубже моб, тем выше уровень. Ударь моба — над хотбаром появятся его уровень и здоровье.',
-      `Трофей падает с ${TROPHY_CHANCE.dungeons} мобов: чем выше уровень, тем чаще и дороже. Ратное дело добавляет ${TROPHY_CHANCE.combat}.`,
-      `В глубине каждого подземелья — босс. Котёл ${Math.min(...bossPots)}–${Math.max(...bossPots)} монет делят по доле урона, лучшим — Реликвия древних.`,
+      'Твари появляются снова и снова: даже если до тебя всё зачистили, найдёшь кого бить.',
+      'Чем дальше подземелье от столицы и чем глубже тварь, тем выше уровень. Ударь — над хотбаром появятся уровень и здоровье.',
+      `Трофей падает с ${TROPHY_CHANCE.dungeons} тварей. Ратное дело добавляет ${TROPHY_CHANCE.combat}.`,
+      `В глубине каждого — хозяин: котёл ${range(B.coinsMin, B.coinsMax)} монет делят по доле урона.`,
     ],
     loot: lootRows(TROPHIES.dungeons),
   },
@@ -47,14 +34,23 @@ const hunts = [
     id: 'dark',
     name: 'Тёмные земли',
     glyph: 'darkheart' as const,
-    levels: '12–20',
-    where: 'за Большой стеной, 1000–1500 блоков от столицы',
+    levels: LEVELS.dark,
+    where: `за Большой стеной, ${range(G.world.wallRadius, G.world.borderRadius)} блоков от столицы`,
     facts: [
-      'Твари в разы сильнее самого злого моба подземелий.',
-      `Трофей падает с ${TROPHY_CHANCE.dark} тварей, с ратным делом — чаще.`,
+      'Матёрые твари, без солнца и без сна: кровати там не работают.',
+      `Трофей падает с ${TROPHY_CHANCE.dark} тварей. И закона нет: напасть может любой игрок.`,
     ],
     loot: lootRows(TROPHIES.dark),
   },
+];
+
+const O = G.orders;
+const C = G.chronicle;
+const extra = [
+  { title: 'Заказы старост', text: `${count(O.perDay, ['заказ', 'заказа', 'заказов'])} в день в каждой из ${count(O.villageCount, ['деревни', 'деревень', 'деревень'])}: монеты и опыт ремесла сверх добычи.`, href: ordersHref },
+  { title: 'Летописец', text: `За каждое новое место мира ${range(C.rewardMin, C.rewardMax)} монет, за Стеной ×${fmt(C.darkMult)}, за ${fmt(C.lastTitle.count)} мест — звание «${C.lastTitle.title}».`, href: mapsHref },
+  { title: 'Клады', text: `Карты сокровищ у картографа за ${G.maps.treasurePrices.map(fmt).join(', ')}: в кладе монеты и трофеи.`, href: `${mapsHref}#карты-сокровищ` },
+  { title: 'Хозяева и набеги', text: `Котёл хозяина подземелья — до ${fmt(B.coinsMax)} монет, отбитый набег — ${fmt(G.raids.coins)} и ещё ${fmt(G.raids.coinsPerKill)} за каждую тварь.`, href: dungeonsHref },
 ];
 ---
 <section class="earn section" id="earn" aria-labelledby="earn-title">
@@ -63,47 +59,21 @@ const hunts = [
   </svg>
   <div class="wrap">
     <header class="section-head">
-      <h2 class="section-title" id="earn-title">Пути заработка</h2>
+      <h2 class="section-title" id="earn-title">Ремесло и охота</h2>
       <p class="section-lead">
-        Ремесло — ровный доход, с рангами и заказами старост он растёт. Охота — в разы выгоднее, а тёмные земли очень
-        опасны. За убийство обычного моба не платят: деньги за лут, донесённый до купца. Монеты за сам бой дают только
-        боссы подземелий и отбитые набеги тьмы.
+        Ремесло — ровный и спокойный заработок. Охота выгоднее, а за Стеной — ещё и опасна. За убийство обычной твари
+        не платят: деньги за то, что ты донёс до купца. Монеты за сам бой дают только хозяева подземелий и отбитые
+        набеги тьмы.
       </p>
     </header>
-
-    <figure class="income">
-      <figcaption class="income__title">Доход в час, монет, примерно</figcaption>
-      <ul class="income__rows" role="list">
-        {INCOME.map((r) => (
-          <li class:list={['bar', `bar--${r.id}`]}>
-            <p class="bar__head">
-              <span class="bar__name">{r.name}</span>
-              <span class="bar__note">{r.note}</span>
-              <span class="bar__value">{incomeText(r, fmt)}</span>
-            </p>
-            <span class="bar__track" aria-hidden="true">
-              <span
-                class:list={['bar__fill', { 'bar__fill--open': r.max === null }]}
-                style={`left:${pct(r.min)};width:${pct((r.max ?? INCOME_MAX) - r.min)}`}
-              ></span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      <div class="income__axis" aria-hidden="true">
-        {ticks.map((t) => (
-          <span style={`left:${pct(t)}`}>{t === 0 ? '0' : `${t / 1000}k`}</span>
-        ))}
-      </div>
-    </figure>
 
     <div class="paths">
       <section class="path path--craft" aria-labelledby="craft-title">
         <div class="path__head">
-          <h3 class="path__title" id="craft-title">Ремёсла</h3>
+          <h3 class="path__title" id="craft-title">Угодья</h3>
           <span class="tag tag--moss">надёжно</span>
         </div>
-        <p class="path__lead">Ломать блоки можно только здесь. Доход ровный: {income.crafts} монет в час, с рангами и заказами старост больше.</p>
+        <p class="path__lead">Ломать блоки можно только здесь. У каждого угодья — свой скупщик и ямская станция. Цены — базовые, у купца их двигают вести и место.</p>
         <ul class="crafts" role="list">
           {CRAFTS.map((c) => (
             <li class="craft">
@@ -123,7 +93,7 @@ const hunts = [
             </li>
           ))}
         </ul>
-        <a class="more" href={craftsHref}>Всё о ремёслах</a>
+        <a class="more" href={craftsHref}>Шахта, поле, сад и рыбалка</a>
       </section>
 
       <section class="path path--hunt" aria-labelledby="hunt-title">
@@ -131,7 +101,7 @@ const hunts = [
           <h3 class="path__title" id="hunt-title">Охота</h3>
           <span class="tag">выгоднее</span>
         </div>
-        <p class="path__lead">Трофеи и обычный лут с мобов берёт скупщик диковин на рынке, снятое с тварей снаряжение — кузнецы. В подземельях {income.dungeons} монет в час, в тёмных землях {income.dark}.</p>
+        <p class="path__lead">Трофеи и добычу с тварей берёт скупщик диковин, снятое с тварей снаряжение — кузнецы. Чем выше уровень твари, тем дороже трофей.</p>
         <ul class="hunts" role="list">
           {hunts.map((h) => (
             <li class:list={['hunt', `hunt--${h.id}`]}>
@@ -155,21 +125,18 @@ const hunts = [
           ))}
         </ul>
         <p class="path__links">
-          <a class="more" href={huntingHref}>Всё об охоте</a>
-          <a class="more" href={bossesHref}>Боссы и набеги</a>
+          <a class="more" href={huntingHref}>Охота и трофеи</a>
+          <a class="more" href={dungeonsHref}>Подземелья и боссы</a>
         </p>
       </section>
     </div>
 
     <section class="marks" aria-labelledby="marks-title">
-      <h3 class="marks__title" id="marks-title">Ориентиры</h3>
+      <h3 class="marks__title" id="marks-title">Ещё монеты</h3>
       <ul class="marks__list" role="list">
-        <li><b>Ремесленник за вечер</b> (2–3 часа) снимает жильё и одевается в железо.</li>
-        <li><b>Охотник за несколько вечеров</b> собирает алмазную экипировку и покупает свой дом.</li>
-        <li><b>Дом в деревне мастеров за {fmt(masterHouse.buy)}</b> — примерно {houseHours} часов ремесла. В дальних деревнях дом навсегда от {fmt(cheapHouse.buy)}.</li>
-        <li><b>Странник</b> за все {CHRONICLE.total} мест мира получит у летописца почти {fmt(Math.round(chronicleCoins / 1000) * 1000)} монет: <a href={exploreHref}>Странствия</a>.</li>
-        <li><b>До рынка далеко?</b> Скупщики у шахты и у поля берут руду и урожай на месте за {SITE_BUY_FACTOR * 100}% цены, сельский скупщик в деревне — всё за {VILLAGE_BUY_FACTOR * 100}%.</li>
+        {extra.map((e) => <li><b><a href={e.href}>{e.title}</a>.</b> {e.text}</li>)}
       </ul>
+      <p class="marks__note">Все, кто платит, и базовые цены: <a href={pricesHref}>Купцы и базовые цены</a>.</p>
     </section>
   </div>
 </section>
@@ -177,103 +144,6 @@ const hunts = [
 <style>
   .earn {
     background: #17171c;
-  }
-
-  /* ——— доход в час ——— */
-  .income {
-    margin-top: clamp(2.5rem, 6vw, 4rem);
-    padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem) 2.75rem;
-    background: var(--slate-0);
-    box-shadow: inset 0 0 0 1px var(--line);
-  }
-
-  .income__title {
-    color: var(--ash);
-    font-size: 1rem;
-  }
-
-  .income__rows {
-    display: grid;
-    gap: 1.25rem;
-    margin: 1.25rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .bar__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.15rem 0.75rem;
-  }
-
-  .bar__name {
-    color: var(--bone);
-    font-weight: 700;
-  }
-
-  .bar__note {
-    color: var(--ash);
-    font-size: 1rem;
-  }
-
-  .bar__value {
-    margin-left: auto;
-    color: var(--gold);
-    font-family: var(--font-pixel);
-    font-size: 1.125rem;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  /* Дорожка с сеткой по тысячам, полоса как шкала опыта. */
-  .bar__track {
-    position: relative;
-    display: block;
-    height: 14px;
-    margin-top: 0.4rem;
-    background:
-      repeating-linear-gradient(90deg, rgb(236 228 208 / 0.08) 0 1px, transparent 1px calc(100% / 6)),
-      #0b0c0f;
-    box-shadow: inset 0 0 0 1px var(--slate-3);
-  }
-
-  .bar__fill {
-    position: absolute;
-    top: 2px;
-    bottom: 2px;
-    min-width: 6px;
-    background: linear-gradient(#f8d98f 0 45%, var(--torch) 45%);
-    box-shadow: inset 0 -2px 0 rgb(60 30 0 / 0.45);
-  }
-
-  /* Без верхней границы: полоса уходит за край шкалы и тает. */
-  .bar__fill--open {
-    -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent);
-    mask-image: linear-gradient(90deg, #000 45%, transparent);
-  }
-
-  .income__axis {
-    position: relative;
-    height: 1rem;
-    margin-top: 0.6rem;
-    color: var(--ash-2);
-    font-family: var(--font-pixel);
-    font-size: 0.875rem;
-  }
-
-  .income__axis span {
-    position: absolute;
-    top: 0;
-    transform: translateX(-50%);
-  }
-
-  .income__axis span:first-child {
-    transform: none;
-  }
-
-  .income__axis span:last-child {
-    transform: translateX(-100%);
   }
 
   /* ——— два пути ——— */
@@ -538,14 +408,29 @@ const hunts = [
     box-shadow: inset 2px 0 0 var(--gold-deep);
   }
 
-  .marks__list b {
+  .marks__list b,
+  .marks__list a {
     color: var(--bone);
+  }
+
+  .marks__list a:hover {
+    color: var(--gold);
+  }
+
+  .marks__note {
+    grid-column: 2;
+    color: var(--ash);
+    font-size: var(--fs-sm);
   }
 
   @media (max-width: 64rem) {
     .paths,
     .marks {
       grid-template-columns: 1fr;
+    }
+
+    .marks__note {
+      grid-column: auto;
     }
   }
 
@@ -560,9 +445,5 @@ const hunts = [
       grid-template-columns: 1fr;
     }
 
-    .bar__value {
-      margin-left: 0;
-      width: 100%;
-    }
   }
 </style>

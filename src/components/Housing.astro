@@ -1,60 +1,96 @@
 ---
 import Pixel from './Pixel.astro';
+import Cards, { type Card } from './Cards.astro';
 import { GLYPHS } from '../lib/emblems';
-import { HOMES_TOTAL, HOUSES_TOTAL, HOUSE_TIERS, ROOMS, TAVERNS } from '../data/game';
+import { G, HOMES, fmt, pct, plus, count, range } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const housingHref = await docHref('housing');
-const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
-const rents = HOUSE_TIERS.map((t) => t.rent);
-const buys = HOUSE_TIERS.map((t) => t.buy);
+const cityHref = await docHref('city');
+const H = HOMES;
+const W = G.dwelling;
+const tavernNames = H.taverns.map((t) => t.name.replace(/ таверна$/, '').replace('Таверна в джунглях', 'в джунглях')).join(', ');
 
 const deeds = [
   {
     id: 'inn',
     glyph: 'bed' as const,
     name: 'Комната в ночлежке',
-    where: 'Столица',
-    price: String(ROOMS.inn.rent),
+    where: 'Цитадель столицы',
+    price: fmt(H.inn.rent),
     per: 'монет в сутки',
     rows: [
-      ['Мест', `${ROOMS.inn.count} комнат`],
+      ['Мест', count(H.inn.count, ['комната', 'комнаты', 'комнат'])],
       ['Внутри', 'кровать и сундук'],
-      ['Срок', '1, 3 или 7 суток, не больше 14 вперёд'],
-      ['Сдаёт', 'хозяйка ночлежки'],
+      ['Срок', `${H.terms.days.map(fmt).join(', ')} суток, вперёд — до ${fmt(H.terms.ahead)}`],
+      ['Сдаёт', G.npcs.who.innkeeper.name],
     ],
   },
   {
     id: 'tavern',
     glyph: 'bread' as const,
     name: 'Комната в таверне',
-    where: TAVERNS.map((t) => t.name.replace(/ таверна$/, '').replace('Таверна в джунглях', 'в джунглях')).join(', '),
-    price: String(ROOMS.tavern.rent),
+    where: tavernNames,
+    price: fmt(H.tavernRent),
     per: 'монет в сутки',
     rows: [
-      ['Мест', `${ROOMS.tavern.taverns} таверны по ${ROOMS.tavern.perTavern} комнат`],
+      ['Мест', `${count(H.tavernCount, ['таверна', 'таверны', 'таверн'])} по ${count(H.tavernRooms ?? 0, ['комнате', 'комнаты', 'комнат'])}`],
       ['Сдаёт', 'трактирщик'],
     ],
+  },
+];
+
+const city: Card[] = [
+  {
+    glyph: 'bed',
+    name: 'Своё жильё',
+    sub: 'что оно даёт',
+    text: [
+      '<b>Кровать — точка возрождения.</b> Погиб — очнёшься у себя, а не на площади столицы.',
+      `<b>Отдых:</b> выспался дома — ${count(W.restMinutes, ['минуту', 'минуты', 'минут'])} ${plus(W.xpBonus)} опыта всех ремёсел и лёгкая регенерация, не чаще раза в ${count(W.cooldownHours, ['час', 'часа', 'часов'])}.`,
+      `<b>«Домой»</b> у ямщика — за ${pct(G.roads.homeDiscount)} цены поездки.`,
+    ],
+  },
+  {
+    glyph: 'house',
+    name: 'Купленный дом',
+    sub: 'навсегда',
+    text: [
+      'Табличка с твоим именем у двери, и все сундуки дома — твои.',
+      `Арендатору открыта только часть сундуков: ${pct(W.renterShare)}, но не меньше ${fmt(W.renterMin)}.`,
+    ],
+  },
+  {
+    glyph: 'pouch',
+    name: 'Банк',
+    sub: `${G.bank.npc}, у входа в донжон`,
+    text: [
+      `Личная ячейка для вещей, даром. Мест — от ${fmt(G.bank.slots[0])} до ${fmt(G.bank.slots[G.bank.slots.length - 1])}: растёт с рангом торгового дела.`,
+      'Съехал или кончился срок — вещи из сундуков жилья переезжают в ячейку, а не пропадают.',
+    ],
+  },
+  {
+    glyph: 'banner',
+    name: 'Доска почёта',
+    sub: `${G.honor.npc}, двор цитадели`,
+    text: [`Первые ${fmt(G.honor.top)} княжества по ${count(G.honor.count, ['вкладке', 'вкладкам', 'вкладкам'])}: ${G.honor.titles.join(', ')}. Своё место — внизу.`],
   },
 ];
 ---
 <section class="housing section" id="housing" aria-labelledby="housing-title">
   <div class="wrap housing__grid">
     <header class="section-head housing__head">
-      <h2 class="section-title" id="housing-title">Жильё</h2>
+      <h2 class="section-title" id="housing-title">Город и жильё</h2>
       <p class="section-lead">
-        Двери, сундуки, кровать, печь и верстак работают только в своём жилье. Всего {HOMES_TOTAL} жилища: комнаты в
-        ночлежке и тавернах, дома во всех семи деревнях.
+        Двери, сундуки, кровать, печь и верстак работают только в своём жилье. Всего {count(H.total, ['жилище', 'жилища', 'жилищ'])}: комнаты в
+        ночлежке и тавернах, дома во всех деревнях.
       </p>
       <ul class="housing__rules" role="list">
-        <li>Одно жильё на игрока.</li>
-        <li>Сутки — реальные 24 часа, идут и когда ты не в игре.</li>
-        <li>Остаток аренды виден в часах в табло справа: <span class="board">Жильё: Комната 12 · 29 ч</span></li>
-        <li>Кончился срок — жильё освобождается. Продлить можно заранее у того же NPC.</li>
-        <li>Съехать раньше срока или продать купленный дом — там же, <kbd>Shift</kbd> + клик в окне.</li>
-        <li>Каждый клочок мира принадлежит только ближайшему жилью: соседский сундук в твой дом не попадает.</li>
-        <li>Ранг в торговом деле снижает аренду на 5–20%.</li>
-        <li>Ворота и калитки построек открыты для всех.</li>
+        <li>Одно жильё на игрока. Сутки — реальные, идут и когда ты не в игре.</li>
+        <li>Остаток аренды виден в табло справа: <span class="board">Жильё: Комната 12 · 29 ч</span></li>
+        <li>Кончился срок — жильё освобождается. Продлить можно заранее у того же жителя.</li>
+        <li>Съехать или продать дом — там же, <kbd>Shift</kbd> + клик. Вещи из сундуков уедут в банк.</li>
+        <li>Ранг в торговом деле снижает аренду на {range(G.effects['trade-rent'][1] * 100, G.effects['trade-rent'][4] * 100)}%.</li>
       </ul>
       <a class="more" href={housingHref}>Всё о жилье</a>
     </header>
@@ -82,34 +118,47 @@ const deeds = [
           <span class="slot" aria-hidden="true"><Pixel grid={GLYPHS.house} /></span>
           <div>
             <h3 class="deed__name">Дом в деревне</h3>
-            <p class="deed__where">{HOUSES_TOTAL} дома во всех семи деревнях, у сельских старост</p>
+            <p class="deed__where">{count(H.houses, ['дом', 'дома', 'домов'])} во всех деревнях, у старост</p>
           </div>
         </div>
         <p class="deed__price">
-          <b>{Math.min(...rents)}–{Math.max(...rents)}</b> монет в сутки, навсегда — {fmt(Math.min(...buys))}–{fmt(Math.max(...buys))}
+          <b>{range(H.rentMin, H.rentMax)}</b> монет в сутки, навсегда — {range(H.priceMin, H.priceMax)}
         </p>
         <table class="tiers">
           <thead>
             <tr><th scope="col">Деревня</th><th scope="col">В сутки</th><th scope="col">Навсегда</th></tr>
           </thead>
           <tbody>
-            {HOUSE_TIERS.map((t) => (
+            {H.tiers.map((t) => (
               <tr>
-                <th scope="row">{t.label}</th>
-                <td>{t.rent}</td>
-                <td>{fmt(t.buy)}</td>
+                <th scope="row">{t.names.join(', ')}</th>
+                <td>{fmt(t.rent)}</td>
+                <td>{fmt(t.price)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </li>
     </ul>
+
+    <div class="city">
+      <Cards cards={city} cols={4} />
+      <p class="city__more"><a class="more" href={cityHref}>Банк и доска почёта</a></p>
+    </div>
   </div>
 </section>
 
 <style>
   .housing {
     background: var(--slate-0);
+  }
+
+  .city {
+    grid-column: 1 / -1;
+  }
+
+  .city__more {
+    margin-top: 1.5rem;
   }
 
   .housing__grid {
@@ -307,7 +356,15 @@ const deeds = [
   }
 
   @media (max-width: 64rem) {
-    .housing__grid {
+    .city {
+    grid-column: 1 / -1;
+  }
+
+  .city__more {
+    margin-top: 1.5rem;
+  }
+
+  .housing__grid {
       grid-template-columns: 1fr;
     }
   }

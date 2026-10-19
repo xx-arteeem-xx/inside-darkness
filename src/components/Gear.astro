@@ -1,0 +1,69 @@
+---
+/** Снаряжение: лавки рынка, незерит по рангу, заморский гость, чародей и ведун, починка. */
+import Block from './Block.astro';
+import Cards, { type Card } from './Cards.astro';
+import { G, RANKS, fmt, count, roman } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const gearHref = await docHref('gear');
+const enchantHref = await docHref('enchant');
+const repairHref = await docHref('repair');
+const I = G.market.item;
+const E = G.enchanter;
+const V = G.vedun;
+const sharp = E.byId.sharpness;
+
+const cards: Card[] = [
+  {
+    glyph: 'anvil',
+    name: 'Кузнецы рынка',
+    sub: 'оружейник, бронник, инструментщик',
+    rows: [
+      ['Железный меч', fmt(I.weapons.IRON_SWORD)],
+      ['Алмазный нагрудник', fmt(I.armor.DIAMOND_CHESTPLATE)],
+      ['Незеритовый меч', fmt(I.weapons.NETHERITE_SWORD), `с ранга «${RANKS[2]}» ратного дела`],
+      ['Незеритовая кирка', fmt(I.tools.NETHERITE_PICKAXE), `с ранга «${RANKS[2]}» горного дела`],
+    ],
+    note: 'Ещё чинят снаряжение и скупают снятое с тварей.',
+  },
+  {
+    glyph: 'gem',
+    name: 'Заморский гость',
+    sub: `${G.npcs.who.rare.name}, рынок`,
+    rows: [
+      ['Сила III, отвар', fmt(I.rare.POTION_strength)],
+      ['Зачарованное яблоко', fmt(I.rare.ENCHANTED_GOLDEN_APPLE)],
+      ['Трезубец', fmt(I.rare.TRIDENT), `с ранга «${RANKS[2]}» ратного дела`],
+      ['Булава', fmt(I.rare.MACE), `с ранга «${RANKS[2]}» ратного дела`],
+    ],
+    note: 'Держит лавку на рынке постоянно: сильные зелья, яблоки, копья, особые стрелы.',
+  },
+  {
+    glyph: 'tome',
+    name: 'Чародей',
+    sub: 'чары за монеты',
+    bars: { caption: `${sharp.name}, база ${fmt(sharp.base)}: цена ступени — база × ступень²`, items: sharp.steps.map((p, i) => [roman(i + 1), p]) },
+    note: `IV ступень — с ранга «${E.rankLvl4}», V — с ранга «${E.rankLvl5}» в подходящем ремесле.`,
+    tone: 'enchant',
+  },
+  {
+    glyph: 'scroll',
+    name: 'Ведун',
+    sub: `${V.npc}, тронный зал донжона`,
+    text: [
+      `Поднимает чары сверх обычного предела: ${V.enchants.filter((e) => ['sharpness', 'protection'].includes(e.id)).map((e) => `${e.name.toLowerCase()} — до ${roman(e.top)}`).join(', ')} и другие.`,
+      `Только с ранга «${V.rank}» ${V.craftGen}: ${V.prices.map((p, i) => `+${i + 1} — ${fmt(p)}`).join(', ')} монет за чары.`,
+    ],
+    tone: 'enchant',
+  },
+];
+---
+<Block
+  id="gear"
+  title="Снаряжение"
+  bg="#17161b"
+  lead={`Всё покупают у людей: кузнецы на рынке, знахарка, шорник и заморский гость. Лучшее — незерит и редкое оружие — продают только мастерам, а чары сверх предела делает ведун лишь для лучших воинов княжества.`}
+  links={[{ href: gearHref, text: 'Лавки и снаряжение' }, { href: enchantHref, text: 'Чары: чародей и ведун' }, { href: repairHref, text: 'Починка и продажа' }]}
+>
+  <Cards cards={cards} cols={2} />
+</Block>

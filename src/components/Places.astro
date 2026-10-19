@@ -1,11 +1,14 @@
 ---
 import { gridLayers, rng } from '../lib/pixel';
-import { PLACES, VILLAGES, TAVERNS, STATIONS, ROAD, ROOMS, VILLAGE_BUY_FACTOR, WALL_R, DARK_R } from '../data/game';
+import { G, PLACES, VILLAGES, TAVERNS, STATIONS, WALL_R, DARK_R, LEVELS, fmt, count } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const worldHref = await docHref('world');
 const roadsHref = await docHref('roads');
 const housingHref = await docHref('housing');
+const tradeHref = await docHref('trade');
+const peopleHref = await docHref('people');
+const lastStation = PLACES.length + VILLAGES.length;
 
 /* Схема государства клетками. Направления верные, расстояния сжаты к краю (корень из расстояния),
    иначе столица, рынок и места ремёсел слиплись бы в точку рядом с кольцом тёмных земель. */
@@ -80,9 +83,9 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
     <header class="section-head">
       <h2 class="section-title" id="places-title">Карта государства</h2>
       <p class="section-lead">
-        Столица в центре, рядом рынок и деревня мастеров, вокруг места ремёсел. В шести дальних деревнях — сельские
-        торговцы, между ними таверны. Все места с номерами 1–13 связаны ямской службой.
-        Подземелья разбросаны по обычным землям, а за Большой стеной начинаются тёмные земли.
+        Столица с цитаделью в центре, рядом рынок и Деревня мастеров, вокруг угодья. Дальше — сельские деревни и таверны,
+        старые подземелья, а по кругу — Большая стена. За ней тёмные земли, и там мир кончается. Места с номерами
+        1–{lastStation} связаны ямской службой.
       </p>
     </header>
 
@@ -91,8 +94,8 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
         <svg class="atlas__map" viewBox={`0 0 ${VIEW} ${VIEW}`} role="img" aria-labelledby="atlas-cap" shape-rendering="crispEdges">
           {map.map((l) => <path fill={l.fill} d={l.d} />)}
           <g class="atlas__zone" font-size="14">
-            <text x={VIEW / 2 + 36} y={lvlY} text-anchor="middle">подземелья ур. 1–8</text>
-            <text x={VIEW / 2} y={darkY} text-anchor="middle" class="atlas__dark">тёмные земли ур. 12–20</text>
+            <text x={VIEW / 2 + 36} y={lvlY} text-anchor="middle">подземелья ур. {LEVELS.dungeons}</text>
+            <text x={VIEW / 2} y={darkY} text-anchor="middle" class="atlas__dark">тёмные земли ур. {LEVELS.dark}</text>
           </g>
           <text x={VIEW - 10} y="22" text-anchor="end" class="atlas__north" font-size="14">С ↑</text>
           {pins.map((p) => (
@@ -148,10 +151,10 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
           ))}
         </ol>
         <section class="villages" aria-labelledby="villages-title">
-          <h3 class="villages__title" id="villages-title">Сельские торговцы</h3>
+          <h3 class="villages__title" id="villages-title">Сельские деревни</h3>
           <p class="villages__text">
-            В шести деревнях внутри стены, кроме деревни мастеров. Скупщик берёт всё, что и рынок,
-            за {VILLAGE_BUY_FACTOR * 100}% цены. Лавочник продаёт еду, инструменты, оружие и свет.
+            Скупщик берёт всё, что и рынок, — по ценам своей деревни: чем дальше от угодья, тем дороже его товар
+            (<a href={tradeHref}>Торг и вести</a>). Лавочник продаёт еду, инструменты, оружие и свет, староста даёт заказы и дома.
           </p>
           <ol class="villages__list" role="list">
             {VILLAGES.map((v) => (
@@ -162,12 +165,12 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
               </li>
             ))}
           </ol>
-          <p class="villages__more"><a href={`${worldHref}#деревни-с-торговцами`}>Деревни и торговцы подробно</a></p>
+          <p class="villages__more"><a href={`${worldHref}#сельские-деревни`}>Деревни подробно</a></p>
         </section>
         <section class="villages villages--taverns" aria-labelledby="taverns-title">
           <h3 class="villages__title" id="taverns-title">Таверны</h3>
           <p class="villages__text">
-            По {ROOMS.tavern.perTavern} комнат у трактирщика, {ROOMS.tavern.rent} монет в сутки — дешевле ночлежки в столице.
+            Комнаты у трактирщика по {fmt(G.homes.tavernRent)} монет в сутки — дешевле ночлежки в столице.
           </p>
           <ol class="villages__list" role="list">
             {TAVERNS.map((t) => (
@@ -183,20 +186,19 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
         <section class="villages villages--roads" aria-labelledby="roads-title">
           <h3 class="villages__title" id="roads-title"><span class="road-mark" aria-hidden="true"></span>Ямская служба</h3>
           <p class="villages__text">
-            {STATIONS.length} станций: у каждого места с номерами 1–13. Станция открывается, когда дойдёшь до неё пешком,
-            «Столица» открыта сразу. Поездка — {ROAD.base} монет плюс 1 за каждые {ROAD.perBlocks} блоков, отправление
-            через {ROAD.countdown} с. У ямщиков же почта: вещи и монеты любому игроку.
+            {count(STATIONS.length, ['станция', 'станции', 'станций'])}: у каждого места с номерами 1–{lastStation}. Станция открывается, когда дойдёшь до неё пешком,
+            «{G.stations.openFromStart}» открыта сразу. Поездка — {fmt(G.stations.base)} монет и ещё монета за каждые {fmt(G.stations.perBlocks)} блоков.
           </p>
-          <p class="villages__more"><a href={roadsHref}>Ямская служба и почта</a></p>
+          <p class="villages__more"><a href={roadsHref}>Ямщики и почта</a></p>
         </section>
         <ul class="legend__extra" role="list">
-          <li><b>Подземелья.</b> Пять штук в обычных землях, внутри Стены. Мобы 1–8 уровня, в глубине каждого — босс.</li>
-          <li><b>Летописец и картограф.</b> Летописец — в столице, в библиотеке к западу от площади, картограф — в деревне мастеров.</li>
-          <li><b>Тёмные земли.</b> За Большой стеной, 1000–1500 блоков от столицы. Мобы 12–20 уровня.</li>
-          <li><b>Рыбалка.</b> В любой воде.</li>
+          <li><b>Подземелья.</b> {count(G.bosses.count, ['подземелье', 'подземелья', 'подземелий'])} внутри Стены. Твари {LEVELS.dungeons} уровня, в глубине каждого — хозяин.</li>
+          <li><b>Летописец и картограф.</b> Летописец — в столице, в библиотеке к западу от площади, картограф — в Деревне мастеров.</li>
+          <li><b>Тёмные земли.</b> За Большой стеной, {fmt(WALL_R)}–{fmt(DARK_R)} блоков от столицы. Твари {LEVELS.dark} уровня, и закона нет.</li>
+          <li><b>Рыбалка.</b> В любой воде. <b>Кто где стоит</b> — <a href={peopleHref}>по местам</a>.</li>
         </ul>
         <p class="legend__more">
-          Координаты в порядке X, Y, Z, у деревень и таверн — X, Z. Подробно: <a href={worldHref}>Карта и места</a>.
+          Координаты в порядке X, Y, Z, у деревень и таверн — X, Z. Подробно: <a href={worldHref}>Государство за Стеной</a>.
         </p>
       </div>
     </div>

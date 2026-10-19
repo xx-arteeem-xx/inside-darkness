@@ -1,0 +1,10 @@
+{
+  "name": "Inside Darkness",
+  "address": "Inside-Darkness-v2.exaroton.me",
+  "versionFrom": "1.21.11",
+  "versionTo": "26.1.2",
+  "core": "Paper 26.1.2",
+  "repo": "https://github.com/xx-arteeem-xx/inside-darkness",
+  "mapUrl": "https://inside-darkness-v2.exaroton.me/",
+  "liveApi": "https://inside-darkness-v2.exaroton.me/maps/world/live/players.json"
+}

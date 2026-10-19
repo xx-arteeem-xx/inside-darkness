@@ -1,11 +1,13 @@
 ---
 import Pixel from './Pixel.astro';
 import { CRESTS, GLYPHS } from '../lib/emblems';
-import { RACES, RACE_CHANGE, RANKS, RANK_XP, RANK_FEE, RANK_FEE_TRADE, TRADES } from '../data/game';
+import { G, RACES, RACE_CHANGE, RANKS, RANK_XP, RANK_FEE, RANK_FEE_TRADE, TRADES, fmt, pct, count } from '../data/game';
 import { docHref } from '../lib/docs';
 
-const villageHref = await docHref('village');
-const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+const ranksHref = await docHref('ranks');
+const ordersHref = await docHref('orders');
+const who = G.npcs.who;
+const proof = G.crafts.byId.mining.proof[1]?.[0] ?? '';
 const xpTop = Math.max(...RANK_XP);
 const ranks = RANKS.map((name, i) => ({
   n: i + 1,
@@ -24,17 +26,16 @@ const tradeFees = RANK_FEE_TRADE.map(fmt).join(', ');
     <header class="section-head">
       <h2 class="section-title" id="village-title">Деревня мастеров</h2>
       <p class="section-lead">
-        Сразу за южными воротами столицы. Старейшина принимает в народ, шесть мастеров дают ранги в ремёслах, староста
-        Добрыня даёт заказы на день и сдаёт дома, знахарка продаёт зелья, картограф — карты и клады. Провожатый у въезда
-        покажет, кто где живёт.
-        Старосты с заказами есть и в остальных шести деревнях.
+        Сразу за южными воротами столицы. Старейшина принимает в народ, мастера дают ранги в ремёслах, староста даёт
+        заказы на день и сдаёт дома, знахарка продаёт зелья, картограф — карты и клады. Провожатый у въезда покажет,
+        кто где живёт.
       </p>
     </header>
 
     <div class="races-head">
-      <h3 class="sub-title">Четыре народа</h3>
+      <h3 class="sub-title">Народы</h3>
       <p>
-        Каждый даёт +25% опыта своему ремеслу и свой дар. Первый выбор бесплатный, сменить — <b>{fmt(RACE_CHANGE)} монет</b>.
+        Каждый даёт +{pct(G.races.xpBonus)} опыта своему ремеслу и свой дар. Первый выбор у старейшины бесплатный, сменить — <b>{fmt(RACE_CHANGE)} монет</b>.
       </p>
     </div>
     <ul class="races" role="list">
@@ -55,16 +56,16 @@ const tradeFees = RANK_FEE_TRADE.map(fmt).join(', ');
       <div class="masters__text">
         <h3 class="sub-title">Ремёсла и ранги</h3>
         <p>
-          Шесть ремёсел, в каждом пять рангов. Опыт копится делом: рудой в шахте, урожаем, брёвнами, уловом, тварями,
+          {count(G.crafts.count, ['ремесло', 'ремесла', 'ремёсел'])}, в каждом {count(RANKS.length, ['ранг', 'ранга', 'рангов'])}. Опыт копится делом: рудой в шахте, урожаем, брёвнами, уловом, тварями,
           торговлей. Набрал опыт — иди к мастеру ремесла, он посвятит в следующий ранг.
         </p>
         <ol class="rite" role="list">
-          <li><b>Опыт</b> <span>копится сам, пока работаешь. Народ даёт +25% опыта своему ремеслу</span></li>
-          <li><b>Проба</b> <span>товар ремесла, мастер её забирает: например, 32 рудного железа на Подмастерье</span></li>
-          <li><b>Плата</b> <span>{fees} монет за ранги со 2-го по 5-й, у торгового дела {tradeFees}</span></li>
+          <li><b>Опыт</b> <span>копится сам, пока работаешь; заказы старост дают его сверху (<a href={ordersHref}>заказы</a>)</span></li>
+          <li><b>Проба</b> <span>товар ремесла, мастер её забирает: например, {proof} на «{RANKS[1]}» в горном деле</span></li>
+          <li><b>Плата</b> <span>{fees} монет за ранги со второго по последний, у торгового дела {tradeFees}</span></li>
         </ol>
         <p class="masters__note">
-          Звание видно в табло справа. Чары IV и V ступени у чародея тоже открывает ранг.
+          Ранг — ещё и пропуск: с «{RANKS[2]}» продают незерит и редкое оружие, «{G.vedun.rank}» {G.vedun.craftGen} открывает ведуна с чарами сверх предела.
         </p>
       </div>
 
@@ -109,7 +110,7 @@ const tradeFees = RANK_FEE_TRADE.map(fmt).join(', ');
     </ul>
 
     <p class="village__more">
-      <a class="more" href={villageHref}>Народы, ремёсла и ранги подробно</a>
+      <a class="more" href={ranksHref}>Ремёсла, ранги и народы подробно</a>
     </p>
   </div>
 </section>

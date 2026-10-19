@@ -1,0 +1,61 @@
+---
+/** Граница: подземелья и их хозяева, набеги тьмы, Стена и тёмные земли. */
+import Block from './Block.astro';
+import Cards, { type Card } from './Cards.astro';
+import { G, LEVELS, fmt, pct, count, range } from '../data/game';
+import { docHref } from '../lib/docs';
+
+const dungeonsHref = await docHref('dungeons');
+const frontierHref = await docHref('frontier');
+const B = G.bosses;
+const R = G.raids;
+const W = G.world;
+
+const cards: Card[] = [
+  {
+    glyph: 'skull',
+    name: 'Хозяева подземелий',
+    sub: count(B.count, ['хозяин', 'хозяина', 'хозяев']),
+    rows: B.list.map((b) => [b.name, `${fmt(b.coins)} монет`, `${b.dungeon}, здоровье ${fmt(b.hp)}`] as [string, string, string]),
+    note: `Котёл монет делят по доле урона. ${G.trophies.byId.relic.name} — лучшему и всем, у кого доля от ${pct(B.relicShare)}. Потом хозяин спит ${count(B.cooldownHours, ['час', 'часа', 'часов'])}.`,
+    tone: 'dark',
+  },
+  {
+    glyph: 'banner',
+    name: 'Набеги тьмы',
+    sub: `на ${count(R.villageCount, ['деревню', 'деревни', 'деревень'])}`,
+    text: [
+      `Раз в ${range(R.every[0], R.every[1])} минут, если в игре от ${fmt(R.minPlayers)} человек, твари идут на сельскую деревню: ${count(R.waves, ['волна', 'волны', 'волн'])} за ${count(R.minutes, ['минуту', 'минуты', 'минут'])}.`,
+      `Отстояли — <b>${fmt(R.coins)} монет и ещё ${fmt(R.coinsPerKill)} за каждую тварь</b>. Нет — скупщик и лавочник деревни закрыты на ${count(R.closedMinutes, ['минуту', 'минуты', 'минут'])}.`,
+    ],
+  },
+  {
+    glyph: 'darkheart',
+    name: 'Тёмные земли',
+    sub: `за Стеной, ${range(W.wallRadius, W.borderRadius)} блоков`,
+    text: [
+      `Твари ${LEVELS.dark} уровня, самые дорогие трофеи. Нежить не горит, кровати не работают, вечные сумерки и туман.`,
+      '<b>Закона нет:</b> внутри Стены люди дерутся только на ристалище, а здесь напасть может любой.',
+    ],
+    tone: 'dark',
+  },
+  {
+    glyph: 'horseshoe',
+    name: 'Большая стена',
+    sub: `${fmt(W.wallRadius)} блоков от столицы`,
+    text: [
+      'За Стену — только пешком: ямщики не возят, крылья над ней не держат, жемчуг через неё не переносит.',
+      'Назад — свиток возвращения, хоть из самой глуби. Дальше тёмных земель — край мира, пути нет.',
+    ],
+  },
+];
+---
+<Block
+  id="frontier"
+  title="Граница"
+  bg="#120e12"
+  lead={`Внутри Стены — старые подземелья с хозяевами в глубине. Снаружи — тьма: твари идут оттуда набегами на деревни, а смельчаки ходят туда за трофеями, которые стоят в разы дороже.`}
+  links={[{ href: dungeonsHref, text: 'Подземелья и боссы' }, { href: frontierHref, text: 'Стена, тёмные земли и набеги' }]}
+>
+  <Cards cards={cards} cols={2} />
+</Block>

@@ -6,6 +6,7 @@ import { getDocSections, flatten } from '../lib/docs';
 
 const docs = flatten(await getDocSections());
 const hasRules = docs.some((d) => d.id === 'rules');
+const hasFaq = docs.some((d) => d.id === 'faq');
 ---
 <footer class="site-footer">
   <svg class="strata site-footer__edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
@@ -21,7 +22,9 @@ const hasRules = docs.some((d) => d.id === 'rules');
       <ul role="list">
         <li><a href={url('/#join')}>Как зайти</a></li>
         <li><a href={url('/#first')}>Новичку</a></li>
+        <li><a href={url('/#map')}>Живая карта</a></li>
         <li><a href={url('/docs/')}>Документация</a></li>
+        {hasFaq && <li><a href={url('/docs/faq/')}>Вопросы и ответы</a></li>}
         {hasRules && <li><a href={url('/docs/rules/')}>Правила</a></li>}
         <li><a href={url('/#telegram')}>Telegram</a></li>
         <li><a href={url('/#donate')}>Поддержать</a></li>

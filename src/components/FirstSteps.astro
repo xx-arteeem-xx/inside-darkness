@@ -1,58 +1,70 @@
 ---
-import { START_COINS, QUESTS } from '../data/game';
+import { G, START_COINS, QUESTS, QUEST_TOTAL, fmt, count } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const startHref = await docHref('start');
-const questTotal = QUESTS.reduce((n, q) => n + q.reward, 0);
-const reward = (event: number) => QUESTS[event].reward;
+const reward = (event: string) => QUESTS.find((q) => q.event === event)?.reward;
+const days = G.homes.terms.days[1] ?? G.homes.terms.days[0];
+const P = G.places;
+const W = G.npcs.who;
 
 type Step = { title: string; text: string; cost?: number; reward?: number; cmd?: string };
 const steps: Step[] = [
   {
     title: 'Зайди на сервер',
-    text: `Как подключиться — в блоке выше. На старте у тебя ${START_COINS} монет. Баланс всплывает над хотбаром, а в любой момент его покажет команда:`,
+    text: `Как подключиться — в блоке выше. На старте у тебя ${fmt(START_COINS)} монет. Баланс всплывает над хотбаром, а в любой момент его покажет команда:`,
     cmd: '/монеты',
   },
   {
     title: 'Найди проводника',
-    text: `Проводник Добромир стоит у точки спавна, на площади у цитадели столицы. В его окне — основы игры и ${QUESTS.length} первых заданий по порядку, за каждое он доплачивает. Стрелка сверху экрана ведёт к цели.`,
+    text: `${W.guide.name} стоит на площади у цитадели. В его окне — основы игры и ${count(QUESTS.length, ['задание', 'задания', 'заданий'])} по порядку, за каждое он доплачивает. Стрелка сверху экрана ведёт к цели.`,
   },
   {
     title: 'Купи кирку',
-    text: 'Центральный рынок восточнее столицы, около (−46, 69, 97). Глашатай у входа покажет, где инструментщик. ПКМ по нему — окно лавки, клик по железной кирке.',
-    cost: 60,
+    text: `Центральный рынок восточнее столицы, около ${P.market.coords}. Глашатай у входа покажет, где инструментщик: клик по железной кирке в его окне.`,
+    cost: G.market.item.tools.IRON_PICKAXE,
   },
   {
     title: 'Спустись в шахту',
-    text: 'Шахта к западу от столицы, около (−365, 69, 34). Дошёл пешком — открылась ямская станция «Шахта», дальше можно ездить. Карьер обновляется каждые 5 минут, следи за таймером.',
+    text: `Шахта к западу от столицы, около ${P.mine.coords}. Карьер обновляется каждые ${count(G.mine.periodMinutes, ['минуту', 'минуты', 'минут'])}, следи за таймером.`,
   },
   {
     title: 'Продай руду',
-    text: 'Скупщик у шахты берёт руду на месте за 75% цены, рудный купец на рынке — за полную: железо 3, золото 7, алмаз 40. Клик по руде в окне купца — стопка продана.',
-    reward: reward(0),
+    text: `${W.mineBuyer.name} у шахты берёт её сразу, рудный купец на рынке — по ценам дня, обычно дороже. Клик по руде в окне — стопка продана.`,
+    reward: reward('sell'),
   },
   {
     title: 'Сними комнату',
-    text: 'Хозяйка ночлежки в столице сдаёт комнаты по 20 монет в сутки. Бери на 3 суток: будет кровать и сундук для добычи.',
-    cost: 60,
-    reward: reward(1),
+    text: `${W.innkeeper.name} в цитадели сдаёт комнаты по ${fmt(G.homes.inn.rent)} монет в сутки. Бери на ${count(days, ['сутки', 'суток', 'суток'])}: кровать, сундук и возрождение у себя.`,
+    cost: G.homes.inn.rent * days,
+    reward: reward('home'),
   },
   {
     title: 'Выбери народ',
-    text: 'Старейшина Велимир — в деревне мастеров за южными воротами столицы, на площади у колокола. Первый выбор бесплатный. Для шахты бери Подгорных: +25% опыта горного дела и постоянная Спешка I.',
+    text: `${W.elder.name} — в Деревне мастеров за южными воротами столицы. Первый выбор бесплатный. Для шахты бери Подгорных.`,
     cost: 0,
-    reward: reward(2),
+    reward: reward('race'),
   },
   {
     title: 'Купи меч',
-    text: 'Оружейник на рынке: железный меч. Задания проводника идут по порядку, так что задание на покупку закроет именно эта покупка.',
-    cost: 80,
-    reward: reward(3),
+    text: 'Оружейник на рынке: железный меч. Задания идут по порядку, так что засчитается именно эта покупка.',
+    cost: G.market.item.weapons.IRON_SWORD,
+    reward: reward('buy'),
+  },
+  {
+    title: 'Открой новую станцию',
+    text: 'Дойди пешком до станции, где ещё не был, — например, на поле или в сад. Дальше туда можно ездить.',
+    reward: reward('station'),
+  },
+  {
+    title: 'Расскажи летописцу',
+    text: `Первый заход в руины, башню или деревню записывается сам. ${W.chronicler.name} в библиотеке столицы заплатит за рассказ.`,
+    reward: reward('chronicle'),
   },
   {
     title: 'Одолей тварь',
-    text: 'В подземельях внутри Стены мобы 1–8 уровня. С них падают трофеи: Клык упокоенного скупщик диковин берёт за 50. Факел во второй руке светит, ставить его нельзя.',
-    reward: reward(4),
+    text: `В подземельях твари ${G.mobs.dungeonLevels[0]}–${G.mobs.dungeonLevels[1]} уровня, с них падают трофеи. Факел во второй руке светит, ставить его нельзя.`,
+    reward: reward('kill'),
   },
 ];
 
@@ -69,11 +81,11 @@ const rows = steps.map((s, i) => {
     <header class="section-head first__head">
       <h2 class="section-title" id="first-title">Первые шаги</h2>
       <p class="section-lead">
-        Стартовых {START_COINS} монет хватает на кирку, комнату и меч. Проводник Добромир доплатит ещё {questTotal} за
-        {' '}{QUESTS.length} первых заданий.
+        Стартовых {fmt(START_COINS)} монет хватает на кирку, комнату и меч. {G.npcs.who.guide.name} доплатит ещё
+        {' '}{fmt(QUEST_TOTAL)} за {count(QUESTS.length, ['первое задание', 'первых задания', 'первых заданий'])}.
       </p>
       <p class="first__note">У каждого шага — сколько монет остаётся после него, без учёта выручки с продажи.</p>
-      <a class="more" href={startHref}>Начало игры подробно</a>
+      <a class="more" href={startHref}>Первые шаги подробно</a>
     </header>
 
     <ol class="route" role="list">
@@ -86,9 +98,9 @@ const rows = steps.map((s, i) => {
             {s.cmd && <p class="chat"><code>{s.cmd}</code></p>}
           </div>
           <p class="leg__wallet">
-            {s.cost !== undefined && <span class:list={['leg__cost', { 'leg__cost--free': s.cost === 0 }]}>{s.cost === 0 ? 'бесплатно' : `−${s.cost}`}</span>}
-            {s.reward !== undefined && <span class="leg__quest">+{s.reward} <span>задание</span></span>}
-            {s.wallet !== null && <span class="leg__left"><b>{s.wallet}</b> монет</span>}
+            {s.cost !== undefined && <span class:list={['leg__cost', { 'leg__cost--free': s.cost === 0 }]}>{s.cost === 0 ? 'бесплатно' : `−${fmt(s.cost)}`}</span>}
+            {s.reward !== undefined && <span class="leg__quest">+{fmt(s.reward)} <span>задание</span></span>}
+            {s.wallet !== null && <span class="leg__left"><b>{fmt(s.wallet)}</b> монет</span>}
           </p>
         </li>
       ))}

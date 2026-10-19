@@ -2,6 +2,7 @@
 import CopyButton from './CopyButton.astro';
 import { SERVER } from '../config/site';
 import { docHref } from '../lib/docs';
+import { G } from '../data/game';
 
 const startHref = await docHref('start');
 ---
@@ -37,7 +38,7 @@ const startHref = await docHref('start');
         <p class="chat"><code>/register &lt;пароль&gt; &lt;пароль&gt;</code></p>
         <p>Дальше хватит одного:</p>
         <p class="chat"><code>/login &lt;пароль&gt;</code></p>
-        <p>Дальше иди к проводнику Добромиру у точки спавна. С чего начать — в блоке ниже.</p>
+        <p>Ты появишься на площади у цитадели столицы. Рядом — {G.npcs.who.guide.name}, с него и начинай. С чего начать — в блоке ниже.</p>
       </li>
     </ol>
 
@@ -50,7 +51,7 @@ const startHref = await docHref('start');
         никого нет. Попробуй зайти позже.
       </p>
       <p>
-        Подробнее о первом входе: <a href={startHref}>Начало игры</a>.
+        Подробнее о первом входе: <a href={startHref}>Первые шаги</a>.
       </p>
     </div>
   </div>
