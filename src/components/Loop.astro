@@ -1,11 +1,16 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS, type GlyphId } from '../lib/emblems';
-import { START_COINS, ENCHANT, enchantStep, SHULKER_PRICE, RANKS } from '../data/game';
+import { START_COINS, ENCHANT, enchantStep, SHULKER_PRICE, RANKS, STATIONS, ROAD, MAIL, DEMAND, fare } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const economyHref = await docHref('economy');
 const startHref = await docHref('start');
+const roadsHref = await docHref('roads');
+const villageHref = await docHref('village');
+const capital = STATIONS[0];
+const farthest = Math.max(...STATIONS.map((s) => fare(capital, s)));
+const x = (n: number) => String(n).replace('.', ',');
 const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 const sharp = ROMAN.map((r, i) => [r, enchantStep(ENCHANT.sharpness.base, i + 1)] as const);
@@ -13,7 +18,7 @@ const sharp = ROMAN.map((r, i) => [r, enchantStep(ENCHANT.sharpness.base, i + 1)
 const steps: Array<{ glyph: GlyphId; title: string; text: string }> = [
   { glyph: 'pickaxe', title: 'Добываешь', text: 'Руда в шахте, урожай на поле, брёвна в саду, рыба. Или трофеи с мобов в подземельях и тёмных землях.' },
   { glyph: 'pouch', title: 'Продаёшь купцу', text: 'ПКМ по купцу открывает его окно. Кликнул по товару в своём инвентаре — продано.' },
-  { glyph: 'coin', title: 'Получаешь монеты', text: 'Баланс всплывает над хотбаром. Монеты нельзя передать — только заработать.' },
+  { glyph: 'coin', title: 'Получаешь монеты', text: 'Баланс всплывает над хотбаром. Командой монеты не передать, но другу их можно отправить посылкой у ямщика.' },
   { glyph: 'anvil', title: 'Растёшь в ремесле', text: 'Опыт копится делом. Мастер в деревне за пробу и плату даёт новый ранг: дороже продажа, больше добычи, урон и сердца.' },
 ];
 
@@ -123,6 +128,50 @@ const gain = IRON * lot;
         </figcaption>
       </figure>
     </div>
+
+    <section class="roads" aria-labelledby="roads-block-title">
+      <div class="market__head">
+        <h3 class="npc__title" id="roads-block-title">Дороги, почта и заказы</h3>
+        <p>Государство большое: по нему ездят на ямских, шлют посылки и берут заказы у старост.</p>
+      </div>
+      <ul class="roads__list" role="list">
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.horseshoe} /></span>
+            <h4 class="mcard__name">Ямская служба <span>{STATIONS.length} станций</span></h4>
+          </div>
+          <p class="mcard__text">
+            У столицы, рынка, деревни мастеров, мест ремёсел, ристалища и шести деревень. Станция открывается, когда
+            дойдёшь до неё пешком. Поездка — {ROAD.base} монет плюс 1 за каждые {ROAD.perBlocks} блоков: от столицы до
+            самой дальней деревни ≈ {farthest}. Отправление через {ROAD.countdown} с, стой на месте.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.letter} /></span>
+            <h4 class="mcard__name">Почта <span>у любого ямщика</span></h4>
+          </div>
+          <p class="mcard__text">
+            Вещи, до {MAIL.maxStacks} стопок, и монеты любому игроку, даже если его нет в игре. Доставка — {MAIL.base} +
+            {' '}{MAIL.perStack} за стопку + {MAIL.coinShare * 100}% от монет. Забрать посылку можно у любого ямщика.
+          </p>
+        </li>
+        <li class="mcard">
+          <div class="mcard__top">
+            <span class="slot slot--sm" aria-hidden="true"><Pixel grid={GLYPHS.tome} /></span>
+            <h4 class="mcard__name">Заказы старост <span>в каждой из 7 деревень</span></h4>
+          </div>
+          <p class="mcard__text">
+            Каждый день 3 заказа: 2 простых и 1 для мастеров. Награда — монеты и опыт ремесла. Ещё у старосты видно,
+            что сегодня в цене: сельский скупщик платит ×{x(DEMAND.hot)} за две темы товара и ×{x(DEMAND.cold)} за одну.
+          </p>
+        </li>
+      </ul>
+      <p class="roads__more">
+        <a class="more" href={roadsHref}>Ямская служба и почта</a>
+        <a class="more" href={`${villageHref}#старосты-и-заказы`}>Заказы старост</a>
+      </p>
+    </section>
 
     <section class="market" aria-labelledby="market-title">
       <div class="market__head">
@@ -542,6 +591,27 @@ const gain = IRON * lot;
     font-size: var(--fs-sm);
   }
 
+  /* ——— дороги, почта, заказы ——— */
+  .roads {
+    margin-top: clamp(4rem, 9vw, 6rem);
+  }
+
+  .roads__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .roads__more {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2rem;
+    margin-top: 1.5rem;
+  }
+
   /* ——— кто ещё на рынке ——— */
   .market {
     margin-top: clamp(4rem, 9vw, 6rem);
@@ -725,6 +795,12 @@ const gain = IRON * lot;
     }
 
     .npc {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .roads__list {
       grid-template-columns: 1fr;
     }
   }

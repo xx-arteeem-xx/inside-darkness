@@ -1,20 +1,31 @@
 /**
- * Игровые данные для главной страницы. Источник правды — research/facts-1.7.md
- * (сгенерирован из боевого конфига плагина InsideDarkness 1.7.0; что там не названо
- * изменённым, берётся из research/facts-1.6.3.md). Документация в src/content/docs
- * пишется по нему же: если что-то поменялось, правьте и там, и здесь.
+ * Игровые данные для главной страницы. Источник правды — research/facts-1.8.md
+ * (боевой конфиг плагина InsideDarkness 1.8.0) вместе с facts-1.7.md и facts-1.6.3.md:
+ * что в новом файле не названо изменённым, берётся из предыдущего. Документация
+ * в src/content/docs пишется по ним же: если что-то поменялось, правьте и там, и здесь.
  */
 import type { GlyphId, RaceId } from '../lib/emblems';
 
 export const START_COINS = 300;
 
-/** Доход в час, монеты. */
-export const INCOME = [
-  { id: 'crafts', name: 'Ремёсла', note: 'шахта, поле, сад, рыбалка', min: 400, max: 800 },
-  { id: 'dungeons', name: 'Подземелья', note: 'мобы 1–8 уровня', min: 1500, max: 2500 },
-  { id: 'dark', name: 'Тёмные земли', note: 'мобы 12–20 уровня, легко умереть', min: 3000, max: 6000 },
-] as const;
-export const INCOME_MAX = 6000;
+/** Доход в час, монеты: оценки из facts-1.8. max: null — «от min», верхней границы нет. */
+export interface Income {
+  id: 'crafts' | 'dungeons' | 'dark';
+  name: string;
+  note: string;
+  min: number;
+  max: number | null;
+}
+
+export const INCOME: Income[] = [
+  { id: 'crafts', name: 'Ремёсла', note: 'шахта, поле, сад, рыбалка; с рангами и заказами больше', min: 500, max: 1500 },
+  { id: 'dungeons', name: 'Подземелья', note: 'мобы 1–8 уровня', min: 2000, max: 6000 },
+  { id: 'dark', name: 'Тёмные земли', note: 'мобы 12–20 уровня, очень опасно', min: 10000, max: null },
+];
+/** Правый край шкалы дохода на главной. */
+export const INCOME_MAX = 12000;
+export const incomeText = (r: Income, fmt: (n: number) => string) =>
+  r.max === null ? `от ${fmt(r.min)}` : `${fmt(r.min)}–${fmt(r.max)}`;
 
 export interface Craft {
   id: string;
@@ -204,7 +215,7 @@ export const TRADES: Trade[] = [
     xp: 'продажи купцам, 1 опыт за 2 монеты',
     perks: [
       '+2…8% к цене у всех купцов',
-      'Аренда жилья дешевле на 5…20%',
+      'Аренда жилья и поездки на ямских дешевле на 5…20%',
       'Сельские скупщики платят на 2…8% больше',
     ],
     proof: ['без пробы', 'без пробы', 'без пробы', 'без пробы'],
@@ -279,8 +290,10 @@ export interface Place {
   what: string;
   x: number;
   z: number;
-  kind?: 'village';
+  kind?: 'village' | 'tavern';
   side?: 'left' | 'right';
+  /** Есть ли у места ямская станция. */
+  station?: boolean;
 }
 
 const CAPITAL = { x: -208, z: -88 };
@@ -288,14 +301,14 @@ const at = (x: number, z: number) => ({ x: x - CAPITAL.x, z: z - CAPITAL.z });
 const xz = (x: number, z: number) => `${x}, ${z}`.replace(/-/g, '−');
 
 export const PLACES: Place[] = [
-  { n: 1, id: 'capital', name: 'Столица', dir: 'центр', what: 'Ночлежка: комната за 20 монет в сутки.', x: 0, z: 0 },
-  { n: 2, id: 'village', name: 'Деревня мастеров', dir: 'за южными воротами', what: 'Старейшина, староста, шесть мастеров ремёсел и знахарка-лекарь. Провожатый у въезда покажет, где кто.', ...at(-216, -6) },
+  { n: 1, id: 'capital', name: 'Столица', dir: 'центр', what: 'Точка спавна и проводник. Ночлежка: комната за 20 монет в сутки.', x: 0, z: 0 },
+  { n: 2, id: 'village', name: 'Деревня мастеров', dir: 'за южными воротами', what: 'Старейшина, староста Добрыня с заказами и домами, шесть мастеров ремёсел и знахарка-лекарь. Провожатый у въезда покажет, где кто.', ...at(-216, -6) },
   { n: 3, id: 'market', name: 'Центральный рынок', dir: 'восточнее столицы', coords: '−46, 69, 97', what: 'Купцы скупают добычу, кузнецы продают, скупают и чинят снаряжение, чародей зачаровывает. У входов — глашатаи.', ...at(-46, 97) },
   { n: 4, id: 'mine', name: 'Шахта', dir: 'запад', coords: '−365, 69, 34', what: 'Карьер с рудой, обновляется каждые 5 минут. Скупщик руды на месте.', ...at(-365, 34) },
   { n: 5, id: 'field', name: 'Поле', dir: 'запад', coords: '−510, 77, −13', what: 'Урожай мотыгой, растёт в 5 раз быстрее. Скупщик урожая на месте.', ...at(-510, -13) },
-  { n: 6, id: 'garden', name: 'Сад', dir: 'юг', coords: '−170, 71, 207', what: 'Деревья 2×2 вырастают заново.', ...at(-170, 207) },
+  { n: 6, id: 'garden', name: 'Сад', dir: 'юг', coords: '−170, 71, 207', what: 'Деревья 2×2 вырастают заново.', side: 'left' as const, ...at(-170, 207) },
   { n: 7, id: 'arena', name: 'Ристалище', dir: 'восток', coords: '505, 68, −304', what: 'PvP на монеты, вход от 100.', ...at(505, -304) },
-];
+].map((p) => ({ ...p, station: true }));
 
 /** Деревни внутри стены с сельскими торговцами (кроме деревни мастеров у столицы). Координаты X, Z. */
 const VILLAGE_LIST: Array<[name: string, x: number, z: number, side?: 'left' | 'right']> = [
@@ -313,11 +326,115 @@ export const VILLAGES: Place[] = VILLAGE_LIST.map(([name, x, z, side], i) => ({
   name,
   dir: '',
   coords: xz(x, z),
-  what: 'Сельские торговцы: скупщик и лавочник.',
+  what: 'Староста с заказами и домами, скупщик и лавочник.',
   kind: 'village' as const,
+  side,
+  station: true,
+  ...at(x, z),
+}));
+
+/** Таверны: по 5 комнат у трактирщика. Координаты X, Z. */
+const TAVERN_LIST: Array<[name: string, x: number, z: number, side?: 'left' | 'right']> = [
+  ['Дубовая таверна', -100, 345],
+  ['Акациевая таверна', -961, -144, 'left'],
+  ['Пустынная таверна', -631, -684],
+  ['Таверна в джунглях', 66, 284, 'right'],
+];
+
+export const TAVERNS: Place[] = TAVERN_LIST.map(([name, x, z, side], i) => ({
+  n: PLACES.length + VILLAGES.length + i + 1,
+  id: `t${i + 1}`,
+  name,
+  dir: '',
+  coords: xz(x, z),
+  what: 'Таверна: 5 комнат по 15 монет в сутки.',
+  kind: 'tavern' as const,
   side,
   ...at(x, z),
 }));
+
+/** Ямская служба. Координаты станций X, Z, примерные. */
+export interface Station {
+  id: string;
+  name: string;
+  where: string;
+  x: number;
+  z: number;
+}
+
+export const STATIONS: Station[] = [
+  { id: 'capital', name: 'Столица', where: 'площадь у цитадели, точка спавна', x: -212, z: -104 },
+  { id: 'market', name: 'Рынок', where: 'центральный рынок, у фонтана', x: -50, z: 94 },
+  { id: 'central', name: 'Деревня мастеров', where: 'площадь у колокола', x: -288, z: 72 },
+  { id: 'mine', name: 'Шахта', where: 'у входа в шахту', x: -360, z: 32 },
+  { id: 'field', name: 'Поле', where: 'у таблички поля', x: -510, z: -16 },
+  { id: 'garden', name: 'Сад', where: 'у западных ворот сада', x: -210, z: 192 },
+  { id: 'arena', name: 'Ристалище', where: 'у южных ворот', x: 504, z: -266 },
+  { id: 'west_plains', name: 'Равнинная деревня', where: 'запад', x: -796, z: -100 },
+  { id: 'nw_plains', name: 'Северная равнинная деревня', where: 'северо-запад', x: -804, z: -352 },
+  { id: 'jungle', name: 'Деревня в джунглях', where: 'юго-восток', x: 320, z: 280 },
+  { id: 'savanna', name: 'Деревня в саванне', where: 'запад, у моря', x: -908, z: 76 },
+  { id: 'desert', name: 'Пустынная деревня', where: 'север', x: -590, z: -806 },
+  { id: 'far_savanna', name: 'Дальняя деревня в саванне', where: 'дальний запад', x: -1064, z: -288 },
+];
+
+/** Поездка: 5 + расстояние / 50 монет. Отправление через 3 с, станция открывается в 12 блоках. */
+export const ROAD = { base: 5, perBlocks: 50, countdown: 3, unlockRadius: 12, hitLock: 10 } as const;
+/** Примерная цена поездки без скидки (координаты станций приблизительные). */
+export const fare = (a: Station, b: Station) => Math.round(ROAD.base + Math.hypot(a.x - b.x, a.z - b.z) / ROAD.perBlocks);
+
+/** Почта у ямщиков: доставка = 5 + 2 за стопку + 2% от монет, до 9 стопок. */
+export const MAIL = { base: 5, perStack: 2, coinShare: 0.02, maxStacks: 9 } as const;
+export const mailFee = (stacks: number, coins: number) => MAIL.base + MAIL.perStack * stacks + MAIL.coinShare * coins;
+
+/** Местный спрос у сельского скупщика: две темы в цене, одна не в цене. */
+export const DEMAND = { hot: 1.4, cold: 0.7, hotCount: 2, coldCount: 1 } as const;
+
+/** Жильё 1.8. */
+export const HOMES_TOTAL = 133;
+export const HOUSES_TOTAL = 93;
+export const HOUSE_TIERS = [
+  { label: 'Деревня мастеров', rent: 120, buy: 8000 },
+  { label: 'Равнинная, Северная равнинная, Деревня в саванне', rent: 60, buy: 4000 },
+  { label: 'Деревня в джунглях, Пустынная, Дальняя деревня в саванне', rent: 45, buy: 3000 },
+] as const;
+export const ROOMS = {
+  inn: { rent: 20, count: 20 },
+  tavern: { rent: 15, perTavern: 5, taverns: 4 },
+} as const;
+
+/** Заказы старост: 2 простых и 1 для мастеров в день в каждой из 7 деревень. */
+export interface Order {
+  what: string;
+  reward: number;
+  xp: number;
+  craft: string;
+  master?: boolean;
+}
+
+export const ORDERS: Order[] = [
+  { what: '128 пшеницы', reward: 90, xp: 40, craft: 'земледелие' },
+  { what: '192 моркови', reward: 50, xp: 40, craft: 'земледелие' },
+  { what: '192 картофеля', reward: 50, xp: 40, craft: 'земледелие' },
+  { what: '96 свёклы', reward: 65, xp: 40, craft: 'земледелие' },
+  { what: '128 брёвен', reward: 230, xp: 40, craft: 'лесное дело' },
+  { what: '64 угля', reward: 100, xp: 40, craft: 'горное дело' },
+  { what: '32 рудного железа', reward: 150, xp: 50, craft: 'горное дело' },
+  { what: '64 рудной меди', reward: 100, xp: 40, craft: 'горное дело' },
+  { what: '16 трески', reward: 50, xp: 40, craft: 'рыболовство' },
+  { what: '16 лосося', reward: 75, xp: 40, craft: 'рыболовство' },
+  { what: '32 кости', reward: 100, xp: 30, craft: 'ратное дело' },
+  { what: '32 нити', reward: 100, xp: 30, craft: 'ратное дело' },
+  { what: '16 пороха', reward: 100, xp: 30, craft: 'ратное дело' },
+  { what: 'одолеть 15 тварей', reward: 250, xp: 60, craft: 'ратное дело' },
+  { what: '4 алмаза', reward: 260, xp: 150, craft: 'горное дело', master: true },
+  { what: '24 рудного золота', reward: 260, xp: 120, craft: 'горное дело', master: true },
+  { what: '64 тыквы', reward: 150, xp: 120, craft: 'земледелие', master: true },
+  { what: '512 брёвен', reward: 900, xp: 150, craft: 'лесное дело', master: true },
+  { what: '8 тропических рыб', reward: 110, xp: 120, craft: 'рыболовство', master: true },
+  { what: '3 Печати склепа', reward: 800, xp: 150, craft: 'ратное дело', master: true },
+  { what: 'одолеть 40 тварей', reward: 900, xp: 200, craft: 'ратное дело', master: true },
+];
 
 /** Сельские торговцы: скупщик платит такую долю от цены рынка. */
 export const VILLAGE_BUY_FACTOR = 0.8;

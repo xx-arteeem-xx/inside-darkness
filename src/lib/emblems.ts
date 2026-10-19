@@ -126,7 +126,7 @@ export const CRESTS: Record<RaceId, Grid> = {
 export type GlyphId =
   | 'pickaxe' | 'hoe' | 'axe' | 'rod' | 'sword' | 'skull' | 'darkheart'
   | 'coin' | 'pouch' | 'anvil' | 'house' | 'bed' | 'arena' | 'bread'
-  | 'tome' | 'lantern' | 'shulker' | 'coal' | 'iron' | 'gold' | 'gem';
+  | 'tome' | 'lantern' | 'shulker' | 'coal' | 'iron' | 'gold' | 'gem' | 'horseshoe' | 'letter';
 
 /** Кусок руды 12×12: тёмная кайма, тело, блики. Цвет задаётся палитрой. */
 const LUMP = [
@@ -448,6 +448,42 @@ export const GLYPHS: Record<GlyphId, Grid> = {
       '...abbbda...',
       '....abda....',
       '.....aa.....',
+      '............',
+      '............',
+    ],
+  },
+  /** Подкова: ямская служба. */
+  horseshoe: {
+    palette: { a: '#3d404c', b: '#9aa0b2', c: '#16171c' },
+    rows: [
+      '............',
+      '.aaa....aaa.',
+      '.aba....aba.',
+      '.aba....aba.',
+      '.aca....aca.',
+      '.aba....aba.',
+      '.abaa..aaba.',
+      '.abbaaaabba.',
+      '..abbbbbba..',
+      '...aaaaaa...',
+      '............',
+      '............',
+    ],
+  },
+  /** Письмо с печатью: почта. */
+  letter: {
+    palette: { o: '#8a7a5c', b: '#efe3c4', l: '#b8a678', r: '#a32c3c' },
+    rows: [
+      '............',
+      '............',
+      'oooooooooooo',
+      'ollbbbbbbllo',
+      'oblllbblllbo',
+      'obbbllllbbbo',
+      'obbbbrrbbbbo',
+      'obbbbrrbbbbo',
+      'obbbbbbbbbbo',
+      'oooooooooooo',
       '............',
       '............',
     ],

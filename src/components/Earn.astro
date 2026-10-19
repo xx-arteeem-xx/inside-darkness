@@ -1,16 +1,22 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS } from '../lib/emblems';
-import { CRAFTS, INCOME, INCOME_MAX, TROPHIES, TROPHY_CHANCE, VILLAGE_BUY_FACTOR, SITE_BUY_FACTOR, type Trophy } from '../data/game';
+import { CRAFTS, INCOME, INCOME_MAX, incomeText, TROPHIES, TROPHY_CHANCE, VILLAGE_BUY_FACTOR, SITE_BUY_FACTOR, HOUSE_TIERS, type Trophy } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const craftsHref = await docHref('crafts');
 const huntingHref = await docHref('hunting');
 
 const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
-const ticks = Array.from({ length: INCOME_MAX / 1000 + 1 }, (_, i) => i * 1000);
+const TICK = 2000;
+const ticks = Array.from({ length: INCOME_MAX / TICK + 1 }, (_, i) => i * TICK);
 const pct = (n: number) => `${(n / INCOME_MAX) * 100}%`;
-const income = Object.fromEntries(INCOME.map((r) => [r.id, `${fmt(r.min)}–${fmt(r.max)}`]));
+const income = Object.fromEntries(INCOME.map((r) => [r.id, incomeText(r, fmt)]));
+const crafts = INCOME.find((r) => r.id === 'crafts')!;
+const masterHouse = HOUSE_TIERS[0];
+const cheapHouse = HOUSE_TIERS[HOUSE_TIERS.length - 1];
+// Сколько часов ремесла на дом в деревне мастеров: цена / доход в час.
+const houseHours = `${Math.floor(masterHouse.buy / crafts.max!)}–${Math.ceil(masterHouse.buy / crafts.min)}`;
 
 const lootRows = (list: Trophy[]) =>
   list.map((t) => [t.name, t.rare ? `редко, ${t.rare}` : `ур. ${t.levels}`, fmt(t.price)] as const);
@@ -51,23 +57,26 @@ const hunts = [
     <header class="section-head">
       <h2 class="section-title" id="earn-title">Пути заработка</h2>
       <p class="section-lead">
-        Ремесло — ровный доход. Охота — в разы выгоднее, а в тёмных землях легко умереть. За само убийство моба не
-        платят: деньги только за лут, донесённый до купца.
+        Ремесло — ровный доход, с рангами и заказами старост он растёт. Охота — в разы выгоднее, а тёмные земли очень
+        опасны. За само убийство моба не платят: деньги только за лут, донесённый до купца.
       </p>
     </header>
 
     <figure class="income">
-      <figcaption class="income__title">Доход в час, монет</figcaption>
+      <figcaption class="income__title">Доход в час, монет, примерно</figcaption>
       <ul class="income__rows" role="list">
         {INCOME.map((r) => (
           <li class:list={['bar', `bar--${r.id}`]}>
             <p class="bar__head">
               <span class="bar__name">{r.name}</span>
               <span class="bar__note">{r.note}</span>
-              <span class="bar__value">{fmt(r.min)}–{fmt(r.max)}</span>
+              <span class="bar__value">{incomeText(r, fmt)}</span>
             </p>
             <span class="bar__track" aria-hidden="true">
-              <span class="bar__fill" style={`left:${pct(r.min)};width:${pct(r.max - r.min)}`}></span>
+              <span
+                class:list={['bar__fill', { 'bar__fill--open': r.max === null }]}
+                style={`left:${pct(r.min)};width:${pct((r.max ?? INCOME_MAX) - r.min)}`}
+              ></span>
             </span>
           </li>
         ))}
@@ -85,7 +94,7 @@ const hunts = [
           <h3 class="path__title" id="craft-title">Ремёсла</h3>
           <span class="tag tag--moss">надёжно</span>
         </div>
-        <p class="path__lead">Ломать блоки можно только здесь. Доход ровный: {income.crafts} монет в час.</p>
+        <p class="path__lead">Ломать блоки можно только здесь. Доход ровный: {income.crafts} монет в час, с рангами и заказами старост больше.</p>
         <ul class="crafts" role="list">
           {CRAFTS.map((c) => (
             <li class="craft">
@@ -145,7 +154,7 @@ const hunts = [
       <ul class="marks__list" role="list">
         <li><b>Ремесленник за вечер</b> (2–3 часа) снимает жильё и одевается в железо.</li>
         <li><b>Охотник за несколько вечеров</b> собирает алмазную экипировку и покупает свой дом.</li>
-        <li><b>Дом за 8000</b> — цель на неделю ремесла. Комната за 20 в сутки — копейки.</li>
+        <li><b>Дом в деревне мастеров за {fmt(masterHouse.buy)}</b> — примерно {houseHours} часов ремесла. В дальних деревнях дом навсегда от {fmt(cheapHouse.buy)}.</li>
         <li><b>До рынка далеко?</b> Скупщики у шахты и у поля берут руду и урожай на месте за {SITE_BUY_FACTOR * 100}% цены, сельский скупщик в деревне — всё за {VILLAGE_BUY_FACTOR * 100}%.</li>
       </ul>
     </section>
@@ -223,6 +232,12 @@ const hunts = [
     min-width: 6px;
     background: linear-gradient(#f8d98f 0 45%, var(--torch) 45%);
     box-shadow: inset 0 -2px 0 rgb(60 30 0 / 0.45);
+  }
+
+  /* Без верхней границы: полоса уходит за край шкалы и тает. */
+  .bar__fill--open {
+    -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent);
+    mask-image: linear-gradient(90deg, #000 45%, transparent);
   }
 
   .income__axis {

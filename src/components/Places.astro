@@ -1,9 +1,11 @@
 ---
 import { gridLayers, rng } from '../lib/pixel';
-import { PLACES, VILLAGES, VILLAGE_BUY_FACTOR, WALL_R, DARK_R } from '../data/game';
+import { PLACES, VILLAGES, TAVERNS, STATIONS, ROAD, ROOMS, VILLAGE_BUY_FACTOR, WALL_R, DARK_R } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const worldHref = await docHref('world');
+const roadsHref = await docHref('roads');
+const housingHref = await docHref('housing');
 
 /* Схема государства клетками. Направления верные, расстояния сжаты к краю (корень из расстояния),
    иначе столица, рынок и места ремёсел слиплись бы в точку рядом с кольцом тёмных земель. */
@@ -60,7 +62,7 @@ const map = gridLayers(
 );
 
 const VIEW = N * S;
-const pins = [...PLACES, ...VILLAGES].map((p) => {
+const pins = [...PLACES, ...VILLAGES, ...TAVERNS].map((p) => {
   const dist = Math.hypot(p.x, p.z);
   const rc = p.id === 'capital' ? 0 : toCells(dist);
   const a = Math.atan2(p.z, p.x);
@@ -79,7 +81,7 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
       <h2 class="section-title" id="places-title">Карта государства</h2>
       <p class="section-lead">
         Столица в центре, рядом рынок и деревня мастеров, вокруг места ремёсел. В шести дальних деревнях — сельские
-        торговцы.
+        торговцы, между ними таверны. Все места с номерами 1–13 связаны ямской службой.
         Подземелья разбросаны по обычным землям, а за Большой стеной начинаются тёмные земли.
       </p>
     </header>
@@ -89,14 +91,23 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
         <svg class="atlas__map" viewBox={`0 0 ${VIEW} ${VIEW}`} role="img" aria-labelledby="atlas-cap" shape-rendering="crispEdges">
           {map.map((l) => <path fill={l.fill} d={l.d} />)}
           <g class="atlas__zone" font-size="14">
-            <text x={VIEW / 2} y={lvlY} text-anchor="middle">подземелья ур. 1–8</text>
+            <text x={VIEW / 2 + 36} y={lvlY} text-anchor="middle">подземелья ур. 1–8</text>
             <text x={VIEW / 2} y={darkY} text-anchor="middle" class="atlas__dark">тёмные земли ур. 12–20</text>
           </g>
           <text x={VIEW - 10} y="22" text-anchor="end" class="atlas__north" font-size="14">С ↑</text>
           {pins.map((p) => (
-            <g class:list={['pin', `pin--${p.id}`, { 'pin--village': p.kind === 'village' }]}>
+            <g class:list={['pin', `pin--${p.id}`, { 'pin--village': p.kind === 'village', 'pin--tavern': p.kind === 'tavern' }]}>
               {p.id !== 'capital' && <rect x={p.cx - 7} y={p.cy - 7} width="14" height="14" fill="#0b0c10" />}
               {p.id !== 'capital' && <rect x={p.cx - 4} y={p.cy - 4} width="8" height="8" class="pin__dot" />}
+              {p.station && (
+                <rect
+                  x={p.id === 'capital' ? p.cx + 7 : p.left ? p.cx - 38 : p.cx + 28}
+                  y={p.id === 'capital' ? p.cy - 46 : p.cy - 15}
+                  width="8"
+                  height="8"
+                  class="pin__station"
+                />
+              )}
               <rect
                 x={p.id === 'capital' ? p.cx - 11 : p.left ? p.cx - 34 : p.cx + 10}
                 y={p.id === 'capital' ? p.cy - 42 : p.cy - 11}
@@ -116,7 +127,8 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
         </svg>
         <figcaption id="atlas-cap">
           Схема, не в масштабе: направления верные, расстояния сжаты к краю. Чем темнее земля, тем дальше от столицы и
-          тем сильнее мобы в подземельях. Светлое кольцо — Большая стена, за ней тёмные земли.
+          тем сильнее мобы в подземельях. Светлое кольцо — Большая стена, за ней тёмные земли. Оранжевый уголок у
+          номера — ямская станция.
         </figcaption>
       </figure>
 
@@ -152,13 +164,38 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
           </ol>
           <p class="villages__more"><a href={`${worldHref}#деревни-с-торговцами`}>Деревни и торговцы подробно</a></p>
         </section>
+        <section class="villages villages--taverns" aria-labelledby="taverns-title">
+          <h3 class="villages__title" id="taverns-title">Таверны</h3>
+          <p class="villages__text">
+            По {ROOMS.tavern.perTavern} комнат у трактирщика, {ROOMS.tavern.rent} монет в сутки — дешевле ночлежки в столице.
+          </p>
+          <ol class="villages__list" role="list">
+            {TAVERNS.map((t) => (
+              <li>
+                <span class="spot__n spot__n--tavern" aria-hidden="true">{t.n}</span>
+                <span class="villages__name">{t.name}</span>
+                <code>{t.coords}</code>
+              </li>
+            ))}
+          </ol>
+          <p class="villages__more"><a href={`${housingHref}#таверны`}>Жильё подробно</a></p>
+        </section>
+        <section class="villages villages--roads" aria-labelledby="roads-title">
+          <h3 class="villages__title" id="roads-title"><span class="road-mark" aria-hidden="true"></span>Ямская служба</h3>
+          <p class="villages__text">
+            {STATIONS.length} станций: у каждого места с номерами 1–13. Станция открывается, когда дойдёшь до неё пешком,
+            «Столица» открыта сразу. Поездка — {ROAD.base} монет плюс 1 за каждые {ROAD.perBlocks} блоков, отправление
+            через {ROAD.countdown} с. У ямщиков же почта: вещи и монеты любому игроку.
+          </p>
+          <p class="villages__more"><a href={roadsHref}>Ямская служба и почта</a></p>
+        </section>
         <ul class="legend__extra" role="list">
           <li><b>Подземелья.</b> Пять штук в обычных землях, внутри Стены. Мобы 1–8 уровня.</li>
           <li><b>Тёмные земли.</b> За Большой стеной, 1000–1500 блоков от столицы. Мобы 12–20 уровня.</li>
           <li><b>Рыбалка.</b> В любой воде.</li>
         </ul>
         <p class="legend__more">
-          Координаты в порядке X, Y, Z, у деревень — X, Z. Подробно: <a href={worldHref}>Карта и места</a>.
+          Координаты в порядке X, Y, Z, у деревень и таверн — X, Z. Подробно: <a href={worldHref}>Карта и места</a>.
         </p>
       </div>
     </div>
@@ -225,9 +262,28 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
     fill: var(--moss);
   }
 
+  .pin--tavern .pin__dot {
+    fill: #e39a6b;
+  }
+
+  .pin--tavern .pin__badge {
+    stroke: #8a5a2b;
+  }
+
+  .pin--tavern .pin__n {
+    fill: #f0b48c;
+  }
+
   .pin__badge {
     fill: #0b0c10;
     stroke: var(--gold-deep);
+    stroke-width: 2;
+  }
+
+  /* Ямская станция: оранжевый уголок у номера. */
+  .pin__station {
+    fill: var(--torch);
+    stroke: #0b0c10;
     stroke-width: 2;
   }
 
@@ -357,6 +413,29 @@ const darkY = (C - toCells((WALL_R + DARK_R) / 2 + 40)) * S;
     box-shadow: inset 0 0 0 2px #4f7a59;
     color: var(--moss);
     font-size: 0.9375rem;
+  }
+
+  .spot__n--tavern {
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    box-shadow: inset 0 0 0 2px #8a5a2b;
+    color: #f0b48c;
+    font-size: 0.9375rem;
+  }
+
+  .villages--taverns .villages__list code {
+    color: #f0b48c;
+  }
+
+  .road-mark {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.6rem;
+    vertical-align: 0.15em;
+    background: var(--torch);
+    box-shadow: 0 0 0 2px #0b0c10;
   }
 
   .legend__extra {
