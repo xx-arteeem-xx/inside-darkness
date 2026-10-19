@@ -3171,9 +3171,9 @@
   "fareMax": 22
  },
  "homes": {
-  "total": 133,
-  "rooms": 40,
-  "houses": 93,
+  "total": 80,
+  "rooms": 37,
+  "houses": 43,
   "inn": {
    "count": 20,
    "rent": 20
@@ -3190,10 +3190,10 @@
    {
     "id": "acacia_west",
     "name": "Акациевая таверна",
-    "count": 5,
+    "count": 2,
     "rent": 15,
-    "x": -972,
-    "z": -153
+    "x": -974,
+    "z": -152
    },
    {
     "id": "desert",
@@ -3213,19 +3213,20 @@
    }
   ],
   "tavernCount": 4,
+  "tavernTotal": 17,
   "tavernNames": [
    "Дубовая таверна",
    "Акациевая таверна",
    "Пустынная таверна",
    "Таверна в джунглях"
   ],
-  "tavernRooms": 5,
+  "tavernRooms": null,
   "tavernRent": 15,
   "villages": [
    {
     "id": "central",
     "name": "Деревня мастеров",
-    "count": 17,
+    "count": 5,
     "rent": 120,
     "rentMax": 120,
     "price": 8000,
@@ -3234,7 +3235,7 @@
    {
     "id": "west_plains",
     "name": "Равнинная деревня",
-    "count": 11,
+    "count": 10,
     "rent": 60,
     "rentMax": 60,
     "price": 4000,
@@ -3243,7 +3244,7 @@
    {
     "id": "nw_plains",
     "name": "Северная равнинная деревня",
-    "count": 13,
+    "count": 9,
     "rent": 60,
     "rentMax": 60,
     "price": 4000,
@@ -3252,7 +3253,7 @@
    {
     "id": "savanna",
     "name": "Деревня в саванне",
-    "count": 12,
+    "count": 4,
     "rent": 60,
     "rentMax": 60,
     "price": 4000,
@@ -3261,7 +3262,7 @@
    {
     "id": "jungle",
     "name": "Деревня в джунглях",
-    "count": 8,
+    "count": 3,
     "rent": 45,
     "rentMax": 45,
     "price": 3000,
@@ -3270,7 +3271,7 @@
    {
     "id": "desert",
     "name": "Пустынная деревня",
-    "count": 16,
+    "count": 5,
     "rent": 45,
     "rentMax": 45,
     "price": 3000,
@@ -3279,7 +3280,7 @@
    {
     "id": "far_savanna",
     "name": "Дальняя деревня в саванне",
-    "count": 16,
+    "count": 7,
     "rent": 45,
     "rentMax": 45,
     "price": 3000,
@@ -9403,7 +9404,7 @@
  "meta": {
   "generator": "tools/gen_site_data.py",
   "config": "plugin-darklands/src/main/resources/config.yml",
-  "configSha256": "c538899f8edf9249b8de449ce6c73142333e35def971dbdb66f3c6cfb6460ca1",
+  "configSha256": "6d24ecfb7a21385212ccec1bcc3565e0188af6c584e22d08c47ed59caf63e601",
   "fromFragments": {},
   "codeFacts": {
    "bank.max": "Bank.java",

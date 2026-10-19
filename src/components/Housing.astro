@@ -34,7 +34,7 @@ const deeds = [
     price: fmt(H.tavernRent),
     per: 'монет в сутки',
     rows: [
-      ['Мест', `${count(H.tavernCount, ['таверна', 'таверны', 'таверн'])} по ${count(H.tavernRooms ?? 0, ['комнате', 'комнаты', 'комнат'])}`],
+      ['Мест', H.tavernRooms ? `${count(H.tavernCount, ['таверна', 'таверны', 'таверн'])} по ${count(H.tavernRooms, ['комнате', 'комнаты', 'комнат'])}` : `${count(H.tavernTotal, ['комната', 'комнаты', 'комнат'])} в ${count(H.tavernCount, ['таверне', 'тавернах', 'тавернах'])}`],
       ['Сдаёт', 'трактирщик'],
     ],
   },
