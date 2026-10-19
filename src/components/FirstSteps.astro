@@ -1,10 +1,12 @@
 ---
-import { START_COINS } from '../data/game';
+import { START_COINS, QUESTS } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const startHref = await docHref('start');
+const questTotal = QUESTS.reduce((n, q) => n + q.reward, 0);
+const reward = (event: number) => QUESTS[event].reward;
 
-type Step = { title: string; text: string; cost?: number; cmd?: string };
+type Step = { title: string; text: string; cost?: number; reward?: number; cmd?: string };
 const steps: Step[] = [
   {
     title: 'Зайди на сервер',
@@ -12,24 +14,13 @@ const steps: Step[] = [
     cmd: '/монеты',
   },
   {
-    title: 'Сними комнату',
-    text: 'Хозяйка ночлежки в столице сдаёт комнаты по 20 монет в сутки. Бери на 3 суток: будет кровать и сундук для добычи.',
-    cost: 60,
+    title: 'Найди проводника',
+    text: `Проводник Добромир стоит у точки спавна. В его окне — основы игры и ${QUESTS.length} первых заданий по порядку, за каждое он доплачивает. Стрелка сверху экрана ведёт к цели.`,
   },
   {
     title: 'Купи кирку',
-    text: 'Центральный рынок восточнее столицы, около (−46, 69, 97). Инструментщик продаёт железную кирку.',
+    text: 'Центральный рынок восточнее столицы, около (−46, 69, 97). Глашатай у входа покажет, где инструментщик. ПКМ по нему — окно лавки, клик по железной кирке.',
     cost: 60,
-  },
-  {
-    title: 'Купи меч',
-    text: 'Оружейник там же: железный меч. Остаток пригодится на хлеб у пекаря и факелы у фонарщика: ставить их нельзя, но в руке они светят.',
-    cost: 80,
-  },
-  {
-    title: 'Выбери расу',
-    text: 'Старейшина живёт в деревне за южными воротами столицы. Первый выбор бесплатный. Для шахты бери Подгорных: Спешка I и +10% шанс двойной руды.',
-    cost: 0,
   },
   {
     title: 'Спустись в шахту',
@@ -37,24 +28,51 @@ const steps: Step[] = [
   },
   {
     title: 'Продай руду',
-    text: 'Вернись к рудному купцу, возьми руду в руку и нажми Shift + ПКМ: уйдёт весь такой товар. Железо — 3, золото — 7, алмаз — 40.',
+    text: 'Скупщик у шахты берёт руду на месте за 75% цены, рудный купец на рынке — за полную: железо 3, золото 7, алмаз 40. Клик по руде в окне купца — стопка продана.',
+    reward: reward(0),
+  },
+  {
+    title: 'Сними комнату',
+    text: 'Хозяйка ночлежки в столице сдаёт комнаты по 20 монет в сутки. Бери на 3 суток: будет кровать и сундук для добычи.',
+    cost: 60,
+    reward: reward(1),
+  },
+  {
+    title: 'Выбери народ',
+    text: 'Старейшина Велимир — в деревне мастеров за южными воротами столицы, на площади у колокола. Первый выбор бесплатный. Для шахты бери Подгорных: +25% опыта горного дела и постоянная Спешка I.',
+    cost: 0,
+    reward: reward(2),
+  },
+  {
+    title: 'Купи меч',
+    text: 'Оружейник на рынке: железный меч. Задания проводника идут по порядку, так что задание на покупку закроет именно эта покупка.',
+    cost: 80,
+    reward: reward(3),
+  },
+  {
+    title: 'Одолей тварь',
+    text: 'В подземельях внутри Стены мобы 1–8 уровня. С них падают трофеи: Клык упокоенного скупщик диковин берёт за 50. Факел во второй руке светит, ставить его нельзя.',
+    reward: reward(4),
   },
 ];
 
 let wallet = START_COINS;
 const rows = steps.map((s, i) => {
   if (s.cost !== undefined) wallet -= s.cost;
-  return { ...s, n: i + 1, wallet: i === 0 || s.cost !== undefined ? wallet : null };
+  if (s.reward !== undefined) wallet += s.reward;
+  const moved = s.cost !== undefined || s.reward !== undefined;
+  return { ...s, n: i + 1, wallet: i === 0 || moved ? wallet : null };
 });
 ---
 <section class="first section" id="first" aria-labelledby="first-title">
   <div class="wrap first__grid">
     <header class="section-head first__head">
-      <h2 class="section-title" id="first-title">Первые 15 минут</h2>
+      <h2 class="section-title" id="first-title">Первые шаги</h2>
       <p class="section-lead">
-        Стартовых {START_COINS} монет хватает на комнату, кирку и меч. Дальше всё зависит от тебя.
+        Стартовых {START_COINS} монет хватает на кирку, комнату и меч. Проводник Добромир доплатит ещё {questTotal} за
+        {' '}{QUESTS.length} первых заданий.
       </p>
-      <p class="first__note">У каждого шага — сколько монет остаётся после него.</p>
+      <p class="first__note">У каждого шага — сколько монет остаётся после него, без учёта выручки с продажи.</p>
       <a class="more" href={startHref}>Начало игры подробно</a>
     </header>
 
@@ -69,8 +87,8 @@ const rows = steps.map((s, i) => {
           </div>
           <p class="leg__wallet">
             {s.cost !== undefined && <span class:list={['leg__cost', { 'leg__cost--free': s.cost === 0 }]}>{s.cost === 0 ? 'бесплатно' : `−${s.cost}`}</span>}
+            {s.reward !== undefined && <span class="leg__quest">+{s.reward} <span>задание</span></span>}
             {s.wallet !== null && <span class="leg__left"><b>{s.wallet}</b> монет</span>}
-            {s.n === rows.length && <span class="leg__gain">+ монеты</span>}
           </p>
         </li>
       ))}
@@ -201,10 +219,15 @@ const rows = steps.map((s, i) => {
     font-weight: 400;
   }
 
-  .leg__gain {
+  .leg__quest {
     color: var(--moss);
     font-family: var(--font-pixel);
     font-size: 1.125rem;
+  }
+
+  .leg__quest span {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
   }
 
   @media (max-width: 60rem) {

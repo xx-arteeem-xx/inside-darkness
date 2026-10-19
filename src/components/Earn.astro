@@ -1,7 +1,7 @@
 ---
 import Pixel from './Pixel.astro';
 import { GLYPHS } from '../lib/emblems';
-import { CRAFTS, INCOME, INCOME_MAX, TROPHIES, TROPHY_CHANCE, VILLAGE_BUY_FACTOR, type Trophy } from '../data/game';
+import { CRAFTS, INCOME, INCOME_MAX, TROPHIES, TROPHY_CHANCE, VILLAGE_BUY_FACTOR, SITE_BUY_FACTOR, type Trophy } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const craftsHref = await docHref('crafts');
@@ -25,7 +25,7 @@ const hunts = [
     facts: [
       'Мобы появляются снова и снова: даже если до тебя всё зачистили, найдёшь кого убить.',
       'Чем дальше подземелье от столицы и чем глубже моб, тем выше уровень. Ударь моба — над хотбаром появятся его уровень и здоровье.',
-      `Трофей падает с ${TROPHY_CHANCE.dungeons} мобов: чем выше уровень, тем чаще и дороже.`,
+      `Трофей падает с ${TROPHY_CHANCE.dungeons} мобов: чем выше уровень, тем чаще и дороже. Ратное дело добавляет ${TROPHY_CHANCE.combat}.`,
     ],
     loot: lootRows(TROPHIES.dungeons),
   },
@@ -37,7 +37,7 @@ const hunts = [
     where: 'за Большой стеной, 1000–1500 блоков от столицы',
     facts: [
       'Твари в разы сильнее самого злого моба подземелий.',
-      `Трофей падает с ${TROPHY_CHANCE.dark} тварей.`,
+      `Трофей падает с ${TROPHY_CHANCE.dark} тварей, с ратным делом — чаще.`,
     ],
     loot: lootRows(TROPHIES.dark),
   },
@@ -113,7 +113,7 @@ const hunts = [
           <h3 class="path__title" id="hunt-title">Охота</h3>
           <span class="tag">выгоднее</span>
         </div>
-        <p class="path__lead">Трофеи и обычный лут с мобов берёт скупщик диковин на рынке. В подземельях {income.dungeons} монет в час, в тёмных землях {income.dark}.</p>
+        <p class="path__lead">Трофеи и обычный лут с мобов берёт скупщик диковин на рынке, снятое с тварей снаряжение — кузнецы. В подземельях {income.dungeons} монет в час, в тёмных землях {income.dark}.</p>
         <ul class="hunts" role="list">
           {hunts.map((h) => (
             <li class:list={['hunt', `hunt--${h.id}`]}>
@@ -146,7 +146,7 @@ const hunts = [
         <li><b>Ремесленник за вечер</b> (2–3 часа) снимает жильё и одевается в железо.</li>
         <li><b>Охотник за несколько вечеров</b> собирает алмазную экипировку и покупает свой дом.</li>
         <li><b>Дом за 8000</b> — цель на неделю ремесла. Комната за 20 в сутки — копейки.</li>
-        <li><b>До рынка далеко?</b> Сельский скупщик в деревне берёт то же самое за {VILLAGE_BUY_FACTOR * 100}% цены.</li>
+        <li><b>До рынка далеко?</b> Скупщики у шахты и у поля берут руду и урожай на месте за {SITE_BUY_FACTOR * 100}% цены, сельский скупщик в деревне — всё за {VILLAGE_BUY_FACTOR * 100}%.</li>
       </ul>
     </section>
   </div>

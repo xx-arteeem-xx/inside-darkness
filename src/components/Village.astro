@@ -1,12 +1,20 @@
 ---
 import Pixel from './Pixel.astro';
-import { CRESTS } from '../lib/emblems';
-import { RACES, RACE_CHANGE, MASTERS, LEVEL_COSTS } from '../data/game';
+import { CRESTS, GLYPHS } from '../lib/emblems';
+import { RACES, RACE_CHANGE, RANKS, RANK_XP, RANK_FEE, RANK_FEE_TRADE, TRADES } from '../data/game';
 import { docHref } from '../lib/docs';
 
 const villageHref = await docHref('village');
-const top = Math.max(...LEVEL_COSTS);
-const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+const xpTop = Math.max(...RANK_XP);
+const ranks = RANKS.map((name, i) => ({
+  n: i + 1,
+  name,
+  xp: i === 0 ? null : RANK_XP[i - 1],
+  fee: i === 0 ? null : RANK_FEE[i - 1],
+}));
+const fees = RANK_FEE.map(fmt).join(', ');
+const tradeFees = RANK_FEE_TRADE.map(fmt).join(', ');
 ---
 <section class="village section" id="village" aria-labelledby="village-title">
   <svg class="strata" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
@@ -14,17 +22,17 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
   </svg>
   <div class="wrap">
     <header class="section-head">
-      <h2 class="section-title" id="village-title">Деревня: расы и мастера</h2>
+      <h2 class="section-title" id="village-title">Деревня мастеров</h2>
       <p class="section-lead">
-        Сразу за южными воротами столицы. Старейшина даёт расу, мастера за монеты учат навыкам, староста сдаёт и
-        продаёт дома.
+        Сразу за южными воротами столицы. Старейшина принимает в народ, шесть мастеров дают ранги в ремёслах, староста
+        сдаёт и продаёт дома, знахарка продаёт зелья. Провожатый у въезда покажет, кто где живёт.
       </p>
     </header>
 
     <div class="races-head">
-      <h3 class="sub-title">Четыре расы</h3>
+      <h3 class="sub-title">Четыре народа</h3>
       <p>
-        Выбираются у старейшины. Первый раз бесплатно, сменить — <b>{fmt(RACE_CHANGE)} монет</b>.
+        Каждый даёт +25% опыта своему ремеслу и свой дар. Первый выбор бесплатный, сменить — <b>{fmt(RACE_CHANGE)} монет</b>.
       </p>
     </div>
     <ul class="races" role="list">
@@ -43,37 +51,63 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 
     <div class="masters">
       <div class="masters__text">
-        <h3 class="sub-title">Пять мастеров</h3>
+        <h3 class="sub-title">Ремёсла и ранги</h3>
         <p>
-          У каждого мастера свой навык, в нём пять уровней. Заплатил — получил следующий уровень. Навыки ремёсел дают
-          шанс двойной добычи, боевые — урон и сердца.
+          Шесть ремёсел, в каждом пять рангов. Опыт копится делом: рудой в шахте, урожаем, брёвнами, уловом, тварями,
+          торговлей. Набрал опыт — иди к мастеру ремесла, он посвятит в следующий ранг.
         </p>
-        <dl class="skills">
-          {MASTERS.map((m) => (
-            <div>
-              <dt>{m.master} <span>{m.skill}</span></dt>
-              <dd>{m.per} <span>за уровень</span></dd>
-            </div>
-          ))}
-        </dl>
+        <ol class="rite" role="list">
+          <li><b>Опыт</b> <span>копится сам, пока работаешь. Народ даёт +25% опыта своему ремеслу</span></li>
+          <li><b>Проба</b> <span>товар ремесла, мастер её забирает: например, 32 рудного железа на Подмастерье</span></li>
+          <li><b>Плата</b> <span>{fees} монет за ранги со 2-го по 5-й, у торгового дела {tradeFees}</span></li>
+        </ol>
+        <p class="masters__note">
+          Звание видно в табло справа. Чары IV и V ступени у чародея тоже открывает ранг.
+        </p>
       </div>
 
       <figure class="ladder">
-        <figcaption class="ladder__title">Цена уровня, монет</figcaption>
-        <ol class="ladder__steps" role="list">
-          {LEVEL_COSTS.map((cost, i) => (
-            <li style={`--h:${Math.max(0.05, cost / top).toFixed(3)}`}>
-              <span class="ladder__cost">{fmt(cost)}</span>
-              <span class="ladder__bar" aria-hidden="true"></span>
-              <span class="ladder__lvl">{i + 1} ур.</span>
+        <figcaption class="ladder__title">Опыт для ранга и плата мастеру, монет</figcaption>
+        <ol class="ranks" role="list">
+          {ranks.map((r) => (
+            <li class="rank">
+              <span class="rank__n" aria-hidden="true">{r.n}</span>
+              <div class="rank__body">
+                <p class="rank__line">
+                  <span class="rank__name">{r.name}</span>
+                  <span class="rank__xp">{r.xp === null ? 'начало пути' : `${fmt(r.xp)} опыта`}</span>
+                </p>
+                <span class="rank__track" aria-hidden="true">
+                  {r.xp !== null && <span class="rank__fill" style={`width:${((r.xp / xpTop) * 100).toFixed(1)}%`}></span>}
+                </span>
+              </div>
+              <p class="rank__fee">{r.fee === null ? '—' : fmt(r.fee)}</p>
             </li>
           ))}
         </ol>
       </figure>
     </div>
 
+    <ul class="trades" role="list">
+      {TRADES.map((t) => (
+        <li class:list={['trade', `trade--${t.id}`]}>
+          <div class="trade__top">
+            <span class="slot" aria-hidden="true"><Pixel grid={GLYPHS[t.glyph]} /></span>
+            <div>
+              <h4 class="trade__name">{t.name}</h4>
+              <p class="trade__who">{t.master} · {t.where}</p>
+            </div>
+          </div>
+          <p class="trade__xp"><span>Опыт:</span> {t.xp}</p>
+          <ul class="trade__perks" role="list">
+            {t.perks.map((p) => <li>{p}</li>)}
+          </ul>
+        </li>
+      ))}
+    </ul>
+
     <p class="village__more">
-      <a class="more" href={villageHref}>Расы и мастера подробно</a>
+      <a class="more" href={villageHref}>Народы, ремёсла и ранги подробно</a>
     </p>
   </div>
 </section>
@@ -117,7 +151,7 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
     list-style: none;
   }
 
-  /* Карточка расы: вставка в каменной раме, герб поднят над полем. */
+  /* Карточка народа: вставка в каменной раме, герб поднят над полем. */
   .race {
     display: grid;
     grid-template-rows: auto auto auto 1fr auto;
@@ -187,12 +221,12 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
     color: var(--ash);
   }
 
-  /* ——— мастера ——— */
+  /* ——— ремёсла и ранги ——— */
   .masters {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
     gap: 2.5rem clamp(2.5rem, 6vw, 5rem);
-    align-items: end;
+    align-items: start;
     margin-top: clamp(3.5rem, 8vw, 5.5rem);
   }
 
@@ -201,45 +235,49 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
     color: var(--bone-2);
   }
 
-  .skills {
-    display: grid;
-    margin-top: 1.5rem;
-    border-top: 1px solid var(--line-2);
+  .masters__text > .masters__note {
+    color: var(--ash);
+    font-size: 1rem;
   }
 
-  .skills div {
+  /* Посвящение в три условия: опыт, проба, плата. */
+  .rite {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.2rem 1.5rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line-2);
+    counter-reset: rite;
+  }
+
+  .rite li {
+    display: grid;
+    grid-template-columns: 2rem minmax(5rem, auto) minmax(0, 1fr);
+    gap: 0.2rem 1rem;
+    align-items: baseline;
     padding-block: 0.75rem;
     border-bottom: 1px solid var(--line);
+    counter-increment: rite;
   }
 
-  .skills dt {
+  .rite li::before {
+    content: counter(rite);
+    color: var(--torch);
+    font-family: var(--font-pixel);
+  }
+
+  .rite b {
     color: var(--bone);
-    font-weight: 700;
   }
 
-  .skills dt span {
-    display: block;
-    color: var(--ash);
-    font-size: 0.9375rem;
-    font-weight: 400;
+  .rite span {
+    color: var(--bone-2);
   }
 
-  .skills dd {
-    margin: 0;
-    color: var(--gold);
-  }
-
-  .skills dd span {
-    color: var(--ash);
-    font-size: 0.9375rem;
-  }
-
-  /* Лестница цен: высота столбца — цена уровня. */
+  /* Лестница рангов: длина полосы — накопленный опыт. */
   .ladder {
-    padding: 1.25rem 1.25rem 1rem;
+    margin: 0;
+    padding: 1.25rem 1.25rem 1.1rem;
     background: var(--slate-0);
     box-shadow: inset 0 0 0 1px var(--line);
   }
@@ -249,48 +287,170 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
     font-size: 1rem;
   }
 
-  .ladder__steps {
+  .ranks {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    align-items: end;
-    gap: 0.6rem;
-    height: 15rem;
-    margin: 1rem 0 0;
+    gap: 0.9rem;
+    margin: 1.1rem 0 0;
     padding: 0;
     list-style: none;
   }
 
-  .ladder__steps li {
+  .rank {
     display: grid;
-    grid-template-rows: 1fr auto auto;
+    grid-template-columns: 1.75rem minmax(0, 1fr) 3.75rem;
     align-items: end;
-    height: 100%;
+    gap: 0 0.75rem;
   }
 
-  .ladder__cost {
-    align-self: end;
-    margin-bottom: 0.35rem;
+  .rank__n {
+    color: var(--torch);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 1.2;
+  }
+
+  .rank__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0 0.75rem;
+  }
+
+  .rank__name {
+    color: var(--bone);
+    font-weight: 700;
+  }
+
+  .rank__xp {
+    color: var(--ash);
+    font-size: 0.9375rem;
+    white-space: nowrap;
+  }
+
+  .rank__track {
+    position: relative;
+    display: block;
+    height: 12px;
+    margin-top: 0.3rem;
+    background:
+      repeating-linear-gradient(90deg, rgb(236 228 208 / 0.08) 0 1px, transparent 1px 10%),
+      #0b0c0f;
+    box-shadow: inset 0 0 0 1px var(--slate-3);
+  }
+
+  .rank__fill {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    min-width: 6px;
+    max-width: calc(100% - 4px);
+    background: linear-gradient(#b7ec8a 0 45%, #6fae3f 45%);
+    box-shadow: inset 0 -2px 0 rgb(0 40 0 / 0.4);
+  }
+
+  .rank__fee {
     color: var(--gold);
     font-family: var(--font-pixel);
     font-size: 1rem;
-    text-align: center;
+    line-height: 1.2;
+    text-align: right;
+    white-space: nowrap;
   }
 
-  .ladder__bar {
-    display: block;
-    height: calc(11rem * var(--h));
-    background:
-      repeating-linear-gradient(180deg, transparent 0 10px, rgb(60 30 0 / 0.35) 10px 12px),
-      linear-gradient(90deg, #f8d98f 0 28%, var(--torch) 28% 78%, #b97a25 78%);
-    box-shadow: inset 0 3px 0 rgb(255 240 200 / 0.45);
+  /* ——— шесть ремёсел ——— */
+  .trades {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: clamp(2rem, 5vw, 3rem) 0 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .ladder__lvl {
-    padding-top: 0.4rem;
-    border-top: 2px solid var(--slate-4);
+  .trade {
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+    padding: 1.1rem 1.15rem 1.2rem;
+    background: #1f1d24;
+    box-shadow:
+      inset 0 0 0 2px #0b0b0e,
+      inset 2px 2px 0 2px #36343f,
+      inset -2px -2px 0 2px #121116;
+  }
+
+  .trade__top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .trade__name {
+    font-size: var(--fs-md);
+    line-height: 1.15;
+  }
+
+  .trade__who {
+    margin-top: 0.15rem;
     color: var(--ash);
     font-size: 0.9375rem;
-    text-align: center;
+    line-height: 1.35;
+  }
+
+  .trade__xp {
+    color: var(--bone-2);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .trade__xp span {
+    color: var(--ash);
+  }
+
+  .trade__perks {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.75rem 0 0;
+    list-style: none;
+    border-top: 1px dashed var(--line-2);
+    color: var(--gold);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .trade__perks li {
+    position: relative;
+    padding-left: 1rem;
+  }
+
+  .trade__perks li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    background: var(--moss);
+  }
+
+  .slot {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: #26272f;
+    box-shadow:
+      inset 3px 3px 0 #0e0e12,
+      inset -3px -3px 0 #464856;
+  }
+
+  .slot :global(.pixel) {
+    width: 2.1rem;
+    height: 2.1rem;
   }
 
   .village__more {
@@ -298,11 +458,18 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
   }
 
   @media (max-width: 64rem) {
-    .races {
+    .races,
+    .trades {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .masters {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .trades {
       grid-template-columns: 1fr;
     }
   }
@@ -312,12 +479,25 @@ const fmt = (n: number) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
       grid-template-columns: 1fr;
     }
 
-    .skills div {
-      grid-template-columns: 1fr;
+    .rite li {
+      grid-template-columns: 2rem minmax(0, 1fr);
     }
 
-    .ladder__cost {
-      font-size: 0.875rem;
+    .rite span {
+      grid-column: 2;
+    }
+
+    .ladder {
+      padding-inline: 1rem;
+    }
+
+    .rank {
+      grid-template-columns: 1.25rem minmax(0, 1fr) 3.25rem;
+      gap: 0 0.6rem;
+    }
+
+    .rank__fee {
+      font-size: 0.9375rem;
     }
   }
 </style>

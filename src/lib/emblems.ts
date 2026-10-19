@@ -126,7 +126,23 @@ export const CRESTS: Record<RaceId, Grid> = {
 export type GlyphId =
   | 'pickaxe' | 'hoe' | 'axe' | 'rod' | 'sword' | 'skull' | 'darkheart'
   | 'coin' | 'pouch' | 'anvil' | 'house' | 'bed' | 'arena' | 'bread'
-  | 'tome' | 'lantern' | 'shulker';
+  | 'tome' | 'lantern' | 'shulker' | 'coal' | 'iron' | 'gold' | 'gem';
+
+/** Кусок руды 12×12: тёмная кайма, тело, блики. Цвет задаётся палитрой. */
+const LUMP = [
+  '............',
+  '....aaaa....',
+  '..aabbbbaa..',
+  '.abbcbbbbba.',
+  '.abccbbbbba.',
+  'abbbbbbcbbba',
+  'abbbbbbbbbba',
+  'abbcbbbbbdba',
+  '.abbbbbbdba.',
+  '..aabbbdaa..',
+  '....aaaa....',
+  '............',
+];
 
 const WOOD = { h: '#8a5a2b', H: '#5c3a19' };
 const IRON = { i: '#e2e5ec', I: '#8f96a8' };
@@ -409,6 +425,30 @@ export const GLYPHS: Record<GlyphId, Grid> = {
       '...A.yy.A...',
       '...AAAAAA...',
       '....aaaa....',
+      '............',
+    ],
+  },
+  /** Уголь. */
+  coal: { palette: { a: '#050506', b: '#2b2b30', c: '#55555e', d: '#1a1a1e' }, rows: LUMP },
+  /** Рудное железо. */
+  iron: { palette: { a: '#6b5141', b: '#d8af93', c: '#f6e2d0', d: '#a8836b' }, rows: LUMP },
+  /** Рудное золото. */
+  gold: { palette: { a: '#8f6420', b: '#e3b04f', c: '#fff0a8', d: '#b07d2a' }, rows: LUMP },
+  /** Алмаз: огранённый камень. */
+  gem: {
+    palette: { a: '#0e4f4b', b: '#4fe0d2', c: '#d6fff9', d: '#2aa59b' },
+    rows: [
+      '............',
+      '...aaaaaa...',
+      '..accbbbba..',
+      '.accbbbbbba.',
+      'abbbbbbbbbda',
+      '.abbbbbbbda.',
+      '..abbbbbda..',
+      '...abbbda...',
+      '....abda....',
+      '.....aa.....',
+      '............',
       '............',
     ],
   },
