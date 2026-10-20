@@ -4,8 +4,8 @@ import links from '../config/links.json';
 const channel = (links.telegram?.channel ?? '').trim();
 const chat = (links.telegram?.chat ?? '').trim();
 const rows = [
-  { name: 'Канал', text: 'Новости сервера и обновления.', href: channel, cta: 'Открыть канал' },
-  { name: 'Чат', text: 'Общение игроков.', href: chat, cta: 'Открыть чат' },
+  { name: 'Канал', text: 'Обновления, набеги тьмы, поверженные боссы и свежие вести.', href: channel, cta: 'Открыть канал' },
+  { name: 'Чат', text: 'Общение игроков: вопросы, сделки, поиск компании в поход.', href: chat, cta: 'Открыть чат' },
 ];
 const any = Boolean(channel || chat);
 ---
@@ -39,10 +39,6 @@ const any = Boolean(channel || chat);
     <div class="soon" aria-labelledby="soon-title">
       <h3 class="soon__title" id="soon-title">В работе</h3>
       <ul class="soon__list" role="list">
-        <li>
-          <p class="soon__name">Telegram</p>
-          <p>Канал с новостями и чат игроков.</p>
-        </li>
         <li>
           <p class="soon__name">Донаты</p>
           <p>Перевод по СБП и криптовалюта. Реквизиты появятся в разделе ниже.</p>

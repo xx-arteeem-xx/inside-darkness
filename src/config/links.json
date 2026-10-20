@@ -1,7 +1,7 @@
 {
   "_comment": "Ссылки на Telegram. Пустая строка значит «ещё нет»: на сайте будет плашка «скоро». Пример: \"https://t.me/inside_darkness\".",
   "telegram": {
-    "channel": "",
-    "chat": ""
+    "channel": "https://t.me/insidedarkness_mc",
+    "chat": "https://t.me/insidedarkness_chat"
   }
 }

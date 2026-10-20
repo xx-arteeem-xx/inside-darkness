@@ -1,6 +1,7 @@
 ---
 import Mark from './Mark.astro';
 import { url } from '../lib/url';
+import tg from '../config/links.json';
 
 interface Props {
   variant?: 'home' | 'inner';
@@ -14,6 +15,7 @@ const links = [
   { href: url('/#trade'), text: 'Торг' },
   { href: url('/#frontier'), text: 'Граница' },
   { href: url('/docs/'), text: 'Документация', current: inDocs },
+  ...(tg.telegram.channel ? [{ href: tg.telegram.channel, text: 'Telegram' }] : []),
 ];
 ---
 <header class:list={['site-header', `site-header--${variant}`]}>

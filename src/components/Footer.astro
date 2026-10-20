@@ -3,6 +3,7 @@ import Mark from './Mark.astro';
 import { url } from '../lib/url';
 import { SERVER } from '../config/site';
 import { getDocSections, flatten } from '../lib/docs';
+import links from '../config/links.json';
 
 const docs = flatten(await getDocSections());
 const hasRules = docs.some((d) => d.id === 'rules');
@@ -26,7 +27,8 @@ const hasFaq = docs.some((d) => d.id === 'faq');
         <li><a href={url('/docs/')}>Документация</a></li>
         {hasFaq && <li><a href={url('/docs/faq/')}>Вопросы и ответы</a></li>}
         {hasRules && <li><a href={url('/docs/rules/')}>Правила</a></li>}
-        <li><a href={url('/#telegram')}>Telegram</a></li>
+        {links.telegram.channel && <li><a href={links.telegram.channel} rel="noopener">Канал в Telegram</a></li>}
+        {links.telegram.chat && <li><a href={links.telegram.chat} rel="noopener">Чат в Telegram</a></li>}
         <li><a href={url('/#donate')}>Поддержать</a></li>
         <li><a href={SERVER.repo}>Исходники сайта</a></li>
       </ul>
