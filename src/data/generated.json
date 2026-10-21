@@ -9404,7 +9404,7 @@
  "meta": {
   "generator": "tools/gen_site_data.py",
   "config": "plugin-darklands/src/main/resources/config.yml",
-  "configSha256": "77407d9c33d0b08837856a3e962f558f5e0288c721e8c5af067b859a5947490b",
+  "configSha256": "4daad8b5411c574c712e160bed64532d3f459f42c47759e785a1daadf8b4d5e8",
   "fromFragments": {},
   "codeFacts": {
    "bank.max": "Bank.java",
