@@ -9,3 +9,6 @@ npm-debug.log*
 .idea/
 .env
 .env.*
+
+# кэш карты края (scripts/map/extract.py)
+.cache/
