@@ -146,11 +146,13 @@ const config = {
 </div>
 
 <style>
+  /* clip, а не hidden: переход по ссылке #место не должен прокручивать саму карту */
   .mv {
     position: relative;
     height: 100%;
     min-height: 26rem;
     overflow: hidden;
+    overflow: clip;
     background: var(--void);
     color: var(--bone);
     user-select: none;
@@ -161,6 +163,7 @@ const config = {
     position: absolute;
     inset: 0;
     overflow: hidden;
+    overflow: clip;
     touch-action: none;
     cursor: grab;
     outline: none;
@@ -244,6 +247,7 @@ const config = {
   .mv__pins {
     position: absolute;
     inset: 0;
+    overflow: clip;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -650,6 +654,31 @@ const config = {
   }
 
   @media (max-width: 52rem) {
+    /* на телефоне издалека подписана только столица — остальное по касанию или ближе */
+    .mv[data-tier='0'] .mv__pin.is-major:not([data-id='capital']) .mv__pin-label {
+      display: none;
+    }
+
+    .mv[data-tier='0'] .mv__pin.is-active .mv__pin-label {
+      display: block;
+    }
+
+    .mv__pin-icon,
+    .mv__pin.is-major .mv__pin-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .mv__pin-btn,
+    .mv__pin.is-major .mv__pin-btn {
+      transform: translate(-0.75rem, -0.75rem);
+    }
+
+    .mv__pin.is-west .mv__pin-btn,
+    .mv__pin.is-west.is-major .mv__pin-btn {
+      transform: translate(calc(-100% + 0.75rem), -0.75rem);
+    }
+
     .mv__panel-toggle {
       position: absolute;
       left: 1rem;

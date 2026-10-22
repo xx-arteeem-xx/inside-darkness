@@ -297,6 +297,16 @@
   --callout-bg: rgb(194 51 69 / 0.1);
 }
 
+.prose .q {
+  font-weight: 700;
+}
+
+.prose .q--common { color: var(--q-common); }
+.prose .q--uncommon { color: var(--q-uncommon); }
+.prose .q--rare { color: var(--q-rare); }
+.prose .q--set { color: var(--q-set); }
+.prose .q--legend { color: var(--q-legend); }
+
 .prose .callout--soon {
   --callout: var(--q-set);
   --callout-bg: rgb(192 138 245 / 0.08);
