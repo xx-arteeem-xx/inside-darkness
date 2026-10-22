@@ -1,9 +1,13 @@
 ---
 import { url } from '../lib/url';
+import Person from './Person.astro';
+import { DATA } from '../lib/site-facts';
 import { G, fmt } from '../data/game';
 import { plural } from '../lib/facts.mjs';
 
 const R = G.ranks.names;
+// «игрок» на трёх этапах — нейтральные скины каталога, которых нет ни у одного жителя
+const PLAYER = DATA.people.player;
 const steps = [
   {
     when: 'Первые часы',
@@ -35,6 +39,7 @@ const steps = [
     <ol class="path__list" role="list">
       {steps.map((s, i) => (
         <li class="path__step">
+          <Person skin={PLAYER[i]} size="figure" scale={4} tip={false} class="path__who" />
           <p class="path__num" aria-hidden="true">{i + 1}</p>
           <h3 class="path__when">{s.when}</h3>
           <p class="path__ranks">{s.ranks}</p>
@@ -70,8 +75,16 @@ const steps = [
     display: grid;
     align-content: start;
     gap: 0.4rem;
-    padding-top: 1.25rem;
-    border-top: 2px solid var(--slate-3);
+  }
+
+  /* фигура стоит на линии, как на земле */
+  .path__step :global(.path__who) {
+    justify-self: start;
+    margin-bottom: 1.1rem;
+    padding: 0 0.5rem;
+    border-bottom: 2px solid var(--slate-3);
+    width: 100%;
+    justify-items: start;
   }
 
   .path__num {

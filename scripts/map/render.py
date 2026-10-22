@@ -36,6 +36,7 @@ CACHE = os.path.join(SITE, ".cache", "map")
 OUT = os.path.join(SITE, "public", "map")
 DATA = os.path.join(SITE, "src", "data", "map.json")
 GEN = os.path.join(SITE, "src", "data", "generated.json")
+PEOPLE = os.path.join(SITE, "src", "data", "people.json")  # scripts/people.py: кто из жителей общеизвестен и со скином
 CONFIG = os.path.join(ROOT, "plugin-darklands", "src", "main", "resources", "config.yml")
 
 SIZE = 3072  # сторона карты в блоках: круг края (радиус границы мира) с запасом
@@ -507,6 +508,20 @@ def markers(realm):
             add("taverns", "inn", "Ночлежка в цитадели", n["x"], n["z"], "Дешёвые комнаты внаём прямо в столице.")
             break
     add("arena", "arena", P["arena"]["name"], P["arena"]["x"], P["arena"]["z"], ABOUT["arena"])
+    # житель, который стоит у места: его фигура — в карточке места на карте
+    shown = json.load(open(PEOPLE, encoding="utf-8"))["npcs"] if os.path.exists(PEOPLE) else {}
+    herald = next((n["id"] for n in cfg.get("npcs") or [] if str(n.get("role", "")).startswith("herald:market")), None)
+    fixed = {"capital": "guide", "market": herald, "village": "village_1", "mine": "mine_buyer", "field": "field_buyer",
+             "orchard": "orchard_buyer", "inn": "inn_keeper", "arena": "station_arena"}
+    for m in out:
+        mid = m["id"]
+        npc = fixed.get(mid)
+        if npc is None:
+            for pre, fmt in (("v-", "headman_{}"), ("st-", "station_{}"), ("t-", "inn_{}")):
+                if mid.startswith(pre):
+                    npc = fmt.format(mid[len(pre):])
+        if npc and npc in shown:
+            m["npc"] = npc
     for m in out:
         if not (0 < m["u"] < 1 and 0 < m["v"] < 1):
             raise SystemExit(f"метка {m['id']} вне карты")

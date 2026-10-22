@@ -1,10 +1,13 @@
 ---
 import Pixel from './Pixel.astro';
+import Person from './Person.astro';
 import { GLYPHS, type GlyphId } from '../lib/emblems';
 import { url } from '../lib/url';
 import { G } from '../data/game';
 
 const R = G.ranks.names;
+// жители, с которыми новичок встретится в первый же вечер: скины — как в игре
+const FOLK = ['guide', 'station_capital', 'bank_capital', 'market_5', 'headman_west_plains', 'inn_acacia_west', 'chronicler', 'village_5'];
 const items: { glyph: GlyphId; title: string; text: string; href: string; more: string }[] = [
   {
     glyph: 'pouch',
@@ -72,6 +75,14 @@ const items: { glyph: GlyphId; title: string; text: string; href: string; more: 
         </li>
       ))}
     </ul>
+
+    <div class="folk">
+      <h3 class="folk__title">Они ждут тебя в краю</h3>
+      <p class="folk__lead">Проводник, ямщик, казначей, кузнец, староста, трактирщица, летописец, воевода — у каждого своё окно и своё дело. Так они и выглядят в игре.</p>
+      <ul class="folk__list" role="list">
+        {FOLK.map((id) => <li><Person id={id} size="figure" scale={4} class="folk__who" /></li>)}
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -119,5 +130,65 @@ const items: { glyph: GlyphId; title: string; text: string; href: string; more: 
 
   .feature__more:hover {
     color: var(--bone);
+  }
+
+  .folk {
+    margin-top: clamp(3.5rem, 7vw, 5rem);
+    padding-top: 2.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .folk__title {
+    font-size: var(--fs-lg);
+  }
+
+  .folk__lead {
+    max-width: 44rem;
+    margin-top: 0.6rem;
+    color: var(--bone-2);
+  }
+
+  .folk__list {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 2rem 0.75rem;
+    margin: 2rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .folk__list > li {
+    display: grid;
+  }
+
+  /* фигуры стоят на одной земле, подписи — под ней */
+  .folk__list :global(.folk__who) {
+    grid-template-rows: auto 1fr;
+    align-items: start;
+  }
+
+  .folk__list :global(.folk__who .pp__frame) {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border-bottom: 2px solid var(--slate-3);
+    box-sizing: content-box;
+    padding-bottom: 0.25rem;
+  }
+
+  .folk__list :global(.folk__who .pp__frame img) {
+    position: static;
+  }
+
+  @media (max-width: 72rem) {
+    .folk__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .folk__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 </style>

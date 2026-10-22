@@ -1,5 +1,6 @@
 ---
 import CopyButton from './CopyButton.astro';
+import Person from './Person.astro';
 import { SERVER } from '../config/site';
 import { url } from '../lib/url';
 import { G } from '../data/game';
@@ -45,6 +46,7 @@ const guide = G.npcs.who.guide.name.charAt(0).toLowerCase() + G.npcs.who.guide.n
           Сервер предложит свой набор ресурсов — лучше принять: так у вещей края будут свои значки. Без него всё
           тоже работает.
         </p>
+        <Person id="guide" size="figure" scale={4} class="step__guide" />
       </li>
     </ol>
 
@@ -107,6 +109,12 @@ const guide = G.npcs.who.guide.name.charAt(0).toLowerCase() + G.npcs.who.guide.n
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem;
+  }
+
+  .step :global(.step__guide) {
+    justify-self: start;
+    justify-items: start;
+    margin-top: 0.5rem;
   }
 
   .step__warn {

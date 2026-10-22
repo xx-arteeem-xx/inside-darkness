@@ -14,6 +14,7 @@ function plain(md: string): string {
     .replace(/^---[\s\S]*?---/, '')
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
     .replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|NEW|SOON|VETERAN)\]/gi, ' ')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')

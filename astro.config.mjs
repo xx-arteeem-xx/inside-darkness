@@ -8,12 +8,13 @@ import { remarkFacts } from './src/lib/remark-facts.mjs';
 // Игровые числа документации — из generated.json (tools/gen_site_data.py по config.yml плагина).
 const json = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf-8'));
 const server = json('./src/config/server.json');
+const base = '/inside-darkness';
 const facts = {
   ...json('./src/data/generated.json'),
   server: { ...server, versions: `${server.versionFrom}–${server.versionTo}` },
+  // жители со скинами: scripts/people.py
+  people: { ...json('./src/data/people.json'), base },
 };
-
-const base = '/inside-darkness';
 
 export default defineConfig({
   site: 'https://xx-arteeem-xx.github.io',

@@ -7,8 +7,11 @@
  *   {{путь|фильтр:арг|…}}      pct 75% · plus +8% · x ×1,4 · int · r1 · list · range 40–90 · len · first · last
  *                              plural:монета,монеты,монет → «13 монет»
  *   {{table:имя аргумент}}     отдельной строкой — таблица целиком (TABLES ниже)
+ *   {{table:people выбор…}}    отдельной строкой — карточки жителей со скинами (lib/people.mjs)
  * Неизвестный путь, фильтр или таблица — ошибка сборки: устаревшая страница не уедет на сайт.
  */
+
+import { select, peopleHtml } from './people.mjs';
 
 export const PH = /\{\{\s*([^{}]+?)\s*\}\}/g;
 const NBSP = '\u00a0';
@@ -318,6 +321,7 @@ const TABLES = {
   bank: (G) => mdTable(['Ранг торгового дела', 'Мест в ячейке'], G.ranks.names.map((n, i) => [n, fmt(G.bank.slots[i])])),
   healer: (G) => mdTable(['Зелье', 'Цена'], G.market.shops.healer.rows.flatMap((r) => r.items.map((it) => [it.label, fmt(it.price)]))),
   races: (G) => mdTable(['Народ', 'Кто', 'Что даёт'], G.races.list.map((r) => [`**${r.name}**`, r.who, r.bonus])),
+  people: (G, ...args) => peopleHtml(G, select(G, args)),
 };
 
 export const TABLE_NAMES = Object.keys(TABLES);

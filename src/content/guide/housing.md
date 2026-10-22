@@ -32,15 +32,21 @@ brief:
 - {{homes.inn.count|plural:комната,комнаты,комнат}} в цитадели, в каждой кровать и свой сундук.
 - **{{homes.inn.rent|plural:монета,монеты,монет}} в сутки.** Сдаёт {{npcs.who.innkeeper.name|lcfirst}}.
 
+{{table:people inn_keeper}}
+
 ## Таверны
 
 Комнаты сдаёт трактирщик, **{{homes.tavernRent|plural:монета,монеты,монет}} в сутки**. Где таверны — на [карте края](/map/), слой «Таверны и ночлег».
 
 {{table:taverns}}
 
+{{table:people inn_oak_north inn_acacia_west inn_desert inn_jungle}}
+
 ## Дома в деревнях
 
 Дома есть во всех деревнях: в Деревне мастеров и в каждой сельской. Дом оформляет **староста** деревни: в его окне — дома деревни. Снять посуточно или купить навсегда.
+
+{{table:people r:headman}}
 
 {{table:homes}}
 
