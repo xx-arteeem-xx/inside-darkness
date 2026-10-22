@@ -1,0 +1,1072 @@
+---
+/**
+ * Вьювер карты края: перетаскивание, колесо и щипок, кнопки масштаба, клавиатура, слои меток, карточка места.
+ * Плитки грузятся по видимой области: обзор (1 точка = 4 блока) всегда снизу, сверху — 2 и 1 блок на точку.
+ * Без JavaScript — обзорная картинка и список мест.
+ */
+import { url } from '../../lib/url';
+import { MAP, LAYER_GLYPH, LAYER_TONE, glyphSvg, WALL_POINTS, sourceDate, countBy } from '../../lib/map';
+
+const S = MAP.size;
+const date = sourceDate();
+const layerName = Object.fromEntries(MAP.layers.map((l) => [l.id, l.name]));
+const wallR = Math.max(...MAP.wall.map(([u, v]) => Math.hypot(u - 0.5, v - 0.5)));
+// поселения — последними: их значки поверх станций и таверн в тех же деревнях
+const order = ['stations', 'taverns', 'grounds', 'arena', 'dungeons', 'settlements'];
+const markers = [...MAP.markers].sort((a, b) => order.indexOf(a.layer) - order.indexOf(b.layer));
+const config = {
+  size: S,
+  wall: wallR,
+  tile: MAP.tile,
+  border: MAP.border,
+  levels: MAP.levels.filter((l) => l.z > 0).map((l) => ({ z: l.z, scale: l.scale, have: l.have })),
+  root: url('/map/'),
+};
+---
+<div class="mv" data-mv data-config={JSON.stringify(config)} style={`--void:${MAP.void}`}>
+  <div
+    class="mv__stage"
+    tabindex="0"
+    role="region"
+    aria-roledescription="карта"
+    aria-label="Карта края"
+    aria-describedby="mv-help"
+  >
+    <div class="mv__world" style={`width:${S}px;height:${S}px`}>
+      <img
+        class="mv__base"
+        src={url('/map/0.webp')}
+        alt=""
+        width={S}
+        height={S}
+        draggable="false"
+        decoding="async"
+        fetchpriority="high"
+      />
+      {config.levels.map((l) => <div class="mv__level" data-z={l.z}></div>)}
+      <svg class="mv__wall" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">
+        <polygon class="mv__wall-glow" points={WALL_POINTS} />
+        <polygon class="mv__wall-line" points={WALL_POINTS} />
+      </svg>
+    </div>
+    <ul class="mv__pins" role="list" aria-label="Места на карте">
+      {markers.map((m) => (
+        <li
+          class:list={['mv__pin', { 'is-major': m.major, 'is-west': m.u < MAP.center[0] - 0.02 }]}
+          id={m.id}
+          data-id={m.id}
+          data-layer={m.layer}
+          data-u={m.u}
+          data-v={m.v}
+          style={`--tone:${LAYER_TONE[m.layer]}`}
+        >
+          <button type="button" class="mv__pin-btn" aria-label={`${m.name}. ${layerName[m.layer]}`} aria-controls="mv-card">
+            <span class="mv__pin-icon" set:html={glyphSvg(LAYER_GLYPH[m.layer])} />
+            <span class="mv__pin-label" aria-hidden="true">{m.name}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+    <noscript>
+      <img class="mv__static" src={url('/map/0.webp')} alt="Карта края: вид сверху" width="768" height="768" />
+    </noscript>
+  </div>
+
+  <div class="mv__zoom" role="group" aria-label="Масштаб">
+    <button type="button" class="mv__zbtn" data-zoom="in" aria-label="Приблизить">+</button>
+    <button type="button" class="mv__zbtn" data-zoom="out" aria-label="Отдалить">−</button>
+    <button type="button" class="mv__zbtn mv__zbtn--fit" data-zoom="fit" aria-label="Показать весь край">
+      <svg viewBox="0 0 12 12" aria-hidden="true" shape-rendering="crispEdges"><path fill="currentColor" d="M1 1h4v2H3v2H1zM7 1h4v4H9V3H7zM1 7h2v2h2v2H1zM9 7h2v4H7V9h2z" /></svg>
+    </button>
+  </div>
+
+  <button type="button" class="mv__panel-toggle btn btn--quiet btn--small" aria-expanded="false" aria-controls="mv-panel">
+    Слои и места
+  </button>
+
+  <aside class="mv__panel" id="mv-panel" aria-labelledby="mv-title">
+    <h1 class="mv__title" id="mv-title">Карта края</h1>
+    <p class="mv__note">
+      Вид сверху на княжество и тёмные земли за Стеной{date ? `, снимок мира ${date}` : ''}. Метки — общеизвестные
+      места: их знает любой житель.
+    </p>
+
+    <fieldset class="mv__layers">
+      <legend>Слои</legend>
+      {MAP.layers.map((l) => (
+        <label class="mv__layer" style={`--tone:${LAYER_TONE[l.id]}`} title={l.hint}>
+          <input type="checkbox" checked data-layer-toggle={l.id} />
+          <span class="mv__layer-icon" set:html={glyphSvg(LAYER_GLYPH[l.id])} />
+          <span class="mv__layer-name">{l.name}</span>
+          <span class="mv__layer-count">{countBy(l.id)}</span>
+        </label>
+      ))}
+    </fieldset>
+
+    <div class="mv__legend" aria-label="Обозначения">
+      <p class="mv__legend-title">Обозначения</p>
+      <ul role="list">
+        <li><span class="mv__sw mv__sw--wall"></span>Большая стена</li>
+        <li><span class="mv__sw mv__sw--realm"></span>Княжество внутри Стены</li>
+        <li><span class="mv__sw mv__sw--dark"></span>Тёмные земли: чем дальше, тем темнее</li>
+        <li><span class="mv__sw mv__sw--water"></span>Вода: темнее — глубже</li>
+        <li><span class="mv__sw mv__sw--void"></span>Край мира</li>
+      </ul>
+    </div>
+
+    <details class="mv__list">
+      <summary>Все места списком</summary>
+      {MAP.layers.map((l) => (
+        <div class="mv__list-group">
+          <p class="mv__list-title">{l.name}</p>
+          <ul role="list">
+            {MAP.markers.filter((m) => m.layer === l.id).map((m) => (
+              <li>
+                <a href={`#${m.id}`} data-goto={m.id}>{m.name}</a>
+                <span class="mv__list-about">{m.about}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </details>
+  </aside>
+
+  <section class="mv__card" id="mv-card" hidden aria-live="polite" aria-labelledby="mv-card-name">
+    <button type="button" class="mv__card-close" aria-label="Закрыть">×</button>
+    <p class="mv__card-layer"></p>
+    <h2 class="mv__card-name" id="mv-card-name"></h2>
+    <p class="mv__card-about"></p>
+  </section>
+
+  <p id="mv-help" class="visually-hidden">
+    Перетаскивай карту мышью или пальцем. Колесо мыши, щипок или кнопки плюс и минус меняют масштаб. С клавиатуры:
+    стрелки двигают карту, плюс и минус — масштаб, ноль — весь край. Метки — кнопки: нажми, чтобы прочитать о месте.
+  </p>
+</div>
+
+<style>
+  .mv {
+    position: relative;
+    height: 100%;
+    min-height: 26rem;
+    overflow: hidden;
+    background: var(--void);
+    color: var(--bone);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .mv__stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    touch-action: none;
+    cursor: grab;
+    outline: none;
+  }
+
+  .mv__stage:focus-visible {
+    box-shadow: inset 0 0 0 3px var(--gold);
+  }
+
+  .mv__stage.is-dragging {
+    cursor: grabbing;
+  }
+
+  .mv__world {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+
+  .mv__base,
+  .mv__world :global(.mv__tile) {
+    position: absolute;
+    display: block;
+    max-width: none;
+    pointer-events: none;
+  }
+
+  .mv__base {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .mv__world.is-pixel .mv__base,
+  .mv__world.is-pixel :global(.mv__tile) {
+    image-rendering: pixelated;
+  }
+
+  .mv__level {
+    position: absolute;
+    inset: 0;
+  }
+
+  .mv__wall {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .mv__wall polygon {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+  }
+
+  .mv__wall-glow {
+    stroke: rgb(194 51 69 / 0.35);
+    stroke-width: 9;
+  }
+
+  .mv__wall-line {
+    stroke: #e8b9a4;
+    stroke-width: 2;
+  }
+
+  .mv__static {
+    display: block;
+    width: min(100%, 48rem);
+    height: auto;
+    margin: 1rem auto;
+    image-rendering: pixelated;
+  }
+
+  /* ——— метки ——— */
+  .mv__pins {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+  }
+
+  :global(html:not(.js)) .mv__pins {
+    display: none;
+  }
+
+  .mv__pin {
+    position: absolute;
+    left: 0;
+    top: 0;
+    will-change: transform;
+  }
+
+  .mv__pin.is-off {
+    display: none;
+  }
+
+  /* Издалека станции, таверны и угодья прячутся: они стоят в тех же деревнях. */
+  .mv[data-tier='0'] .mv__pin:is([data-layer='stations'], [data-layer='taverns'], [data-layer='grounds']) {
+    display: none;
+  }
+
+  .mv__pin-btn {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--bone);
+    font: inherit;
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translate(-0.8rem, -0.8rem);
+  }
+
+  .mv__pin-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    background: rgb(7 9 15 / 0.88);
+    box-shadow: inset 0 0 0 2px var(--tone), 0 2px 0 rgb(0 0 0 / 0.6);
+  }
+
+  .mv__pin-icon :global(svg) {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .mv__pin.is-major .mv__pin-icon {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+
+  .mv__pin.is-major .mv__pin-btn {
+    transform: translate(-0.95rem, -0.95rem);
+  }
+
+  /* К западу от столицы подпись слева от значка — так соседние деревни не наезжают друг на друга. */
+  .mv__pin.is-west .mv__pin-btn {
+    flex-direction: row-reverse;
+    transform: translate(calc(-100% + 0.8rem), -0.8rem);
+  }
+
+  .mv__pin.is-west.is-major .mv__pin-btn {
+    transform: translate(calc(-100% + 0.95rem), -0.95rem);
+  }
+
+  .mv__pin.is-major .mv__pin-icon :global(svg) {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .mv__pin-label {
+    display: none;
+    padding: 0.05rem 0.4rem 0.1rem;
+    background: rgb(7 9 15 / 0.82);
+    color: var(--bone);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-shadow: 0 1px 0 #000;
+  }
+
+  .mv__pin.is-major .mv__pin-label {
+    font-size: 1rem;
+  }
+
+  /* Подписи: на дальнем плане — только поселения, ближе — всё. Наведённая и выбранная — всегда. */
+  .mv[data-tier='0'] .mv__pin.is-major .mv__pin-label,
+  .mv[data-tier='1'] .mv__pin:not([data-layer='stations']) .mv__pin-label,
+  .mv[data-tier='2'] .mv__pin:not([data-layer='stations']) .mv__pin-label,
+  .mv__pin-btn:hover .mv__pin-label,
+  .mv__pin-btn:focus-visible .mv__pin-label,
+  .mv__pin.is-active .mv__pin-label {
+    display: block;
+  }
+
+  .mv__pin-btn:hover .mv__pin-icon,
+  .mv__pin.is-active .mv__pin-icon {
+    background: var(--tone);
+    box-shadow: inset 0 0 0 2px #fff6dc, 0 0 0 2px rgb(0 0 0 / 0.6);
+  }
+
+  .mv__pin-btn:hover,
+  .mv__pin.is-active {
+    z-index: 2;
+  }
+
+  .mv__pin-btn:focus-visible {
+    outline: none;
+  }
+
+  .mv__pin-btn:focus-visible .mv__pin-icon {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* ——— кнопки масштаба ——— */
+  .mv__zoom {
+    position: absolute;
+    right: 1rem;
+    bottom: 1.25rem;
+    z-index: 5;
+    display: grid;
+    gap: 2px;
+    background: #000;
+    box-shadow: 0 0 0 2px #000;
+  }
+
+  .mv__zbtn {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    background: var(--slate-3);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.1), inset 0 -3px 0 rgb(0 0 0 / 0.4);
+    color: var(--bone);
+    font: 700 1.5rem/1 var(--font-serif);
+    cursor: pointer;
+  }
+
+  .mv__zbtn:hover {
+    background: var(--slate-4);
+    color: var(--gold);
+  }
+
+  .mv__zbtn:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .mv__zbtn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* ——— панель ——— */
+  .mv__panel {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    bottom: 1rem;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    width: 19rem;
+    padding: 1.25rem 1.25rem 1rem;
+    overflow-y: auto;
+    background: rgb(12 15 21 / 0.94);
+    box-shadow: inset 0 0 0 1px var(--slate-3), 0 12px 40px rgb(0 0 0 / 0.5);
+    scrollbar-width: thin;
+    scrollbar-color: var(--slate-4) transparent;
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  .mv__panel-toggle {
+    display: none;
+  }
+
+  .mv__title {
+    font-size: 1.75rem;
+  }
+
+  .mv__note {
+    color: var(--ash);
+    font-size: 0.9688rem;
+    line-height: 1.45;
+  }
+
+  .mv__layers {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .mv__layers legend,
+  .mv__legend-title {
+    margin-bottom: 0.4rem;
+    padding: 0;
+    color: var(--bone);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .mv__layer {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.3rem 0.4rem;
+    margin-inline: -0.4rem;
+    color: var(--bone-2);
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .mv__layer:hover {
+    background: rgb(255 255 255 / 0.04);
+    color: var(--bone);
+  }
+
+  .mv__layer input {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: 0;
+    accent-color: var(--gold);
+  }
+
+  .mv__layer-icon {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--void);
+    box-shadow: inset 0 0 0 2px var(--tone);
+  }
+
+  .mv__layer-icon :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .mv__layer:has(input:not(:checked)) .mv__layer-icon,
+  .mv__layer:has(input:not(:checked)) .mv__layer-name {
+    opacity: 0.45;
+  }
+
+  .mv__layer-count {
+    color: var(--ash-2);
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+  }
+
+  .mv__legend ul {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ash);
+    font-size: 0.9375rem;
+    line-height: 1.35;
+  }
+
+  .mv__legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .mv__sw {
+    flex: none;
+    width: 1.5rem;
+    height: 0.9rem;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  }
+
+  .mv__sw--wall {
+    height: 0.35rem;
+    background: #e8b9a4;
+    box-shadow: 0 0 0 3px rgb(194 51 69 / 0.4);
+  }
+
+  .mv__sw--realm {
+    background: linear-gradient(90deg, #7d9a4c 0 34%, #b3a46a 34% 67%, #3f6a2e 67%);
+  }
+
+  .mv__sw--dark {
+    background: linear-gradient(90deg, #3a3542, #1d1a25, #0f0e14);
+  }
+
+  .mv__sw--water {
+    background: linear-gradient(90deg, #4b6e96, #2c4a74, #1b2f55);
+  }
+
+  .mv__sw--void {
+    background: var(--void);
+  }
+
+  .mv__list summary {
+    color: var(--bone);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mv__list-group {
+    margin-top: 0.9rem;
+  }
+
+  .mv__list-title {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  .mv__list ul {
+    margin: 0.3rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mv__list li {
+    display: grid;
+    padding-block: 0.3rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .mv__list a {
+    color: var(--bone);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .mv__list a:hover {
+    color: var(--gold);
+  }
+
+  .mv__list-about {
+    color: var(--ash);
+    font-size: 0.9063rem;
+    line-height: 1.4;
+  }
+
+  /* ——— карточка места ——— */
+  .mv__card {
+    position: absolute;
+    z-index: 7;
+    width: min(20rem, calc(100% - 2rem));
+    padding: 1rem 1.15rem 1.1rem;
+    background: rgb(16 4 16 / 0.95);
+    box-shadow: inset 0 0 0 2px #2a0a4a, inset 0 0 0 4px rgb(80 0 255 / 0.25), 0 14px 40px rgb(0 0 0 / 0.55);
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  .mv__card-layer {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  .mv__card-name {
+    margin-top: 0.15rem;
+    padding-right: 1.5rem;
+    color: var(--gold);
+    font-size: 1.375rem;
+  }
+
+  .mv__card-about {
+    margin-top: 0.5rem;
+    color: var(--bone-2);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .mv__card-close {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.45rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    background: none;
+    color: var(--ash);
+    font: 400 1.6rem/1 var(--font-serif);
+    cursor: pointer;
+  }
+
+  .mv__card-close:hover {
+    color: var(--bone);
+  }
+
+  @media (max-width: 52rem) {
+    .mv__panel-toggle {
+      position: absolute;
+      left: 1rem;
+      bottom: 1.25rem;
+      z-index: 5;
+      display: inline-flex;
+    }
+
+    .mv__panel {
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      max-height: 72%;
+      padding-bottom: 1.5rem;
+      transform: translateY(105%);
+      transition: transform 0.25s ease;
+    }
+
+    .mv.is-panel-open .mv__panel {
+      transform: none;
+    }
+
+    :global(html:not(.js)) .mv__panel {
+      position: relative;
+      transform: none;
+      max-height: none;
+    }
+
+    .mv__card {
+      left: 1rem !important;
+      right: 1rem;
+      top: auto !important;
+      bottom: 4.75rem;
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  type Level = { z: number; scale: number; have: string[] };
+  type Config = { size: number; wall: number; tile: number; border: number; levels: Level[]; root: string };
+
+  const root = document.querySelector<HTMLElement>('[data-mv]');
+  if (root) init(root);
+
+  function init(mv: HTMLElement) {
+    const cfg: Config = JSON.parse(mv.dataset.config || '{}');
+    const S = cfg.size;
+    const stage = mv.querySelector<HTMLElement>('.mv__stage')!;
+    const world = mv.querySelector<HTMLElement>('.mv__world')!;
+    const pins = [...mv.querySelectorAll<HTMLElement>('.mv__pin')];
+    const card = mv.querySelector<HTMLElement>('.mv__card')!;
+    const levelBox = new Map<number, HTMLElement>();
+    mv.querySelectorAll<HTMLElement>('.mv__level').forEach((el) => levelBox.set(Number(el.dataset.z), el));
+    const loaded = new Set<string>();
+
+    let W = stage.clientWidth;
+    let H = stage.clientHeight;
+    let s = 1;
+    let tx = 0;
+    let ty = 0;
+    let raf = 0;
+    let active: HTMLElement | null = null;
+
+    const minS = () => Math.min(W, H) / S * 0.75;
+    const maxS = 8;
+    /** Свободная от панели часть экрана: левый край и ширина. */
+    const panel = mv.querySelector<HTMLElement>('.mv__panel')!;
+    const free = () => {
+      const docked = window.matchMedia('(max-width: 52rem)').matches;
+      const left = docked ? 0 : panel.offsetLeft + panel.offsetWidth;
+      return { left, w: W - left };
+    };
+    const fitS = () => {
+      const f = free();
+      return Math.min(f.w, H) / (S * cfg.wall * 2 * 1.12);
+    };
+
+    function clamp() {
+      s = Math.min(maxS, Math.max(minS(), s));
+      // середина экрана не уходит за край карты
+      const cx = (W / 2 - tx) / s;
+      const cy = (H / 2 - ty) / s;
+      const ncx = Math.min(S * 0.92, Math.max(S * 0.08, cx));
+      const ncy = Math.min(S * 0.92, Math.max(S * 0.08, cy));
+      tx = W / 2 - ncx * s;
+      ty = H / 2 - ncy * s;
+    }
+
+    function schedule() {
+      if (!raf) raf = requestAnimationFrame(draw);
+    }
+
+    function draw() {
+      raf = 0;
+      clamp();
+      world.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${s})`;
+      world.classList.toggle('is-pixel', s >= 1);
+      mv.dataset.tier = s < 0.42 ? '0' : s < 1.4 ? '1' : '2';
+      for (const p of pins) {
+        const x = tx + Number(p.dataset.u) * S * s;
+        const y = ty + Number(p.dataset.v) * S * s;
+        p.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+      }
+      tiles();
+      if (active && !card.hidden) placeCard();
+    }
+
+    /** Плитки уровня по плотности: сколько точек экрана на блок с учётом плотности экрана. */
+    function tiles() {
+      const density = s * (window.devicePixelRatio || 1);
+      let want = 0;
+      for (const l of cfg.levels) if (density > 1 / (l.scale * 1.6)) want = Math.max(want, l.z);
+      for (const l of cfg.levels) {
+        const box = levelBox.get(l.z)!;
+        box.style.display = l.z <= want ? '' : 'none';
+        if (l.z !== want) continue;
+        const span = cfg.tile * l.scale; // блоков на плитку
+        const x0 = Math.floor((-tx / s) / span) - 1;
+        const y0 = Math.floor((-ty / s) / span) - 1;
+        const x1 = Math.floor(((W - tx) / s) / span) + 1;
+        const y1 = Math.floor(((H - ty) / s) / span) + 1;
+        for (let y = Math.max(0, y0); y <= y1; y++) {
+          for (let x = Math.max(0, x0); x <= x1; x++) {
+            const id = `${x}-${y}`;
+            const key = `${l.z}/${id}`;
+            if (loaded.has(key) || !l.have.includes(id)) continue;
+            loaded.add(key);
+            const img = new Image();
+            img.className = 'mv__tile';
+            img.alt = '';
+            img.decoding = 'async';
+            img.draggable = false;
+            img.style.left = `${x * span}px`;
+            img.style.top = `${y * span}px`;
+            img.style.width = `${span}px`;
+            img.style.height = `${span}px`;
+            img.src = `${cfg.root}${l.z}/${id}.webp`;
+            box.appendChild(img);
+          }
+        }
+      }
+    }
+
+    function zoomAt(f: number, px: number, py: number) {
+      const ns = Math.min(maxS, Math.max(minS(), s * f));
+      const k = ns / s;
+      tx = px - (px - tx) * k;
+      ty = py - (py - ty) * k;
+      s = ns;
+      schedule();
+    }
+
+    let anim = 0;
+    /** Плавно: точка карты (mx, my) встаёт в точку экрана (ax, ay) при масштабе ns. */
+    function flyTo(ns: number, mx: number, my: number, ms = 260, ax = W / 2, ay = H / 2) {
+      cancelAnimationFrame(anim);
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const s0 = s;
+      const cx0 = (ax - tx) / s;
+      const cy0 = (ay - ty) / s;
+      const t0 = performance.now();
+      const step = (now: number) => {
+        const t = reduce ? 1 : Math.min(1, (now - t0) / ms);
+        const e = 1 - Math.pow(1 - t, 3);
+        s = s0 + (ns - s0) * e;
+        const cx = cx0 + (mx - cx0) * e;
+        const cy = cy0 + (my - cy0) * e;
+        tx = ax - cx * s;
+        ty = ay - cy * s;
+        draw();
+        if (t < 1) anim = requestAnimationFrame(step);
+      };
+      anim = requestAnimationFrame(step);
+    }
+
+    function fit(animate = true) {
+      const ns = fitS();
+      const f = free();
+      const ax = f.left + f.w / 2;
+      if (animate) flyTo(ns, S / 2, S / 2, 260, ax, H / 2);
+      else {
+        s = ns;
+        tx = ax - (S / 2) * s;
+        ty = H / 2 - (S / 2) * s;
+        draw();
+      }
+    }
+
+    // ——— указатель: перетаскивание и щипок ———
+    const pts = new Map<number, { x: number; y: number }>();
+    let moved = 0;
+    let pinch = 0;
+
+    stage.addEventListener('pointerdown', (e) => {
+      if ((e.target as HTMLElement).closest('.mv__pin-btn')) return;
+      stage.setPointerCapture(e.pointerId);
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      moved = 0;
+      if (pts.size === 2) {
+        const [a, b] = [...pts.values()];
+        pinch = Math.hypot(a.x - b.x, a.y - b.y);
+      }
+      stage.classList.add('is-dragging');
+      cancelAnimationFrame(anim);
+    });
+
+    stage.addEventListener('pointermove', (e) => {
+      const prev = pts.get(e.pointerId);
+      if (!prev) return;
+      const cur = { x: e.clientX, y: e.clientY };
+      if (pts.size === 1) {
+        tx += cur.x - prev.x;
+        ty += cur.y - prev.y;
+        moved += Math.abs(cur.x - prev.x) + Math.abs(cur.y - prev.y);
+        pts.set(e.pointerId, cur);
+        schedule();
+        return;
+      }
+      pts.set(e.pointerId, cur);
+      const [a, b] = [...pts.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const r = stage.getBoundingClientRect();
+      const mx = (a.x + b.x) / 2 - r.left;
+      const my = (a.y + b.y) / 2 - r.top;
+      if (pinch > 0) zoomAt(d / pinch, mx, my);
+      pinch = d;
+      moved += 10;
+    });
+
+    const up = (e: PointerEvent) => {
+      pts.delete(e.pointerId);
+      pinch = 0;
+      if (!pts.size) stage.classList.remove('is-dragging');
+    };
+    stage.addEventListener('pointerup', (e) => {
+      const wasTap = moved < 6 && pts.size === 1;
+      up(e);
+      if (wasTap && !card.hidden) close();
+    });
+    stage.addEventListener('pointercancel', up);
+
+    stage.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        const r = stage.getBoundingClientRect();
+        const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+        zoomAt(Math.exp(-dy * 0.0016), e.clientX - r.left, e.clientY - r.top);
+      },
+      { passive: false },
+    );
+
+    stage.addEventListener('dblclick', (e) => {
+      if ((e.target as HTMLElement).closest('.mv__pin-btn')) return;
+      const r = stage.getBoundingClientRect();
+      const mx = (e.clientX - r.left - tx) / s;
+      const my = (e.clientY - r.top - ty) / s;
+      flyTo(Math.min(maxS, s * 2), mx, my);
+    });
+
+    stage.addEventListener('keydown', (e) => {
+      const stepPx = 90;
+      const k = e.key;
+      if (k === 'ArrowLeft') tx += stepPx;
+      else if (k === 'ArrowRight') tx -= stepPx;
+      else if (k === 'ArrowUp') ty += stepPx;
+      else if (k === 'ArrowDown') ty -= stepPx;
+      else if (k === '+' || k === '=') zoomAt(1.4, W / 2, H / 2);
+      else if (k === '-' || k === '_') zoomAt(1 / 1.4, W / 2, H / 2);
+      else if (k === '0') fit();
+      else if (k === 'Escape') close();
+      else return;
+      e.preventDefault();
+      schedule();
+    });
+
+    mv.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const z = b.dataset.zoom;
+        if (z === 'fit') return fit();
+        // приближаем к выбранному месту, если оно на экране, иначе — к середине свободной части
+        const f = free();
+        let ax = f.left + f.w / 2;
+        let ay = H / 2;
+        if (active && !card.hidden) {
+          const px = tx + Number(active.dataset.u) * S * s;
+          const py = ty + Number(active.dataset.v) * S * s;
+          if (px > f.left && px < W && py > 0 && py < H) {
+            ax = px;
+            ay = py;
+          }
+        }
+        flyTo(Math.min(maxS, Math.max(minS(), s * (z === 'in' ? 1.6 : 1 / 1.6))), (ax - tx) / s, (ay - ty) / s, 200, ax, ay);
+      }),
+    );
+
+    // ——— слои ———
+    mv.querySelectorAll<HTMLInputElement>('[data-layer-toggle]').forEach((box) =>
+      box.addEventListener('change', () => {
+        const id = box.dataset.layerToggle;
+        for (const p of pins) if (p.dataset.layer === id) p.classList.toggle('is-off', !box.checked);
+        if (active && active.classList.contains('is-off')) close();
+      }),
+    );
+
+    // ——— панель на телефоне ———
+    const toggle = mv.querySelector<HTMLButtonElement>('.mv__panel-toggle')!;
+    toggle.addEventListener('click', () => {
+      const open = !mv.classList.contains('is-panel-open');
+      mv.classList.toggle('is-panel-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.textContent = open ? 'Скрыть' : 'Слои и места';
+    });
+
+    // ——— карточка места ———
+    const layerNames: Record<string, string> = {};
+    mv.querySelectorAll<HTMLInputElement>('[data-layer-toggle]').forEach((b) => {
+      layerNames[b.dataset.layerToggle!] = b.closest('label')!.querySelector('.mv__layer-name')!.textContent || '';
+    });
+    const about: Record<string, { name: string; about: string }> = {};
+    mv.querySelectorAll<HTMLAnchorElement>('[data-goto]').forEach((a) => {
+      about[a.dataset.goto!] = { name: a.textContent || '', about: a.nextElementSibling?.textContent || '' };
+    });
+
+    function placeCard() {
+      if (!active || window.matchMedia('(max-width: 52rem)').matches) return;
+      const x = tx + Number(active.dataset.u) * S * s;
+      const y = ty + Number(active.dataset.v) * S * s;
+      const cw = card.offsetWidth;
+      const ch = card.offsetHeight;
+      let left = x + 26;
+      if (left + cw > W - 12) left = x - cw - 26;
+      left = Math.min(Math.max(free().left + 12, left), W - cw - 12);
+      let top = y - ch / 2;
+      top = Math.max(12, Math.min(H - ch - 12, top));
+      card.style.left = `${Math.max(12, left)}px`;
+      card.style.top = `${top}px`;
+    }
+
+    function open(pin: HTMLElement, fly = false) {
+      active?.classList.remove('is-active');
+      active = pin;
+      pin.classList.add('is-active');
+      const id = pin.dataset.id!;
+      const info = about[id];
+      card.querySelector('.mv__card-layer')!.textContent = layerNames[pin.dataset.layer!] || '';
+      card.querySelector('.mv__card-name')!.textContent = info?.name || '';
+      card.querySelector('.mv__card-about')!.textContent = info?.about || '';
+      card.hidden = false;
+      history.replaceState(null, '', `#${id}`);
+      if (fly) {
+        const f = free();
+        flyTo(Math.max(s, 1.2), Number(pin.dataset.u) * S, Number(pin.dataset.v) * S, 420, f.left + f.w / 2, H / 2);
+      }
+      else placeCard();
+    }
+
+    function close() {
+      if (card.hidden) return;
+      card.hidden = true;
+      active?.classList.remove('is-active');
+      active = null;
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+
+    card.querySelector('.mv__card-close')!.addEventListener('click', () => {
+      const prev = active;
+      close();
+      prev?.querySelector<HTMLButtonElement>('button')?.focus();
+    });
+
+    for (const p of pins) {
+      p.querySelector('button')!.addEventListener('click', () => {
+        if (active === p && !card.hidden) close();
+        else open(p);
+      });
+    }
+
+    function goto(id: string) {
+      const pin = pins.find((p) => p.dataset.id === id);
+      if (!pin) return false;
+      if (pin.classList.contains('is-off')) {
+        const box = mv.querySelector<HTMLInputElement>(`[data-layer-toggle="${pin.dataset.layer}"]`);
+        if (box) {
+          box.checked = true;
+          box.dispatchEvent(new Event('change'));
+        }
+      }
+      if (mv.classList.contains('is-panel-open')) toggle.click();
+      open(pin, true);
+      pin.querySelector('button')?.focus({ preventScroll: true });
+      return true;
+    }
+
+    mv.querySelectorAll<HTMLAnchorElement>('[data-goto]').forEach((a) =>
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        goto(a.dataset.goto!);
+      }),
+    );
+
+    new ResizeObserver(() => {
+      const cx = (W / 2 - tx) / s;
+      const cy = (H / 2 - ty) / s;
+      W = stage.clientWidth;
+      H = stage.clientHeight;
+      tx = W / 2 - cx * s;
+      ty = H / 2 - cy * s;
+      schedule();
+    }).observe(stage);
+
+    fit(false);
+    const hash = decodeURIComponent(location.hash.slice(1));
+    if (hash) goto(hash);
+    window.addEventListener('hashchange', () => goto(decodeURIComponent(location.hash.slice(1))));
+  }
+</script>

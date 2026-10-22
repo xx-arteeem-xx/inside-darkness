@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import MapViewer from '../components/map/MapViewer.astro';
+---
+<Base
+  title="Карта края"
+  description="Пиксельная карта Inside Darkness: княжество внутри Большой стены, тёмные земли за ней, поселения, ямские станции, угодья, подземелья, таверны и ристалище."
+  variant="map"
+>
+  <MapViewer />
+</Base>
+
+<style is:global>
+  body[data-variant='map'] {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  body[data-variant='map'] > main {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  body[data-variant='map'] > main:focus {
+    outline: none;
+  }
+
+  html:not(.js) body[data-variant='map'] {
+    height: auto;
+    overflow: visible;
+  }
+</style>
