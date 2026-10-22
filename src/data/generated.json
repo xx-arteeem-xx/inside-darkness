@@ -2859,7 +2859,7 @@
    "dark": {
     "base": 0.6,
     "perLevel": 0.02,
-    "rare": 0.05,
+    "rare": 0.015,
     "min": 0.6,
     "max": 0.76
    },
@@ -9030,112 +9030,112 @@
   "npc": "Ведун Всеслав"
  },
  "repair": {
-  "other": 30,
+  "other": 15,
   "rows": [
    {
     "name": "Дерево",
-    "base": 4
-   },
-   {
-    "name": "Огниво",
-    "base": 5
+    "base": 2
    },
    {
     "name": "Камень",
-    "base": 6
+    "base": 3
    },
    {
     "name": "Кожа",
-    "base": 6
+    "base": 3
+   },
+   {
+    "name": "Огниво",
+    "base": 3
    },
    {
     "name": "Ножницы",
-    "base": 8
+    "base": 4
    },
    {
     "name": "Удочка",
-    "base": 10
+    "base": 5
    },
    {
     "name": "Золото",
-    "base": 15
+    "base": 8
    },
    {
     "name": "Кольчуга",
-    "base": 20
+    "base": 10
    },
    {
     "name": "Щит",
-    "base": 25
+    "base": 12
    },
    {
     "name": "Лук",
-    "base": 30
+    "base": 15
    },
    {
     "name": "Железо",
-    "base": 40
+    "base": 20
    },
    {
     "name": "Арбалет",
-    "base": 40
+    "base": 20
    },
    {
     "name": "Трезубец",
-    "base": 150
+    "base": 75
    },
    {
     "name": "Булава",
-    "base": 200
+    "base": 100
    },
    {
     "name": "Алмаз",
-    "base": 250
+    "base": 125
    },
    {
     "name": "Алмазное копьё",
-    "base": 250
+    "base": 125
    },
    {
     "name": "Элитры",
-    "base": 300
+    "base": 150
+   },
+   {
+    "name": "Незерит",
+    "base": 250
+   },
+   {
+    "name": "Незеритовое копьё",
+    "base": 250
    },
    {
     "name": "Сапоги-скороходы",
     "base": 400
-   },
-   {
-    "name": "Незерит",
-    "base": 500
-   },
-   {
-    "name": "Незеритовое копьё",
-    "base": 500
    }
   ],
   "by": {
-   "WOODEN_": 4,
-   "STONE_": 6,
-   "LEATHER_": 6,
-   "GOLDEN_": 15,
-   "CHAINMAIL_": 20,
-   "IRON_": 40,
-   "DIAMOND_": 250,
-   "NETHERITE_": 500,
-   "BOW": 30,
-   "CROSSBOW": 40,
-   "SHIELD": 25,
-   "FISHING_ROD": 10,
-   "TRIDENT": 150,
-   "ELYTRA": 300,
-   "MACE": 200,
-   "DIAMOND_SPEAR": 250,
-   "NETHERITE_SPEAR": 500,
-   "SHEARS": 8,
-   "FLINT_AND_STEEL": 5
+   "WOODEN_": 2,
+   "STONE_": 3,
+   "LEATHER_": 3,
+   "GOLDEN_": 8,
+   "CHAINMAIL_": 10,
+   "IRON_": 20,
+   "DIAMOND_": 125,
+   "NETHERITE_": 250,
+   "BOW": 15,
+   "CROSSBOW": 20,
+   "SHIELD": 12,
+   "FISHING_ROD": 5,
+   "TRIDENT": 75,
+   "ELYTRA": 150,
+   "MACE": 100,
+   "DIAMOND_SPEAR": 125,
+   "NETHERITE_SPEAR": 250,
+   "SHEARS": 4,
+   "FLINT_AND_STEEL": 3
   },
   "step": 0.15,
-  "ironHalf": 20
+  "ironHalf": 10
  },
  "gear": {
   "mobShare": 0.25,
@@ -9407,7 +9407,7 @@
  "meta": {
   "generator": "tools/gen_site_data.py",
   "config": "plugin-darklands/src/main/resources/config.yml",
-  "configSha256": "e23bf559191d85e52c6153de4535ecce5f7cf0b424b353992f54278247126eff",
+  "configSha256": "f0691b50d586eb138f01d222d8c417d514f9c691c9a1fced4bf43ac396c24c67",
   "fromFragments": {},
   "codeFacts": {
    "bank.max": "Bank.java",
