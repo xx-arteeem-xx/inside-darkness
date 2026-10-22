@@ -1,18 +1,10 @@
 ---
 import Mark from './Mark.astro';
 import { url } from '../lib/url';
-import { SERVER } from '../config/site';
-import { getDocSections, flatten } from '../lib/docs';
+import { SERVER, CABINET_URL } from '../config/site';
 import links from '../config/links.json';
-
-const docs = flatten(await getDocSections());
-const hasRules = docs.some((d) => d.id === 'rules');
-const hasFaq = docs.some((d) => d.id === 'faq');
 ---
 <footer class="site-footer">
-  <svg class="strata site-footer__edge" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
-    <path fill="var(--bedrock)" d="M0 24V12h48V4h72v12h96V8h40v8h120V0h56v12h88V8h112v8h64V4h96v12h72V8h104v8h48V0h80v16h96V8h56v8h112V4h48v8h72V24z" />
-  </svg>
   <div class="wrap site-footer__grid">
     <div class="site-footer__id">
       <p class="site-footer__name"><Mark class="site-footer__mark" /> Inside Darkness</p>
@@ -22,14 +14,17 @@ const hasFaq = docs.some((d) => d.id === 'faq');
     <nav class="site-footer__nav" aria-label="Ссылки в подвале">
       <ul role="list">
         <li><a href={url('/#join')}>Как зайти</a></li>
-        <li><a href={url('/#first')}>Новичку</a></li>
-        <li><a href={url('/#map')}>Живая карта</a></li>
-        <li><a href={url('/docs/')}>Документация</a></li>
-        {hasFaq && <li><a href={url('/docs/faq/')}>Вопросы и ответы</a></li>}
-        {hasRules && <li><a href={url('/docs/rules/')}>Правила</a></li>}
+        <li><a href={url('/guide/')}>Гайд</a></li>
+        <li><a href={url('/guide/start/')}>Новичку</a></li>
+        <li><a href={url('/map/')}>Карта края</a></li>
+        <li><a href={url('/guide/faq/')}>Частые вопросы</a></li>
+        <li><a href={url('/guide/rules/')}>Правила</a></li>
+      </ul>
+      <ul role="list">
+        <li><a href={CABINET_URL}>Личный кабинет</a></li>
+        <li><a href={url('/#support')}>Поддержать край</a></li>
         {links.telegram.channel && <li><a href={links.telegram.channel} rel="noopener">Канал в Telegram</a></li>}
-        {links.telegram.chat && <li><a href={links.telegram.chat} rel="noopener">Чат в Telegram</a></li>}
-        <li><a href={url('/#donate')}>Поддержать</a></li>
+        {links.telegram.chat && <li><a href={links.telegram.chat} rel="noopener">Беседа в Telegram</a></li>}
         <li><a href={SERVER.repo}>Исходники сайта</a></li>
       </ul>
     </nav>
@@ -43,6 +38,7 @@ const hasFaq = docs.some((d) => d.id === 'faq');
   .site-footer {
     position: relative;
     background: var(--bedrock);
+    box-shadow: inset 0 1px 0 var(--line);
     color: var(--ash);
     font-size: 1rem;
   }
@@ -56,6 +52,7 @@ const hasFaq = docs.some((d) => d.id === 'faq');
 
   .site-footer__id {
     display: grid;
+    align-content: start;
     gap: 0.35rem;
   }
 
@@ -79,10 +76,15 @@ const hasFaq = docs.some((d) => d.id === 'faq');
     overflow-wrap: anywhere;
   }
 
+  .site-footer__nav {
+    display: flex;
+    gap: 1rem 3.5rem;
+  }
+
   .site-footer__nav ul {
     display: grid;
-    grid-template-columns: repeat(2, auto);
-    gap: 0.45rem 2.5rem;
+    align-content: start;
+    gap: 0.45rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -109,6 +111,11 @@ const hasFaq = docs.some((d) => d.id === 'faq');
   @media (max-width: 40rem) {
     .site-footer__grid {
       grid-template-columns: 1fr;
+    }
+
+    .site-footer__nav {
+      gap: 1rem 2rem;
+      flex-wrap: wrap;
     }
   }
 </style>

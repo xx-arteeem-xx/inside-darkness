@@ -1,0 +1,119 @@
+---
+import { url } from '../lib/url';
+
+// Лестница качества вещей (3.0): цвет имени и что даёт. Чисел нет — они в конфиге и могут меняться.
+const ladder = [
+  { q: 'common', name: 'Железный меч', grade: 'Обычное', lines: ['Как в обычной игре'], where: 'Купцы и верстак' },
+  { q: 'uncommon', name: 'Железный меч', grade: 'Необычное', lines: ['Одна прибавка: урон, защита,', 'скорость добычи или здоровье'], where: 'Кузнецы рынка и деревень' },
+  { q: 'rare', name: 'Алмазный меч', grade: 'Редкое', lines: ['Две прибавки', 'и особое свойство'], where: 'Воевода в Деревне мастеров' },
+  { q: 'set', name: 'Нагрудник Чёрного рыцаря', grade: 'Комплектное', lines: ['Прибавки как у Редкого', 'и сила комплекта за части'], where: 'Только хозяин своего подземелья' },
+  { q: 'legend', name: 'Меч Чёрного рыцаря', grade: 'Легендарное', lines: ['Больше всего прибавок', 'и сильные свойства'], where: 'Изредка — с хозяина подземелья' },
+];
+---
+<section class="quality section" aria-labelledby="quality-title">
+  <div class="wrap quality__grid">
+    <header class="section-head quality__head">
+      <h2 class="section-title" id="quality-title">Вещь растёт вместе с тобой</h2>
+      <p class="section-lead">
+        Качество видно по цвету имени. Чем оно выше, тем больше прибавок и свойств. Чары — отдельно: зачаровать
+        можно вещь любого качества.
+      </p>
+      <p class="quality__text">
+        Кузнец поднимает качество за материалы и монеты, без случайных неудач, — даже железный меч можно довести до
+        Редкого. Выше начинаются комплекты с хозяев подземелий и именные вещи. Ветераны ничего не теряют: их
+        зачарованное снаряжение уже получило своё качество.
+      </p>
+      <a class="more" href={url('/guide/gear/')}>Как устроено снаряжение</a>
+    </header>
+
+    <ol class="quality__ladder" role="list" aria-label="Качество вещей, от простого к высшему">
+      {ladder.map((it, i) => (
+        <li class:list={['tip', `tip--${it.q}`]} style={`--i:${i}`}>
+          <p class="tip__name">{it.name}</p>
+          <p class="tip__grade">{it.grade}</p>
+          {it.lines.map((l) => <p class="tip__line">{l}</p>)}
+          <p class="tip__where">{it.where}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .quality {
+    background: var(--slate-0);
+  }
+
+  .quality__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: center;
+    gap: 3rem clamp(2rem, 5vw, 5rem);
+  }
+
+  .quality__text {
+    color: var(--ash);
+    line-height: 1.55;
+  }
+
+  .quality__head .more {
+    justify-self: start;
+  }
+
+  /* Подсказки предметов как в самой игре: тёмно-фиолетовый фон, рамка, пиксельный шрифт. */
+  .quality__ladder {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tip {
+    --c: var(--q-common);
+    position: relative;
+    width: fit-content;
+    min-width: min(100%, 19rem);
+    max-width: calc(100% - var(--i) * clamp(0.5rem, 2.2vw, 1.75rem));
+    margin-left: calc(var(--i) * clamp(0.5rem, 2.2vw, 1.75rem));
+    padding: 0.7rem 1rem 0.75rem;
+    background: rgb(16 1 16 / 0.94);
+    box-shadow:
+      inset 0 0 0 2px #100110,
+      inset 0 0 0 4px #2b0d5a,
+      0 6px 0 rgb(0 0 0 / 0.35);
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .tip--uncommon { --c: var(--q-uncommon); }
+  .tip--rare { --c: var(--q-rare); }
+  .tip--set { --c: var(--q-set); }
+  .tip--legend { --c: var(--q-legend); }
+
+  .tip__name {
+    color: var(--c);
+    font-size: 1.125rem;
+  }
+
+  .tip__grade {
+    color: var(--c);
+    opacity: 0.8;
+  }
+
+  .tip__line {
+    color: #a8a8a8;
+  }
+
+  .tip__where {
+    margin-top: 0.3rem;
+    color: #5a5ad8;
+  }
+
+  @media (max-width: 60rem) {
+    .quality__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

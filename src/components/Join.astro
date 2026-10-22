@@ -1,58 +1,57 @@
 ---
 import CopyButton from './CopyButton.astro';
 import { SERVER } from '../config/site';
-import { docHref } from '../lib/docs';
+import { url } from '../lib/url';
 import { G } from '../data/game';
+import links from '../config/links.json';
 
-const startHref = await docHref('start');
+const tg = links.telegram;
+const guide = G.npcs.who.guide.name.charAt(0).toLowerCase() + G.npcs.who.guide.name.slice(1);
 ---
 <section class="join section" id="join" aria-labelledby="join-title">
-  <svg class="strata" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true" shape-rendering="crispEdges">
-    <path fill="var(--slate-0)" d="M0 24V12h88V4h136v12h160V8h96v8h120V0h72v12h184V8h104v8h112V4h128v12h96V8h144V24z" />
-  </svg>
   <div class="wrap">
     <header class="section-head">
       <h2 class="section-title" id="join-title">Как зайти</h2>
-      <p class="section-lead">Три шага. Подойдёт и лицензия, и пиратский лаунчер.</p>
+      <p class="section-lead">Три шага, моды не нужны. Подойдёт и лицензия, и пиратский лаунчер.</p>
     </header>
 
     <ol class="steps" role="list">
       <li class="step">
         <h3 class="step__title">Добавь сервер</h3>
-        <p>Запусти Java Edition от {SERVER.versions.replace('–', ' до ')}. В «Сетевой игре» нажми «Добавить сервер» и вставь адрес:</p>
+        <p>
+          Запусти Minecraft Java Edition любой версии от {SERVER.versionFrom} до {SERVER.versionTo}. В «Сетевой игре»
+          нажми «Добавить сервер» и вставь адрес:
+        </p>
         <div class="step__cmd">
           <span class="chat"><code id="join-address">{SERVER.address}</code></span>
           <CopyButton text={SERVER.address} target="join-address" label="Скопировать" done="Адрес скопирован" quiet small />
         </div>
       </li>
       <li class="step">
-        <h3 class="step__title">Прими ресурспак</h3>
-        <p>
-          При входе сервер предложит свой набор ресурсов, нажми «Да». Без него у части предметов не будет своих
-          текстур.
-        </p>
+        <h3 class="step__title">Придумай пароль</h3>
+        <p>Вход защищён паролем на самом сервере, поэтому пиратский клиент тоже подходит. В первый раз напиши в чат пароль дважды:</p>
+        <p class="chat"><code>/register пароль пароль</code></p>
+        <p>Дальше хватит одного раза:</p>
+        <p class="chat"><code>/login пароль</code></p>
+        <p class="step__warn">Придумай отдельный пароль. Пароль от почты или другого аккаунта сюда не вводи.</p>
       </li>
       <li class="step">
-        <h3 class="step__title">Зарегистрируйся</h3>
-        <p>В первый раз напиши в чат пароль дважды:</p>
-        <p class="chat"><code>/register &lt;пароль&gt; &lt;пароль&gt;</code></p>
-        <p>Дальше хватит одного:</p>
-        <p class="chat"><code>/login &lt;пароль&gt;</code></p>
-        <p>Ты появишься на площади у цитадели столицы. Рядом — {G.npcs.who.guide.name}, с него и начинай. С чего начать — в блоке ниже.</p>
+        <h3 class="step__title">Начни у проводника</h3>
+        <p>
+          Ты появишься на площади у цитадели столицы. Рядом стоит {guide}: нажми по нему правой
+          кнопкой мыши — он расскажет об основах, даст первые задания и монеты за них.
+        </p>
+        <p>
+          Сервер предложит свой набор ресурсов — лучше принять: так у вещей края будут свои значки. Без него всё
+          тоже работает.
+        </p>
       </li>
     </ol>
 
-    <div class="join__notes">
-      <p>
-        <strong>Пароль.</strong> Придумай для сервера отдельный. Пароль от почты или другого аккаунта сюда не вводи.
-      </p>
-      <p>
-        <strong>Сервер не отвечает.</strong> Он работает не круглосуточно: на хостинге exaroton засыпает, когда в игре
-        никого нет. Попробуй зайти позже.
-      </p>
-      <p>
-        Подробнее о первом входе: <a href={startHref}>Первые шаги</a>.
-      </p>
+    <div class="join__links">
+      <a class="more" href={url('/guide/start/')}>Подробно о первых шагах</a>
+      {tg.channel && <a class="more" href={tg.channel} rel="noopener">Канал в Telegram: новости и летопись перемен</a>}
+      {tg.chat && <a class="more" href={tg.chat} rel="noopener">Беседа в Telegram: события мира и общение</a>}
     </div>
   </div>
 </section>
@@ -65,31 +64,30 @@ const startHref = await docHref('start');
   .steps {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2.5rem clamp(1.5rem, 3vw, 2.5rem);
-    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+    gap: 1.5rem;
+    margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
     padding: 0;
     list-style: none;
     counter-reset: step;
   }
 
   .step {
+    position: relative;
     display: grid;
     align-content: start;
-    gap: 0.75rem;
+    gap: 0.8rem;
+    padding: 1.6rem 1.4rem 1.5rem;
+    background: var(--slate-1);
+    box-shadow: inset 0 0 0 1px var(--slate-3);
     counter-increment: step;
   }
 
-  /* Номер шага: крупная цифра, под ней ступень кладки. */
   .step::before {
     content: counter(step);
-    display: block;
-    padding-bottom: 0.75rem;
-    margin-bottom: 0.5rem;
-    color: var(--torch);
-    font-size: clamp(3.5rem, 2.5rem + 3vw, 5rem);
-    font-weight: 900;
-    line-height: 0.8;
-    box-shadow: 0 2px 0 var(--slate-4);
+    color: var(--ember);
+    font-family: var(--font-pixel);
+    font-size: 2rem;
+    line-height: 1;
   }
 
   .step__title {
@@ -108,28 +106,24 @@ const startHref = await docHref('start');
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 
-  .join__notes {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem clamp(1.5rem, 3vw, 2.5rem);
-    margin-top: clamp(3rem, 6vw, 4rem);
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--line);
-    color: var(--ash);
+  .step__warn {
+    color: var(--ash) !important;
     font-size: 1rem;
   }
 
-  .join__notes strong {
-    color: var(--bone);
+  .join__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    margin-top: 2.25rem;
   }
 
-  @media (max-width: 56rem) {
-    .steps,
-    .join__notes {
-      grid-template-columns: 1fr;
+  @media (max-width: 60rem) {
+    .steps {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

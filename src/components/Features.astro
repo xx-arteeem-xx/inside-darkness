@@ -1,0 +1,123 @@
+---
+import Pixel from './Pixel.astro';
+import { GLYPHS, type GlyphId } from '../lib/emblems';
+import { url } from '../lib/url';
+import { G } from '../data/game';
+
+const R = G.ranks.names;
+const items: { glyph: GlyphId; title: string; text: string; href: string; more: string }[] = [
+  {
+    glyph: 'pouch',
+    title: 'Ремёсла и торг',
+    text: `Шахта, поле, сад, рыбалка и охота на тварей, а над ними — торговое дело. В каждом занятии свои ранги, от «${R[0]}» до «${R[R.length - 1]}». Цены у купцов живые: их двигают вести, расстояние и набеги.`,
+    href: '/guide/crafts/',
+    more: 'Занятия и ранги',
+  },
+  {
+    glyph: 'anvil',
+    title: 'Качество вещей и комплекты',
+    text: 'У каждой вещи есть качество, от обычного до легендарного. Кузнец поднимает его за материалы и монеты, без случайных неудач. Комплекты собирают с хозяев подземелий.',
+    href: '/guide/gear/',
+    more: 'Снаряжение',
+  },
+  {
+    glyph: 'skull',
+    title: 'Подземелья с хозяевами',
+    text: 'Подземелье проходят зал за залом: твари идут волнами, решётка поднимается после зачистки. В конце — хозяин со своим приёмом и личный сундук добычи каждому, кто бился.',
+    href: '/guide/dungeons/',
+    more: 'Подземелья',
+  },
+  {
+    glyph: 'darkheart',
+    title: 'Тёмные земли за Стеной',
+    text: 'За Большой стеной нет солнца и закона. Твари живут в логовах: чем глубже, тем сильнее и богаче добыча. Тьма давит на тех, кто идёт без ладанки.',
+    href: '/guide/darklands/',
+    more: 'Тёмные земли',
+  },
+  {
+    glyph: 'banner',
+    title: 'Жильё, дружины, поручения',
+    text: 'Комната в таверне или дом в деревне — со своей кроватью и сундуками. Дружиной ходят на хозяев и отбивают набеги, у старост и в столице берут поручения.',
+    href: '/guide/housing/',
+    more: 'Жизнь в краю',
+  },
+  {
+    glyph: 'scroll',
+    title: 'Всё через жителей',
+    text: 'Торг, поездки, жильё, ранги — у жителей, в их окнах. Ямщик возит, казначей хранит, летописец платит за открытые места. Команды учить не нужно.',
+    href: '/guide/world/',
+    more: 'Край и его места',
+  },
+];
+---
+<section class="features section" id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 class="section-title" id="features-title">Чем этот край отличается</h2>
+      <p class="section-lead">
+        Обычный Minecraft, только устроенный как MMORPG: роли, рост, добыча, опасность и люди вокруг. Каждую систему
+        объясняет житель одной фразой, и открывается она тогда, когда ты до неё дорос.
+      </p>
+    </header>
+
+    <ul class="features__list" role="list">
+      {items.map((it) => (
+        <li class="feature">
+          <span class="slot"><Pixel grid={GLYPHS[it.glyph]} /></span>
+          <div class="feature__body">
+            <h3 class="feature__title">{it.title}</h3>
+            <p class="feature__text">{it.text}</p>
+            <a class="feature__more" href={url(it.href)}>{it.more}</a>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .features {
+    padding-top: clamp(3rem, 6vw, 5rem);
+    background:
+      linear-gradient(180deg, var(--void), var(--slate-0) 22%);
+  }
+
+  .features__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+    gap: 2.75rem clamp(2rem, 4vw, 3.5rem);
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feature {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.1rem;
+    align-items: start;
+  }
+
+  .feature__title {
+    font-size: var(--fs-md);
+    line-height: 1.15;
+  }
+
+  .feature__text {
+    margin-top: 0.5rem;
+    color: var(--bone-2);
+    line-height: 1.55;
+  }
+
+  .feature__more {
+    display: inline-block;
+    margin-top: 0.6rem;
+    color: var(--gold);
+    font-weight: 700;
+    text-decoration-color: var(--gold-deep);
+  }
+
+  .feature__more:hover {
+    color: var(--bone);
+  }
+</style>

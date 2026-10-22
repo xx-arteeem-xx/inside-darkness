@@ -1,169 +1,82 @@
 ---
 import CopyButton from './CopyButton.astro';
-import ServerStatus from './ServerStatus.astro';
-import { SERVER } from '../config/site';
+import { SERVER, CABINET_URL } from '../config/site';
 import { url } from '../lib/url';
-import { buildCapital, W, H } from '../lib/art/capital';
-import { G, START_COINS, fmt } from '../data/game';
-import { plural } from '../lib/facts.mjs';
+import { MAP } from '../lib/map';
 
-const art = buildCapital();
-
-const FILL: Record<string, string> = {
-  ridge2: '#19213a',
-  ridge1: '#121829',
-  sea: '#0d1426',
-  wave: '#1f2b49',
-  house: '#1b1d26',
-  roofW: '#3b1821',
-  roofWrim: '#5e2532',
-  roofS: '#252836',
-  roofSrim: '#3b4054',
-  temple: '#1e2029',
-  templeRim: '#363b4e',
-  pole: '#5c5648',
-  deep: 'url(#pat-deep)',
-  deepRim: '#353a4e',
-  deepBand: '#262833',
-  flag: '#8e2232',
-  flagRim: '#b8323f',
-  banner: '#e0a845',
-  wall: 'url(#pat-wall)',
-  wallTop: '#3a4054',
-  rim: '#3a4157',
-  shade: '#15171e',
-  slit: '#07080b',
-  gate: 'url(#gate-light)',
-  grate: '#2a1d10',
-  water: '#0b1120',
-  ground: '#101014',
-  grass: '#171a21',
-  bush: '#13151b',
-  bridge: '#252832',
-  bridgeRim: '#3b4052',
-  arch: '#0b1120',
-  cottage: '#1c1e27',
+// Диск края на обзорной карте: 768 точек на сторону, центр — середина.
+const V = 768;
+const c = MAP.center[0] * V;
+const r = (n: number) => (n * V).toFixed(1);
+const wallPoints = MAP.wall.map(([u, v]) => `${r(u)},${r(v)}`).join(' ');
+// Подписи по дуге: Стена — по своей линии, тёмные земли — посередине между Стеной и краем мира.
+const wallR = Math.hypot(MAP.wall[0][0] - 0.5, MAP.wall[0][1] - 0.5);
+const darkR = (wallR + MAP.border) / 2;
+const arc = (rad: number, from: number, to: number) => {
+  const a0 = (from * Math.PI) / 180;
+  const a1 = (to * Math.PI) / 180;
+  const R = rad * V;
+  const p = (a: number) => `${(c + R * Math.cos(a)).toFixed(1)} ${(c + R * Math.sin(a)).toFixed(1)}`;
+  return `M${p(a0)} A${R.toFixed(1)} ${R.toFixed(1)} 0 0 1 ${p(a1)}`;
 };
-
-// Квадратная луна 6×6 клеток: светлые и чуть темнее «кратеры».
-const craters = [[1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4]];
 ---
-<section class="hero" id="server" aria-labelledby="hero-title">
-  <div class="hero__sky" aria-hidden="true">
-    <svg class="hero__stars" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMin slice" shape-rendering="crispEdges">
-      <path d={art.sky} fill="#d9d3c2" opacity="0.45" />
-      <path d={art.skyBright} fill="#f3eddc" opacity="0.8" />
-    </svg>
-    <svg class="hero__moon" viewBox="0 0 48 48" shape-rendering="crispEdges">
-      <rect width="48" height="48" fill="#eae3cf" />
-      {craters.map(([cx, cy]) => <rect x={cx * 8} y={cy * 8} width="8" height="8" fill="#cdc5ae" />)}
-    </svg>
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__map" aria-hidden="true">
+    <div class="hero__disc">
+      <img
+        src={url('/map/0.webp')}
+        alt=""
+        width={V}
+        height={V}
+        fetchpriority="high"
+        decoding="async"
+      />
+      <svg viewBox={`0 0 ${V} ${V}`} class="hero__ring">
+        <defs>
+          <path id="arc-dark" d={arc(darkR, 200, 290)} />
+          <path id="arc-wall" d={arc(wallR + 0.012, 300, 352)} />
+          <radialGradient id="hero-vignette" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0.6" stop-color="#07090f" stop-opacity="0" />
+            <stop offset="1" stop-color="#07090f" stop-opacity="0.85" />
+          </radialGradient>
+        </defs>
+        <rect width={V} height={V} fill="url(#hero-vignette)" />
+        <polygon class="hero__wall-glow" points={wallPoints} />
+        <polygon class="hero__wall" points={wallPoints} pathLength="1" />
+        <text class="hero__arc hero__arc--dark"><textPath href="#arc-dark" startOffset="50%" text-anchor="middle">Тёмные земли</textPath></text>
+        <text class="hero__arc hero__arc--wall"><textPath href="#arc-wall" startOffset="50%" text-anchor="middle">Большая стена</textPath></text>
+        <g class="hero__capital" transform={`translate(${r(MAP.center[0])} ${r(MAP.center[1])})`}>
+          <rect x="-4" y="-4" width="8" height="8" />
+          <text x="10" y="-8">Столица</text>
+        </g>
+      </svg>
+    </div>
   </div>
 
-  <div class="wrap hero__content">
-    <p class="hero__kicker">Средневековый сервер Minecraft</p>
-    <h1 class="hero__title" id="hero-title"><span>Inside</span> <span>Darkness</span></h1>
+  <div class="hero__body">
+    <h1 class="hero__title" id="hero-title">
+      <span class="hero__name">Inside Darkness</span>
+      <span class="hero__genre">MMORPG</span>
+    </h1>
+    <p class="hero__tagline">Последний обжитой край посреди тьмы</p>
     <p class="hero__lead">
-      Живи, торгуй и расти в тёмном средневековом княжестве за Большой стеной.
+      Русский сервер Minecraft, устроенный как настоящая MMORPG, — без модов и без команд. Ремесло и торг кормят,
+      ранги и качество вещей растят силу, хозяева подземелий ждут дружину, а за Большой стеной лежат тёмные земли.
     </p>
-    <p class="hero__sub">
-      Копай руду, собирай урожай, ходи в подземелья и за Стену. Цены у купцов живые: их двигают вести, расстояние
-      и набеги. Мастера дают ранги, ямщики возят, банк хранит. Всё делается у людей — команд почти нет.
-    </p>
-
-    <ul class="hero__stats" role="list">
-      <li><b>{fmt(START_COINS)}</b> {plural(START_COINS, ['монета', 'монеты', 'монет'])} на старте</li>
-      <li><b>{fmt(G.crafts.count)}</b> {plural(G.crafts.count, ['ремесло', 'ремесла', 'ремёсел'])}</li>
-      <li><b>{fmt(G.demand.newsCount)}</b> {plural(G.demand.newsCount, ['весть двигает', 'вести двигают', 'вестей двигают'])} цены</li>
-      <li><b>{fmt(G.bosses.count)}</b> {plural(G.bosses.count, ['хозяин', 'хозяина', 'хозяев'])} подземелий</li>
-    </ul>
 
     <div class="plate">
       <p class="plate__label" id="address-label">Адрес для Java Edition {SERVER.versions}</p>
       <div class="plate__row">
         <code class="plate__addr" id="server-address" aria-labelledby="address-label">{SERVER.address}</code>
-        <CopyButton text={SERVER.address} target="server-address" label="Скопировать адрес" done="Адрес скопирован" />
+        <CopyButton text={SERVER.address} target="server-address" label="Скопировать" done="Адрес скопирован" />
       </div>
+      <p class="plate__note">Подходит и лицензия, и пиратский клиент: вход по паролю на самом сервере.</p>
     </div>
 
-    <ServerStatus />
-
-    <p class="hero__facts">
-      Пиратские клиенты пускаются. Моды не нужны, ресурспак сервер выдаёт сам.{' '}
-      <a class="hero__how" href={url('/#join')}>Как зайти</a>
-      <span aria-hidden="true"> · </span>
-      <a class="hero__how" href={url('/#how')}>Как устроена игра</a>
-    </p>
-  </div>
-
-  <div class="hero__art" aria-hidden="true">
-    <div class="pano">
-      <svg class="pano__layer pano__layer--far" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" shape-rendering="crispEdges">
-        <defs>
-          <radialGradient id="haze" cx="0.62" cy="0.78" r="0.5">
-            <stop offset="0" stop-color="#eda33c" stop-opacity="0.16" />
-            <stop offset="0.55" stop-color="#eda33c" stop-opacity="0.05" />
-            <stop offset="1" stop-color="#eda33c" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        <rect x="200" y="180" width="1400" height="460" fill="url(#haze)" shape-rendering="auto" />
-        {art.far.map((p) => <path d={p.d} fill={FILL[p.key]} />)}
-      </svg>
-
-      <svg class="pano__layer pano__layer--city" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" shape-rendering="crispEdges">
-        <defs>
-          <pattern id="pat-wall" width="24" height="12" patternUnits="userSpaceOnUse">
-            <rect width="24" height="12" fill="#20232d" />
-            <path d="M0 0h24v2H0zM0 6h24v2H0zM0 0h2v6H0zM12 6h2v6h-2z" fill="#1a1c24" />
-            <path d="M4 2h6v2H4zM16 8h6v2h-6z" fill="#252833" />
-          </pattern>
-          <pattern id="pat-deep" width="16" height="8" patternUnits="userSpaceOnUse">
-            <rect width="16" height="8" fill="#1a1b23" />
-            <path d="M0 0h16v2H0zM0 0h2v4H0zM8 4h2v4H8z" fill="#121318" />
-            <path d="M0 4h16v1H0z" fill="#121318" />
-            <path d="M3 2h4v1H3zM11 5h4v1h-4z" fill="#22232d" />
-          </pattern>
-          <linearGradient id="gate-light" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#3a220c" />
-            <stop offset="0.6" stop-color="#b8701f" />
-            <stop offset="1" stop-color="#f2b04a" />
-          </linearGradient>
-          <radialGradient id="torch-glow">
-            <stop offset="0" stop-color="#f4b350" stop-opacity="0.55" />
-            <stop offset="0.4" stop-color="#eda33c" stop-opacity="0.18" />
-            <stop offset="1" stop-color="#eda33c" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        {art.back.map((p) => <path d={p.d} fill={FILL[p.key]} />)}
-        <path d={art.dark} fill="#0b0c11" />
-        <g class="windows">
-          {art.windows.map((d, i) => <path class="win" d={d} style={`--i:${i}`} />)}
-        </g>
-        {art.front.map((p) => <path d={p.d} fill={FILL[p.key]} />)}
-        {[0, 1, 2].map((g) => (
-          <g class:list={['torch', `torch--${g}`]}>
-            {art.torches.filter((t) => t.g === g).map((t) => (
-              <circle cx={t.x + 2} cy={t.y + 2} r="26" fill="url(#torch-glow)" shape-rendering="auto" />
-            ))}
-            <path
-              fill="#f2a83e"
-              d={art.torches.filter((t) => t.g === g).map((t) => `M${t.x - 1} ${t.y}h6v6h-6z`).join('')}
-            />
-            <path
-              fill="#fff1c4"
-              d={art.torches.filter((t) => t.g === g).map((t) => `M${t.x + 1} ${t.y + 2}h2v3h-2z`).join('')}
-            />
-            <path
-              fill="#4d3418"
-              d={art.torches.filter((t) => t.g === g).map((t) => `M${t.x + 1} ${t.y + 6}h2v10h-2z`).join('')}
-            />
-          </g>
-        ))}
-      </svg>
-
-      <svg class="pano__layer pano__layer--fore" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" shape-rendering="crispEdges">
-        {art.fore.map((p) => <path d={p.d} fill={FILL[p.key]} />)}
-      </svg>
+    <div class="hero__actions">
+      <a class="btn btn--ember" href={url('/#join')}>Как зайти</a>
+      <a class="btn btn--quiet" href={CABINET_URL}>Личный кабинет</a>
+      <a class="more" href={url('/guide/')}>Гайд по краю</a>
     </div>
   </div>
 </section>
@@ -172,126 +85,173 @@ const craters = [[1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4]];
   .hero {
     position: relative;
     isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: min(100vh, 62rem);
+    padding: 7.5rem var(--gutter) 4rem;
     overflow: hidden;
-    background: linear-gradient(180deg, #05070e 0%, #0a0f1d 30%, #121a30 62%, #1c2543 88%, #1c2543 100%);
-    /* --pw: ширина панорамы, не уже экрана; высота по пропорции 1600×640 */
-    container-type: inline-size;
-    --pw: max(100vw, 46rem);
-    --ph: calc(var(--pw) / 2.5);
-    --overlap: 0.08;
-    --focus: 0.64;
-    --anchor: 0.56;
+    background:
+      radial-gradient(ellipse 60% 70% at 72% 48%, rgb(194 51 69 / 0.1), transparent 70%),
+      var(--void);
   }
 
-  @supports (width: 1cqw) {
-    .hero {
-      --pw: max(100cqw, 46rem);
-    }
-  }
-
-  .hero__sky {
+  /* ——— диск края ——— */
+  .hero__map {
     position: absolute;
-    inset: 0;
     z-index: -1;
+    top: 50%;
+    right: max(-14rem, calc(50% - 50rem));
+    width: min(58rem, 112vh);
+    transform: translateY(-50%);
   }
 
-  .hero__stars {
+  .hero__disc {
+    position: relative;
+    aspect-ratio: 1;
+  }
+
+  .hero__disc img,
+  .hero__ring {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
   }
 
-  .hero__moon {
-    position: absolute;
-    top: clamp(6.5rem, 14vh, 9rem);
-    right: clamp(1.5rem, 12vw, 14rem);
-    width: clamp(2.5rem, 3.4vw, 3.5rem);
-    height: auto;
-    filter: drop-shadow(0 0 1.75rem rgb(234 227 207 / 0.38));
+  .hero__disc img {
+    image-rendering: pixelated;
   }
 
-  .hero__content {
+  .hero__wall,
+  .hero__wall-glow {
+    fill: none;
+    stroke-linejoin: round;
+  }
+
+  .hero__wall-glow {
+    stroke: rgb(194 51 69 / 0.4);
+    stroke-width: 9;
+    filter: blur(1.5px);
+  }
+
+  .hero__wall {
+    stroke: #f0c4ae;
+    stroke-width: 2;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .hero__arc {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 17px;
+    letter-spacing: 0.22em;
+  }
+
+  .hero__arc--dark {
+    fill: rgb(214 170 190 / 0.55);
+  }
+
+  .hero__arc--wall {
+    fill: #f0c4ae;
+    font-size: 14px;
+  }
+
+  .hero__capital rect {
+    fill: var(--gold);
+    stroke: #000;
+    stroke-width: 2;
+  }
+
+  .hero__capital text {
+    fill: var(--bone);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 17px;
+    paint-order: stroke;
+    stroke: #07090f;
+    stroke-width: 4px;
+  }
+
+  /* Одна сцена при загрузке: Стена обходит край по кругу. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__wall {
+      animation: wall-draw 2.4s cubic-bezier(0.6, 0, 0.2, 1) 0.2s both;
+    }
+
+    .hero__wall-glow {
+      animation: glow-in 1.2s ease 2s both;
+    }
+
+    @keyframes wall-draw {
+      from { stroke-dashoffset: 1; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes glow-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  }
+
+  /* ——— текст ——— */
+  .hero__body {
     position: relative;
-    z-index: 2;
-    padding-top: clamp(7.5rem, 15vh, 9.5rem);
+    align-self: center;
+    width: 100%;
+    max-width: calc(var(--wrap) - 2 * var(--gutter));
+    margin-inline: auto;
   }
 
-  .hero__kicker {
-    margin-bottom: 1rem;
-    color: var(--torch);
-    font-family: var(--font-pixel);
-    font-size: 1rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+  .hero__body > * {
+    max-width: 36rem;
   }
 
   .hero__title {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 0.25em;
+    display: grid;
+    justify-items: start;
+    gap: 0.9rem;
+    max-width: none;
+  }
+
+  .hero__name {
+    color: var(--ember);
     font-size: var(--fs-hero);
     font-weight: 900;
-    line-height: 0.84;
-    letter-spacing: -0.035em;
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    text-shadow: 0 0.035em 0 #3a0a12, 0 0 0.6em rgb(194 51 69 / 0.25);
+  }
+
+  .hero__genre {
+    padding: 0.3rem 0.65rem 0.35rem;
+    background: rgb(7 9 15 / 0.7);
+    box-shadow: inset 0 0 0 2px var(--ember-deep), inset 0 0 0 4px rgb(0 0 0 / 0.6);
     color: var(--bone);
-    text-shadow: 0 0.04em 0 rgb(0 0 0 / 0.35);
+    font-family: var(--font-pixel);
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    line-height: 1;
   }
 
-  .hero__title span {
-    display: block;
-  }
-
-  .hero__lead {
-    max-width: 34rem;
-    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  .hero__tagline {
+    margin-top: 1.6rem;
     color: var(--bone);
     font-size: var(--fs-lg);
     font-weight: 700;
-    line-height: 1.22;
+    line-height: 1.2;
     text-wrap: balance;
   }
 
-  .hero__sub {
-    max-width: 34rem;
-    margin-top: 0.9rem;
+  .hero__lead {
+    margin-top: 1rem;
     color: var(--bone-2);
     font-size: var(--fs-md);
-    line-height: 1.45;
-  }
-
-  /* Цифры-факты: плашки как подписи в игровом интерфейсе. */
-  .hero__stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    max-width: 38rem;
-    margin: 1.6rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .hero__stats li {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.45rem;
-    padding: 0.3rem 0.7rem 0.35rem;
-    background: rgb(5 6 10 / 0.6);
-    box-shadow: inset 0 0 0 2px var(--slate-3);
-    color: var(--bone-2);
-    font-size: 1rem;
-    line-height: 1.3;
-  }
-
-  .hero__stats b {
-    color: var(--gold);
-    font-family: var(--font-pixel);
-    font-size: 1.125rem;
-    font-weight: 400;
+    line-height: 1.5;
   }
 
   .plate {
-    max-width: 38rem;
     margin-top: 2rem;
   }
 
@@ -306,187 +266,64 @@ const craters = [[1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4]];
     align-items: center;
     gap: 0.75rem 1rem;
     padding: 0.5rem 0.5rem 0.5rem 1.1rem;
-    background: rgb(5 6 10 / 0.72);
-    box-shadow:
-      inset 0 0 0 2px #3b4156,
-      inset 0 0 0 4px rgb(0 0 0 / 0.6);
+    background: rgb(5 6 10 / 0.82);
+    box-shadow: inset 0 0 0 2px #3b4156, inset 0 0 0 4px rgb(0 0 0 / 0.6);
   }
 
   .plate__addr {
     flex: 1 1 auto;
     min-width: 0;
     color: var(--gold);
-    font-size: 1.5rem;
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);
     line-height: 1.2;
     overflow-wrap: anywhere;
     user-select: all;
   }
 
-  .hero :global(.status) {
-    max-width: 38rem;
-    margin-top: 1.1rem;
-  }
-
-  .hero__facts {
-    max-width: 38rem;
-    margin-top: 1.1rem;
+  .plate__note {
+    margin-top: 0.6rem;
     color: var(--ash);
-    font-size: 1.0625rem;
-    line-height: 1.5;
+    font-size: 1rem;
   }
 
-  .hero__how {
-    color: var(--bone);
-    font-weight: 700;
-    white-space: nowrap;
-    text-decoration-color: var(--gold-deep);
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    margin-top: 1.75rem;
   }
 
-  .hero__how:hover {
-    color: var(--gold);
-    text-decoration-color: var(--gold);
-  }
-
-  /* ——— панорама ——— */
-  .hero__art {
-    position: relative;
-    z-index: 1;
-    height: var(--ph);
-    margin-top: calc(var(--ph) * var(--overlap) * -1 + 2rem);
-    pointer-events: none;
-  }
-
-  .pano {
-    position: absolute;
-    bottom: 0;
-    width: var(--pw);
-    height: var(--ph);
-    /* точка --focus картинки встаёт в точку --anchor экрана, края не уходят внутрь */
-    left: clamp(calc(100% - var(--pw)), calc(100% * var(--anchor) - var(--pw) * var(--focus)), 0px);
-  }
-
-  .pano__layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-
-  .win {
-    fill: #f2b04a;
-    animation: win-on 0.4s steps(2, end) both;
-    animation-delay: calc(var(--i) * 180ms + 400ms);
-  }
-
-  .windows {
-    filter: drop-shadow(0 0 3px rgb(242 176 74 / 0.75));
-  }
-
-  @keyframes win-on {
-    from { fill: #0b0c11; }
-    to { fill: #f2b04a; }
-  }
-
-  .torch {
-    animation: flicker 2.3s steps(6, end) infinite;
-  }
-
-  .torch--1 {
-    animation-duration: 1.9s;
-    animation-delay: -0.7s;
-  }
-
-  .torch--2 {
-    animation-duration: 2.7s;
-    animation-delay: -1.3s;
-  }
-
-  .hero[data-paused] .torch {
-    animation-play-state: paused;
-  }
-
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    18% { opacity: 0.82; }
-    34% { opacity: 1; }
-    52% { opacity: 0.74; }
-    70% { opacity: 0.95; }
-    84% { opacity: 0.86; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .win,
-    .torch {
-      animation: none;
-    }
-  }
-
-  /* Глубина при прокрутке: дальние слои отстают. Только если браузер умеет scroll-timeline
-     и человек не просил убрать движение. */
-  @media (prefers-reduced-motion: no-preference) and (min-width: 48rem) {
-    @supports (animation-timeline: scroll()) {
-      .hero__stars,
-      .hero__moon,
-      .pano__layer--far,
-      .pano__layer--city {
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-        animation-timeline: scroll(root);
-        animation-range: 0 100vh;
-      }
-
-      .hero__stars { animation-name: sink-stars; }
-      .hero__moon { animation-name: sink-moon; }
-      .pano__layer--far { animation-name: sink-far; }
-      .pano__layer--city { animation-name: sink-city; }
-
-      @keyframes sink-stars { to { transform: translateY(22vh); } }
-      @keyframes sink-moon { to { transform: translateY(26vh); } }
-      @keyframes sink-far { to { transform: translateY(14%); } }
-      @keyframes sink-city { to { transform: translateY(6%); } }
-    }
-  }
-
-  /* Широкий экран: текст слева на фоне неба, город встаёт под ним и справа. */
-  @media (min-width: 64rem) {
+  @media (max-width: 64rem) {
     .hero {
-      --overlap: 0.46;
-      --focus: 0.5;
-      --anchor: 0.5;
+      min-height: 0;
+      padding-top: 0;
     }
 
-    .hero__art {
-      margin-top: calc(var(--ph) * var(--overlap) * -1);
+    .hero__map {
+      position: relative;
+      top: auto;
+      right: auto;
+      width: min(40rem, 118vw);
+      margin: 5.5rem auto -32% max(-9vw, calc(50% - 20rem));
+      transform: none;
+      -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 92%);
+      mask-image: linear-gradient(180deg, #000 55%, transparent 92%);
     }
 
-    .plate__addr {
-      white-space: nowrap;
-    }
-  }
-
-  /* Ноутбук: колонка текста широкая относительно экрана, поэтому панорама шире экрана
-     и донжон уезжает вправо, чтобы не встать за адресом. */
-  @media (min-width: 64rem) and (max-width: 82rem) {
-    .hero {
-      --pw: max(100vw, 82rem);
-      --focus: 0.64;
-      --anchor: 0.8;
-    }
-
-    @supports (width: 1cqw) {
-      .hero {
-        --pw: max(100cqw, 82rem);
-      }
+    .hero__body > * {
+      max-width: 40rem;
     }
   }
 
   @media (max-width: 40rem) {
-    /* Луна уходит к короткой строке «Inside», чтобы не наезжать на подпись. */
-    .hero__moon {
-      top: 10.75rem;
-      right: 1.5rem;
-      width: 2.25rem;
+    .hero__map {
+      margin-top: 6.5rem;
+      margin-left: -9vw;
+    }
+
+    .hero__arc {
+      font-size: 24px;
     }
 
     .plate__row {
@@ -495,23 +332,9 @@ const craters = [[1, 1], [2, 1], [4, 2], [1, 3], [3, 4], [4, 4], [2, 4]];
       padding: 0.9rem;
     }
 
-    .plate__addr {
-      font-size: 1.25rem;
-    }
-
     .plate__row :global(.copy),
     .plate__row :global(.btn) {
       width: 100%;
     }
   }
 </style>
-
-<script>
-  // Факелы не мерцают, пока шапка вне экрана: экономим батарею телефона.
-  const hero = document.querySelector<HTMLElement>('.hero');
-  if (hero && 'IntersectionObserver' in window) {
-    new IntersectionObserver(([entry]) => {
-      hero.toggleAttribute('data-paused', !entry.isIntersecting);
-    }).observe(hero);
-  }
-</script>

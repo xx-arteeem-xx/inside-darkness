@@ -20,16 +20,16 @@ import { SERVER } from '../config/site';
 interface Props {
   title?: string;
   description?: string;
-  variant?: 'home' | 'inner';
+  variant?: 'home' | 'inner' | 'map';
 }
 
 const {
   title,
-  description = `Средневековый сервер Minecraft на русском: зарабатывай монеты ремеслом и охотой, расти в ремёслах до великого мастера. Всё через NPC и их окна. Java ${SERVER.versions}, пиратка разрешена. Адрес: ${SERVER.address}`,
+  description = `Inside Darkness — русская MMORPG в Minecraft без модов: ремёсла и торг, качество вещей и комплекты, подземелья с хозяевами, тёмные земли за Стеной. Всё через жителей, без команд. Java ${SERVER.versions}, пиратка через AuthMe. Адрес: ${SERVER.address}`,
   variant = 'inner',
 } = Astro.props;
 
-const fullTitle = title ? `${title} | ${SERVER.name}` : `${SERVER.name}: средневековый сервер Minecraft`;
+const fullTitle = title ? `${title} | ${SERVER.name}` : `${SERVER.name} — MMORPG-сервер Minecraft на русском`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
 const LATIN = 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
@@ -62,13 +62,17 @@ const preload = variant === 'home' ? [vk900l, vk400c, t5l] : [vk900c, vk400c];
     <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
     {preload.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
     <style is:inline set:html={fontCss}></style>
-    <meta name="theme-color" content="#070a14" />
+    <meta name="theme-color" content="#07090f" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:site_name" content={SERVER.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(url('/og.png'), Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="generator" content={Astro.generator} />
   </head>
   <body data-variant={variant}>
@@ -77,6 +81,6 @@ const preload = variant === 'home' ? [vk900l, vk400c, t5l] : [vk900c, vk400c];
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer />
+    {variant !== 'map' && <Footer />}
   </body>
 </html>

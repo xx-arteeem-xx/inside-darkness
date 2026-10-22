@@ -1,27 +1,27 @@
 ---
 import { url } from '../lib/url';
 ---
-<div class="search" data-search data-index={url('/docs/search.json')} data-base={url('/docs/')}>
-  <label class="visually-hidden" for="docs-q">Поиск по документации</label>
+<div class="search" data-search data-index={url('/guide/search.json')} data-base={url('/guide/')}>
+  <label class="visually-hidden" for="guide-q">Поиск по гайду</label>
   <div class="search__box">
     <svg class="search__icon" viewBox="0 0 8 8" aria-hidden="true" shape-rendering="crispEdges">
       <path fill="currentColor" d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2zM6 6h1v1H6zM7 7h1v1H7z" />
     </svg>
     <input
-      id="docs-q"
+      id="guide-q"
       class="search__input"
       type="search"
-      placeholder="Поиск по документации"
+      placeholder="Поиск по гайду"
       autocomplete="off"
       spellcheck="false"
-      aria-controls="docs-results"
+      aria-controls="guide-results"
       aria-expanded="false"
       aria-autocomplete="list"
       role="combobox"
     />
     <kbd class="search__key" aria-hidden="true">/</kbd>
   </div>
-  <div class="search__panel" id="docs-results" hidden>
+  <div class="search__panel" id="guide-results" hidden>
     <p class="search__status" role="status" aria-live="polite"></p>
     <ul class="search__list" role="listbox" aria-label="Результаты поиска"></ul>
   </div>

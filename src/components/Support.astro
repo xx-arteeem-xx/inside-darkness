@@ -1,0 +1,99 @@
+---
+import { CABINET_URL } from '../config/site';
+import { url } from '../lib/url';
+---
+<section class="support section" id="support" aria-labelledby="support-title">
+  <div class="wrap support__grid">
+    <header class="section-head">
+      <h2 class="section-title" id="support-title">Поддержать край</h2>
+      <p class="section-lead">
+        Сервер живёт на поддержку игроков. Поэтому правила поддержки открыты: что можно купить, что нельзя и почему.
+      </p>
+      <div class="support__actions">
+        <a class="btn" href={CABINET_URL}>Открыть личный кабинет</a>
+        <a class="more" href={url('/guide/cabinet/')}>Подробнее в гайде</a>
+      </div>
+    </header>
+
+    <dl class="support__list">
+      <div class="support__item">
+        <dt>Монеты — только из казначейства</dt>
+        <dd>
+          Монеты за рубли не печатаются из воздуха: их продаёт казначейство княжества, куда уходит доля с трат всех
+          игроков. За один раз продаётся не больше половины того, что там лежит. Так монеты не дешевеют, а цены у
+          купцов остаются честными.
+        </dd>
+      </div>
+      <div class="support__item">
+        <dt>Силу за деньги не купить</dt>
+        <dd>
+          Ранги мастеров, качество вещей и комплекты с хозяев подземелий добываются только в игре. Монеты экономят
+          время, но не делают сильнее того, кто играет.
+        </dd>
+      </div>
+      <div class="support__item">
+        <dt>Внешний вид</dt>
+        <dd>Особые облики, титулы и цвет имени — для тех, кто хочет выделиться и поддержать сервер.</dd>
+      </div>
+      <div class="support__item">
+        <dt>Где и как</dt>
+        <dd>
+          Только в личном кабинете на сайте: картой, по СБП или криптовалютой — доступные способы и цены кабинет
+          покажет сам. Переводы в обход кабинета не принимаются.
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<style>
+  .support {
+    background:
+      radial-gradient(ellipse 50% 60% at 15% 30%, rgb(240 192 102 / 0.06), transparent 70%),
+      var(--void);
+  }
+
+  .support__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 2.5rem clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .support__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .support__list {
+    display: grid;
+    gap: 1.75rem;
+    margin: 0;
+  }
+
+  .support__item {
+    padding-left: 1.25rem;
+    box-shadow: inset 3px 0 0 var(--gold-deep);
+  }
+
+  .support__item dt {
+    color: var(--gold);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .support__item dd {
+    margin: 0.4rem 0 0;
+    color: var(--bone-2);
+  }
+
+  @media (max-width: 60rem) {
+    .support__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

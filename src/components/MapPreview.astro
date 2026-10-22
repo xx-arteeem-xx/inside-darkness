@@ -1,0 +1,193 @@
+---
+import { url } from '../lib/url';
+import { MAP, LAYER_GLYPH, LAYER_TONE, glyphSvg, countBy } from '../lib/map';
+
+const V = 768;
+const r = (n: number) => (n * V).toFixed(1);
+const wallPoints = MAP.wall.map(([u, v]) => `${r(u)},${r(v)}`).join(' ');
+const majors = MAP.markers.filter((m) => m.major);
+const dungeons = MAP.markers.filter((m) => m.layer === 'dungeons');
+// Кадр: княжество со Стеной и полоса тёмных земель вокруг.
+const wallR = Math.max(...MAP.wall.map(([u, v]) => Math.hypot(u - 0.5, v - 0.5)));
+const half = (wallR + 0.07) * V;
+const box = `${(V / 2 - half).toFixed(1)} ${(V / 2 - half).toFixed(1)} ${(2 * half).toFixed(1)} ${(2 * half).toFixed(1)}`;
+// Подписи к западу от центра — слева от точки, чтобы не наезжали друг на друга.
+const west = (u: number) => u < MAP.center[0] - 0.02;
+---
+<section class="mapp section" id="map" aria-labelledby="map-title">
+  <div class="wrap mapp__grid">
+    <div class="mapp__text">
+      <h2 class="section-title" id="map-title">Карта края</h2>
+      <p class="section-lead">
+        Княжество внутри Большой стены и тёмные земли вокруг — вид сверху на настоящий мир сервера.
+      </p>
+      <ul class="mapp__layers" role="list">
+        {MAP.layers.map((l) => (
+          <li style={`--tone:${LAYER_TONE[l.id]}`}>
+            <span class="mapp__icon" set:html={glyphSvg(LAYER_GLYPH[l.id])} />
+            <span>{l.name}</span>
+            <span class="mapp__count">{countBy(l.id)}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="mapp__note">
+        На карте только общеизвестные места. Что спрятано в краю, на ней не ищи.
+      </p>
+      <a class="btn" href={url('/map/')}>Открыть карту</a>
+    </div>
+
+    <a class="mapp__view" href={url('/map/')} aria-label="Открыть карту края">
+      <svg viewBox={box} aria-hidden="true">
+        <defs>
+          <radialGradient id="mapp-fade" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0.72" stop-color="#07090f" stop-opacity="0" />
+            <stop offset="1" stop-color="#07090f" stop-opacity="1" />
+          </radialGradient>
+        </defs>
+        <image class="mapp__img" href={url('/map/0.webp')} x="0" y="0" width={V} height={V} />
+        <rect x={(V / 2 - half).toFixed(1)} y={(V / 2 - half).toFixed(1)} width={(2 * half).toFixed(1)} height={(2 * half).toFixed(1)} fill="url(#mapp-fade)" />
+        <polygon class="mapp__wall" points={wallPoints} />
+        {dungeons.map((m) => (
+          <rect class="mapp__dot mapp__dot--dungeon" x={(m.u * V - 3).toFixed(1)} y={(m.v * V - 3).toFixed(1)} width="6" height="6" />
+        ))}
+        {majors.map((m) => (
+          <g transform={`translate(${r(m.u)} ${r(m.v)})`}>
+            <rect class="mapp__dot" x="-3.5" y="-3.5" width="7" height="7" />
+            <text x={west(m.u) ? -8 : 8} y="4" text-anchor={west(m.u) ? 'end' : 'start'}>{m.name}</text>
+          </g>
+        ))}
+      </svg>
+    </a>
+  </div>
+</section>
+
+<style>
+  .mapp {
+    background: var(--void);
+  }
+
+  .mapp__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: 3rem clamp(2rem, 5vw, 5rem);
+  }
+
+  .mapp__text {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+
+  .mapp__layers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 1.5rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--bone-2);
+    font-size: 1rem;
+  }
+
+  .mapp__layers li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .mapp__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    background: var(--slate-1);
+    box-shadow: inset 0 0 0 2px var(--tone);
+  }
+
+  .mapp__icon :global(svg) {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .mapp__count {
+    color: var(--ash-2);
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+  }
+
+  .mapp__note {
+    color: var(--ash);
+    font-size: 1rem;
+  }
+
+  .mapp__view {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    outline-offset: 6px;
+  }
+
+  .mapp__view svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .mapp__img {
+    image-rendering: pixelated;
+    transition: filter 0.2s ease;
+  }
+
+  .mapp__view:hover .mapp__img {
+    filter: brightness(1.12);
+  }
+
+  .mapp__wall {
+    fill: none;
+    stroke: #f0c4ae;
+    stroke-width: 1.2;
+  }
+
+  .mapp__dot {
+    fill: var(--gold);
+    stroke: #000;
+    stroke-width: 1.5;
+  }
+
+  .mapp__dot--dungeon {
+    fill: var(--blood);
+  }
+
+  .mapp__view text {
+    fill: var(--bone);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 12px;
+    paint-order: stroke;
+    stroke: #07090f;
+    stroke-width: 3.5px;
+  }
+
+  @media (max-width: 60rem) {
+    .mapp__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .mapp__view {
+      order: -1;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .mapp__view text {
+      font-size: 15px;
+    }
+
+    .mapp__layers {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

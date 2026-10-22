@@ -1,0 +1,134 @@
+---
+import { url } from '../lib/url';
+import { G, fmt } from '../data/game';
+import { plural } from '../lib/facts.mjs';
+
+const R = G.ranks.names;
+const steps = [
+  {
+    when: 'Первые часы',
+    ranks: `${R[0]} — ${R[1]}`,
+    text: `Проводник на площади даёт ${fmt(G.guide.count)} ${plural(G.guide.count, ['первое задание', 'первых задания', 'первых заданий'])} и ${fmt(G.guide.total)} ${plural(G.guide.total, ['монету', 'монеты', 'монет'])} за них. Дальше — угодья, купцы, заказы старост и первый ранг у мастера. Первая зелёная вещь — у деревенского кузнеца. Смерть здесь стоит лишь дороги до своей могилы.`,
+  },
+  {
+    when: 'Середина',
+    ranks: `${R[2]} — ${R[3]}`,
+    text: 'Подземелья зал за залом и первые хозяева — дружиной. Редкие вещи и части комплектов, простая ладанка от тьмы, первые шаги за Стену. Монеты лучше держать в банке.',
+  },
+  {
+    when: 'Ветеран',
+    ranks: `${R[3]} — ${R[4]}`,
+    text: 'Недельные сундуки всех хозяев, логова в глубине тёмных земель, чары сверх предела у ведуна, подвиги и титулы. Край раскрывается постепенно: чем дальше заходишь, тем больше узнаёшь.',
+  },
+];
+---
+<section class="path section" aria-labelledby="path-title">
+  <div class="wrap">
+    <header class="section-head">
+      <h2 class="section-title" id="path-title">Путь в краю</h2>
+      <p class="section-lead">
+        Новичка не встречают сложностью: первые часы — простая и азартная игра. Новое открывается по мере роста, а
+        у ветерана всегда есть цель выше.
+      </p>
+    </header>
+
+    <ol class="path__list" role="list">
+      {steps.map((s, i) => (
+        <li class="path__step">
+          <p class="path__num" aria-hidden="true">{i + 1}</p>
+          <h3 class="path__when">{s.when}</h3>
+          <p class="path__ranks">{s.ranks}</p>
+          <p class="path__text">{s.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    <div class="path__bar" aria-label="Ранги ремесла по порядку">
+      {R.map((n, i) => (
+        <span class="path__rank" style={`--i:${i}`}>{n}</span>
+      ))}
+    </div>
+    <p class="path__more"><a class="more" href={url('/guide/start/')}>Начало пути в гайде</a></p>
+  </div>
+</section>
+
+<style>
+  .path {
+    background: linear-gradient(180deg, var(--slate-0), var(--void));
+  }
+
+  .path__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem clamp(1.5rem, 3vw, 3rem);
+    margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .path__step {
+    display: grid;
+    align-content: start;
+    gap: 0.4rem;
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--slate-3);
+  }
+
+  .path__num {
+    color: var(--ember);
+    font-family: var(--font-pixel);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .path__when {
+    margin-top: 0.5rem;
+    font-size: var(--fs-md);
+  }
+
+  .path__ranks {
+    color: var(--gold);
+    font-size: 1rem;
+  }
+
+  .path__text {
+    margin-top: 0.4rem;
+    color: var(--bone-2);
+  }
+
+  /* Полоса рангов — как полоса опыта в игре: пять делений, каждое ярче. */
+  .path__bar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    margin-top: 3rem;
+    padding: 3px;
+    background: #000;
+  }
+
+  .path__rank {
+    padding: 0.45rem 0.5rem 0.5rem;
+    background: color-mix(in srgb, #3f8a2a calc(25% + var(--i) * 17%), #10140c);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.12), inset 0 -3px 0 rgb(0 0 0 / 0.35);
+    color: #eef7df;
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 1px 0 #000;
+  }
+
+  .path__more {
+    margin-top: 1.75rem;
+  }
+
+  @media (max-width: 56rem) {
+    .path__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .path__bar {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
