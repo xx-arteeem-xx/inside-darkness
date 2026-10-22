@@ -1,38 +1,49 @@
 ---
 import { render } from 'astro:content';
-import DocsShell from '../../layouts/DocsShell.astro';
-import { getDocSections, flatten, type Doc } from '../../lib/docs';
+import GuideShell from '../../layouts/GuideShell.astro';
+import { getGuideSections, flatten, type Doc } from '../../lib/guide';
 import { url } from '../../lib/url';
 
 export async function getStaticPaths() {
-  const sections = await getDocSections();
+  const sections = await getGuideSections();
   const docs = flatten(sections);
   return docs.map((doc, i) => ({
     params: { slug: doc.id },
-    props: { doc, prev: docs[i - 1] ?? null, next: docs[i + 1] ?? null, sections },
+    props: { doc, num: i + 1, prev: docs[i - 1] ?? null, next: docs[i + 1] ?? null, sections },
   }));
 }
 
 interface Props {
   doc: Doc;
+  num: number;
   prev: Doc | null;
   next: Doc | null;
   sections: Awaited<ReturnType<typeof getDocSections>>;
 }
 
-const { doc, prev, next, sections } = Astro.props;
+const { doc, num, prev, next, sections } = Astro.props;
 const { Content, headings } = await render(doc);
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
-<DocsShell title={doc.data.title} description={doc.data.description} sections={sections} currentId={doc.id} headings={headings}>
+<GuideShell title={doc.data.title} description={doc.data.description} sections={sections} currentId={doc.id} headings={headings}>
   <article class="doc">
     <nav class="crumbs" aria-label="Путь">
-      <a href={url('/docs/')}>Документация</a>
+      <a href={url('/guide/')}>Гайд</a>
       <span aria-hidden="true">/</span>
       <span>{doc.data.section}</span>
     </nav>
+    <p class="doc__num">Глава {num}</p>
     <h1 class="doc__title">{doc.data.title}</h1>
     {doc.data.description && <p class="doc__lead">{doc.data.description}</p>}
+
+    {doc.data.brief.length > 0 && (
+      <aside class="brief" aria-labelledby="brief-title">
+        <p class="brief__title" id="brief-title">Коротко</p>
+        <ul role="list">
+          {doc.data.brief.map((b) => <li>{b}</li>)}
+        </ul>
+      </aside>
+    )}
 
     {toc.length > 1 && (
       <details class="toc-inline">
@@ -52,21 +63,25 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
     {(prev || next) && (
       <nav class="pager" aria-label="Соседние страницы">
         {prev ? (
-          <a class="pager__link pager__link--prev" href={url(`/docs/${prev.id}/`)}>
+          <a class="pager__link pager__link--prev" href={url(`/guide/${prev.id}/`)}>
             <span class="pager__hint">Назад</span>
             <span class="pager__title">{prev.data.title}</span>
           </a>
         ) : <span />}
         {next && (
-          <a class="pager__link pager__link--next" href={url(`/docs/${next.id}/`)}>
+          <a class="pager__link pager__link--next" href={url(`/guide/${next.id}/`)}>
             <span class="pager__hint">Дальше</span>
             <span class="pager__title">{next.data.title}</span>
           </a>
         )}
       </nav>
     )}
+
+    <p class="doc__source">
+      Числа в гайде берутся прямо из настроек сервера: поменяются в игре — поменяются и здесь.
+    </p>
   </article>
-</DocsShell>
+</GuideShell>
 
 <style>
   .crumbs {
@@ -85,8 +100,15 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
     color: var(--gold);
   }
 
+  .doc__num {
+    margin-top: 1.25rem;
+    color: var(--ember-hi);
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+  }
+
   .doc__title {
-    margin-top: 0.75rem;
+    margin-top: 0.35rem;
     font-size: var(--fs-xl);
     line-height: 1;
   }
@@ -101,6 +123,52 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
   .doc .prose {
     margin-top: 2.25rem;
+  }
+
+  .brief {
+    margin-top: 1.75rem;
+    padding: 1.1rem 1.3rem 1.2rem;
+    background: var(--slate-1);
+    box-shadow: inset 3px 0 0 var(--gold), inset 0 0 0 1px var(--slate-3);
+  }
+
+  .brief__title {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .brief ul {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .brief li {
+    position: relative;
+    padding-left: 1.1rem;
+    color: var(--bone-2);
+  }
+
+  .brief li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    background: var(--gold-deep);
+  }
+
+  .brief :global(a) {
+    color: var(--gold);
+  }
+
+  .doc__source {
+    margin-top: 2.5rem;
+    color: var(--ash-2);
+    font-size: 0.9375rem;
   }
 
   .toc-inline {

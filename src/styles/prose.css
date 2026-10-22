@@ -17,7 +17,7 @@
 .prose h3,
 .prose h4 {
   color: var(--bone);
-  scroll-margin-top: 1.5rem;
+  scroll-margin-top: 5.5rem;
 }
 
 .prose h2 {
@@ -290,6 +290,21 @@
 .prose .callout--caution {
   --callout: var(--blood);
   --callout-bg: rgb(217 80 93 / 0.1);
+}
+
+.prose .callout--new {
+  --callout: var(--ember-hi);
+  --callout-bg: rgb(194 51 69 / 0.1);
+}
+
+.prose .callout--soon {
+  --callout: var(--q-set);
+  --callout-bg: rgb(192 138 245 / 0.08);
+}
+
+.prose .callout--veteran {
+  --callout: var(--gold);
+  --callout-bg: rgb(240 192 102 / 0.07);
 }
 
 .prose img {

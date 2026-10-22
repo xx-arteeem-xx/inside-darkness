@@ -215,8 +215,8 @@ const TABLES = {
   },
   stations: (G) =>
     mdTable(
-      ['Станция', 'Где', 'X, Z', 'От столицы'],
-      G.stations.list.map((s) => [s.name, s.where, `${fmt(s.x)}, ${fmt(s.z)}`, s.fare == null ? 'открыта сразу' : `≈ ${fmt(s.fare)}`]),
+      ['Станция', 'Где', 'От столицы'],
+      G.stations.list.map((s) => [s.name, s.where, s.fare == null ? 'открыта сразу' : `≈ ${fmt(s.fare)}`]),
     ),
   mail: (G) => mdTable(['Что в посылке', 'Доставка'], G.mail.examples.map((e) => [e.what, fmt(e.fee)])),
   homes: (G) =>
@@ -225,9 +225,9 @@ const TABLES = {
       G.homes.villages.map((v) => [v.name, fmt(v.count), range(v.rent, v.rentMax), range(v.price, v.priceMax)]),
     ),
   taverns: (G) =>
-    mdTable(['Таверна', 'Комнат', 'В сутки', 'X, Z'], G.homes.taverns.map((t) => [t.name, fmt(t.count), fmt(t.rent), `${fmt(t.x)}, ${fmt(t.z)}`])),
+    mdTable(['Таверна', 'Комнат', 'В сутки'], G.homes.taverns.map((t) => [t.name, fmt(t.count), fmt(t.rent)])),
   villages: (G) =>
-    mdTable(['Деревня', 'Где', 'X, Z'], G.places.villages.map((v) => [v.name, v.where, `${fmt(v.x)}, ${fmt(v.z)}`])),
+    mdTable(['Деревня', 'В какой стороне от столицы'], G.places.villages.map((v) => [v.name, v.where])),
   'chronicle-kinds': (G) => mdTable(['Вид места', 'Внутри Стены', 'За Стеной'], G.chronicle.kinds.map((k) => [k.name, fmt(k.reward), fmt(k.reward * G.chronicle.darkMult)])),
   'chronicle-special': (G) => mdTable(['Место', 'Внутри Стены'], G.chronicle.special.map((s) => [s.name, fmt(s.reward)])),
   titles: (G) => mdTable(['Мест', 'Звание', 'Награда'], G.chronicle.titles.map((t) => [fmt(t.count), t.title, fmt(t.bonus)])),
@@ -250,9 +250,9 @@ const TABLES = {
       G.bosses.list.map((b) => [b.dungeon, `${b.name}, ${b.type}`, fmt(b.hp), fmt(b.coins), fmt(b.xp), b.minions]),
     ),
   'raid-villages': (G) =>
-    mdTable(['Деревня', 'X, Z'], G.raids.villages.map((v) => {
+    mdTable(['Деревня', 'В какой стороне'], G.raids.villages.map((v) => {
       const p = G.places.villages.find((x) => x.id === v.id);
-      return [v.name, p ? `${fmt(p.x)}, ${fmt(p.z)}` : '—'];
+      return [v.name, p?.where ?? '—'];
     })),
   news: (G) =>
     mdTable(
@@ -299,10 +299,8 @@ const TABLES = {
       if (!by.has(k)) by.set(k, []);
       by.get(k).push(n);
     }
-    const where = (list) => {
-      const w = [...new Set(list.map((n) => n.where).filter(Boolean))].join('; ');
-      return w || (list.length === 1 ? `около ${fmt(list[0].x)}, ${fmt(list[0].z)}` : '—');
-    };
+    // координат на сайте нет: только словесное «где», если оно есть в конфиге
+    const where = (list) => [...new Set(list.map((n) => n.where).filter(Boolean))].join('; ') || '—';
     const rows = [...by.values()].map((list) => [list.map((n) => n.name).join(', '), list[0].does, where(list)]);
     return mdTable(['Кто', 'Чем поможет', 'Где искать'], rows);
   },

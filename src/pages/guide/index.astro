@@ -1,33 +1,75 @@
 ---
-import DocsShell from '../../layouts/DocsShell.astro';
-import { getDocSections } from '../../lib/docs';
+import GuideShell from '../../layouts/GuideShell.astro';
+import { getGuideSections, flatten } from '../../lib/guide';
 import { url } from '../../lib/url';
+import { G, fmt } from '../../data/game';
+import { plural } from '../../lib/facts.mjs';
 
-const sections = await getDocSections();
-const total = sections.reduce((n, s) => n + s.docs.length, 0);
+const sections = await getGuideSections();
+const all = flatten(sections);
+const numberOf = new Map(all.map((d, i) => [d.id, i + 1]));
+const has = (id: string) => all.some((d) => d.id === id);
+const R = G.ranks.names;
+
+// Путь новичка: по шагам, каждый ведёт в свою главу.
+const route = [
+  { title: 'Зайди и придумай пароль', text: 'Адрес, версии клиента и первый вход.', href: 'start' },
+  {
+    title: 'Пройди задания проводника',
+    text: `${fmt(G.guide.count)} ${plural(G.guide.count, ['короткое задание', 'коротких задания', 'коротких заданий'])} учат основам и приносят первые монеты.`,
+    href: 'start',
+    hash: 'задания-проводника',
+  },
+  { title: 'Выбери занятие', text: 'Шахта, поле, сад, рыбалка или охота — опыт копится делом.', href: 'crafts' },
+  { title: 'Продай с выгодой', text: 'Где и кому продавать, чтобы купцы платили больше.', href: 'trade' },
+  { title: `Возьми ранг «${R[1]}»`, text: 'Мастер в Деревне мастеров даёт ранг за пробу и плату.', href: 'crafts', hash: 'ранги' },
+  { title: 'Сними жильё', text: 'Своя кровать, сундуки и поездка «Домой».', href: 'housing' },
+].filter((s) => has(s.href));
 ---
-<DocsShell title="Документация" description="Как устроен Inside Darkness: мир за Стеной, ремёсла и ранги, торг и вести, дороги, город и жильё, граница с подземельями и набегами, снаряжение и чары, правила и команды." sections={sections}>
-  <header class="doc-head">
-    <h1 class="doc-head__title">Документация</h1>
-    <p class="doc-head__lead">Всё о жизни в княжестве за Большой стеной: где что, как добывать и где выгоднее продавать, как ездить, где жить и куда ходить за риском. Все цены и числа взяты прямо из игры. Поиск слева ищет по всем страницам.</p>
+<GuideShell
+  title="Гайд"
+  description="Гайд по Inside Darkness: первые шаги, края и места, пять занятий и ранги, торг, снаряжение и качество, подземелья и хозяева, тёмные земли, смерть и банк, жильё, дружины и поручения, летопись."
+  sections={sections}
+>
+  <header class="hub-head">
+    <h1 class="hub-head__title">Гайд по краю</h1>
+    <p class="hub-head__lead">
+      Всё, что нужно, чтобы жить в краю: от первого входа до хозяев подземелий и глубины тёмных земель. Новичку
+      хватит пути ниже, ветерану — глав целиком. Поиск слева ищет по всем главам.
+    </p>
   </header>
 
-  {total === 0 ? (
-    <div class="docs-empty">
-      <p class="docs-empty__title">Страницы пока пишутся.</p>
-      <p>Здесь будут мир, ремёсла, торг, дороги, город и правила. Как зайти на сервер, уже есть на <a href={url('/#join')}>главной</a>.</p>
-    </div>
+  {route.length > 0 && (
+    <section class="route" aria-labelledby="route-title">
+      <h2 class="route__title" id="route-title">Путь новичка</h2>
+      <ol class="route__list" role="list">
+        {route.map((s, i) => (
+          <li>
+            <a class="route__step" href={url(`/guide/${s.href}/`) + (s.hash ? `#${s.hash}` : '')}>
+              <span class="route__num" aria-hidden="true">{i + 1}</span>
+              <span class="route__name">{s.title}</span>
+              <span class="route__text">{s.text}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {all.length === 0 ? (
+    <p class="hub-empty">Главы пока пишутся. Как зайти на сервер, уже есть на <a href={url('/#join')}>главной</a>.</p>
   ) : (
-    <div class="docs-index">
+    <div class="parts">
       {sections.map((section, i) => (
-        <section class="docs-index__section" aria-labelledby={`s-${i}`}>
-          <h2 class="docs-index__name" id={`s-${i}`}>{section.name}</h2>
+        <section class="part" aria-labelledby={`part-${i}`}>
+          <h2 class="part__name" id={`part-${i}`}>{section.name}</h2>
           <ul role="list">
             {section.docs.map((doc) => (
               <li>
-                <a class="docs-index__link" href={url(`/docs/${doc.id}/`)}>
-                  <span class="docs-index__title">{doc.data.title}</span>
-                  {doc.data.description && <span class="docs-index__desc">{doc.data.description}</span>}
+                <a class="chapter" href={url(`/guide/${doc.id}/`)}>
+                  <span class="chapter__num" aria-hidden="true">{numberOf.get(doc.id)}</span>
+                  <span class="chapter__title">{doc.data.title}</span>
+                  {doc.data.description && <span class="chapter__desc">{doc.data.description}</span>}
                 </a>
               </li>
             ))}
@@ -36,82 +78,126 @@ const total = sections.reduce((n, s) => n + s.docs.length, 0);
       ))}
     </div>
   )}
-</DocsShell>
+</GuideShell>
 
 <style>
-  .doc-head__title {
+  .hub-head__title {
     font-size: var(--fs-xl);
     line-height: 1;
   }
 
-  .doc-head__lead {
-    max-width: 40rem;
+  .hub-head__lead {
+    max-width: 42rem;
     margin-top: 1rem;
     color: var(--bone-2);
     font-size: var(--fs-md);
     line-height: 1.5;
   }
 
-  .docs-empty {
-    display: grid;
-    gap: 0.5rem;
+  .route {
     margin-top: 2.5rem;
-    padding: 1.25rem 1.5rem;
-    box-shadow: inset 0 0 0 2px var(--slate-3);
-    color: var(--ash);
   }
 
-  .docs-empty__title {
+  .route__title,
+  .part__name {
     color: var(--bone);
-    font-size: var(--fs-md);
-    font-weight: 700;
+    font-size: var(--fs-lg);
   }
 
-  .docs-index {
+  .route__list {
     display: grid;
-    gap: 2.75rem;
-    margin-top: 3rem;
-  }
-
-  .docs-index__name {
-    font-size: var(--fs-md);
-  }
-
-  .docs-index ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: 0;
-    margin: 0.85rem 0 0;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+    gap: 0.75rem;
+    margin: 1.1rem 0 0;
     padding: 0;
     list-style: none;
-    box-shadow: inset 0 1px 0 var(--line-2);
   }
 
-  .docs-index__link {
+  .route__step {
     display: grid;
-    gap: 0.2rem;
+    gap: 0.3rem;
     height: 100%;
-    padding: 0.9rem 1rem 1rem 0;
-    box-shadow: inset 0 -1px 0 var(--line);
+    padding: 0.9rem 1rem 1rem;
+    background: var(--slate-1);
+    box-shadow: inset 0 0 0 1px var(--slate-3);
     text-decoration: none;
     transition: box-shadow 0.15s ease;
   }
 
-  .docs-index__title {
-    color: var(--gold);
-    font-size: 1.1875rem;
-    font-weight: 700;
+  .route__step:hover {
+    box-shadow: inset 0 0 0 2px var(--gold-deep);
   }
 
-  .docs-index__desc {
+  .route__num {
+    color: var(--ember-hi);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+
+  .route__name {
+    color: var(--gold);
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .route__text {
     color: var(--ash);
-    font-size: 1rem;
+    font-size: 0.9688rem;
+    line-height: 1.4;
+  }
+
+  .parts {
+    display: grid;
+    gap: 2.75rem;
+    margin-top: 3.5rem;
+  }
+
+  .part ul {
+    display: grid;
+    margin: 0.9rem 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .chapter {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0.15rem 0.5rem;
+    padding: 0.85rem 0.25rem 0.95rem;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .chapter:hover .chapter__title {
+    color: var(--gold);
+  }
+
+  .chapter__num {
+    grid-row: span 2;
+    color: var(--ash-2);
+    font-family: var(--font-pixel);
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+
+  .chapter__title {
+    color: var(--bone);
+    font-size: 1.1875rem;
+    font-weight: 700;
+    line-height: 1.3;
+    transition: color 0.15s ease;
+  }
+
+  .chapter__desc {
+    color: var(--ash);
+    font-size: 0.9688rem;
     line-height: 1.45;
   }
 
-  .docs-index__link:hover .docs-index__title {
-    color: var(--bone);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+  .hub-empty {
+    margin-top: 2rem;
+    color: var(--ash);
   }
 </style>

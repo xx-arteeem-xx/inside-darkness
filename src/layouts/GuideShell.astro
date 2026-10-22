@@ -1,9 +1,9 @@
 ---
 import Base from './Base.astro';
-import DocsSearch from '../components/DocsSearch.astro';
+import GuideSearch from '../components/GuideSearch.astro';
 import '../styles/prose.css';
 import { url } from '../lib/url';
-import type { DocSection } from '../lib/docs';
+import { flatten, type DocSection } from '../lib/guide';
 
 interface Heading {
   depth: number;
@@ -21,25 +21,27 @@ interface Props {
 const { title, description, sections, currentId, headings = [] } = Astro.props;
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const isIndex = !currentId;
+const numberOf = new Map(flatten(sections).map((d, i) => [d.id, i + 1]));
 ---
 <Base title={title} description={description || undefined}>
-  <div class="docs">
-    <aside class="docs__side" aria-label="Разделы документации">
-      <DocsSearch />
-      <button class="docs__toggle" type="button" aria-expanded="false" aria-controls="docs-nav" hidden>
-        Все страницы
+  <div class="guide">
+    <aside class="guide__side" aria-label="Главы гайда">
+      <GuideSearch />
+      <button class="guide__toggle" type="button" aria-expanded="false" aria-controls="guide-nav" hidden>
+        Все главы
       </button>
-      <nav class="docs__nav" id="docs-nav">
-        <a class="docs__home" href={url('/docs/')} aria-current={isIndex ? 'page' : undefined}>Обзор</a>
-        {sections.length === 0 && <p class="docs__empty">Страницы пока пишутся.</p>}
+      <nav class="guide__nav" id="guide-nav">
+        <a class="guide__home" href={url('/guide/')} aria-current={isIndex ? 'page' : undefined}>Гайд по краю</a>
+        {sections.length === 0 && <p class="guide__empty">Главы пока пишутся.</p>}
         {sections.map((section) => (
-          <div class="docs__group">
-            <p class="docs__section">{section.name}</p>
+          <div class="guide__group">
+            <p class="guide__part">{section.name}</p>
             <ul role="list">
               {section.docs.map((doc) => (
                 <li>
-                  <a href={url(`/docs/${doc.id}/`)} aria-current={doc.id === currentId ? 'page' : undefined}>
-                    {doc.data.title}
+                  <a href={url(`/guide/${doc.id}/`)} aria-current={doc.id === currentId ? 'page' : undefined}>
+                    <span class="guide__num" aria-hidden="true">{numberOf.get(doc.id)}</span>
+                    <span>{doc.data.title}</span>
                   </a>
                 </li>
               ))}
@@ -49,13 +51,13 @@ const isIndex = !currentId;
       </nav>
     </aside>
 
-    <div class="docs__main">
+    <div class="guide__main">
       <slot />
     </div>
 
     {toc.length > 1 && (
-      <aside class="docs__toc" aria-labelledby="toc-title">
-        <p class="docs__toc-title" id="toc-title">На этой странице</p>
+      <aside class="guide__toc" aria-labelledby="toc-title">
+        <p class="guide__toc-title" id="toc-title">На этой странице</p>
         <ul role="list">
           {toc.map((h) => (
             <li class:list={[`toc-d${h.depth}`]}>
@@ -70,106 +72,117 @@ const isIndex = !currentId;
 
 <style>
   :global(body[data-variant='inner']) {
-    background: var(--slate-1);
+    background: var(--slate-0);
   }
 
-  .docs {
+  .guide {
     display: grid;
-    grid-template-columns: 16.5rem minmax(0, 46rem) 14rem;
+    grid-template-columns: 17rem minmax(0, 46rem) 14rem;
     justify-content: center;
     gap: 0 clamp(2rem, 4vw, 4rem);
-    max-width: 90rem;
+    max-width: 92rem;
     margin-inline: auto;
-    padding: 2.5rem var(--gutter) 6rem;
+    padding: 2.25rem var(--gutter) 6rem;
   }
 
-  .docs__side,
-  .docs__toc {
+  .guide__side,
+  .guide__toc {
     position: sticky;
-    top: 1.25rem;
+    top: 5.75rem;
     align-self: start;
-    max-height: calc(100vh - 2.5rem);
+    max-height: calc(100vh - 7rem);
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--slate-4) transparent;
   }
 
-  /* у сайдбара видимый выпадающий список поиска не должен обрезаться */
-  .docs__side {
+  /* у боковой колонки выпадающий список поиска не должен обрезаться */
+  .guide__side {
     z-index: 5;
     overflow: visible;
     max-height: none;
   }
 
-  .docs__nav {
+  .guide__nav {
     display: grid;
     align-content: start;
-    gap: 1.6rem;
-    max-height: calc(100vh - 6.5rem);
-    margin-top: 1.75rem;
+    gap: 1.5rem;
+    max-height: calc(100vh - 11rem);
+    margin-top: 1.5rem;
     padding: 0 0.25rem 1rem 3px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--slate-4) transparent;
   }
 
-  .docs__home {
+  .guide__home {
     justify-self: start;
     padding: 0.15rem 0.4rem;
     margin-left: -0.4rem;
     color: var(--bone);
-    font-size: 1.0625rem;
-    font-weight: 700;
+    font-size: 1.125rem;
+    font-weight: 900;
     text-decoration: none;
   }
 
-  .docs__home[aria-current='page'],
-  .docs__home:hover {
+  .guide__home[aria-current='page'],
+  .guide__home:hover {
     color: var(--gold);
   }
 
-  .docs__empty {
+  .guide__empty {
     color: var(--ash);
   }
 
-  .docs__section {
-    margin-bottom: 0.5rem;
-    color: var(--bone);
-    font-size: 1.0625rem;
-    font-weight: 900;
+  .guide__part {
+    margin-bottom: 0.45rem;
+    color: var(--ash);
+    font-size: 0.9375rem;
   }
 
-  .docs__group ul,
-  .docs__toc ul {
+  .guide__group ul,
+  .guide__toc ul {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .docs__group a {
+  .guide__group a {
     position: relative;
-    display: block;
-    padding: 0.3rem 0 0.3rem 1rem;
-    color: var(--ash);
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    align-items: baseline;
+    padding: 0.32rem 0 0.32rem 0.75rem;
+    color: var(--bone-2);
     font-size: 1rem;
-    line-height: 1.35;
+    line-height: 1.3;
     text-decoration: none;
     box-shadow: inset 2px 0 0 var(--slate-3);
   }
 
-  .docs__group a:hover {
+  .guide__num {
+    color: var(--ash-2);
+    font-family: var(--font-pixel);
+    font-size: 0.875rem;
+  }
+
+  .guide__group a:hover {
     color: var(--bone);
     box-shadow: inset 2px 0 0 var(--stone);
   }
 
-  /* Текущая страница: золотой «пиксель» на линии. */
-  .docs__group a[aria-current='page'] {
+  /* Текущая глава: золотой «пиксель» на линии. */
+  .guide__group a[aria-current='page'] {
     color: var(--gold);
     font-weight: 700;
     box-shadow: inset 2px 0 0 var(--gold-deep);
   }
 
-  .docs__group a[aria-current='page']::before {
+  .guide__group a[aria-current='page'] .guide__num {
+    color: var(--gold);
+  }
+
+  .guide__group a[aria-current='page']::before {
     content: '';
     position: absolute;
     left: -3px;
@@ -180,21 +193,20 @@ const isIndex = !currentId;
     background: var(--gold);
   }
 
-  /* Колонки прокручиваются, поэтому кольцо фокуса рисуем внутри ссылки. */
-  .docs__home:focus-visible,
-  .docs__group a:focus-visible,
-  .docs__toc a:focus-visible {
+  .guide__home:focus-visible,
+  .guide__group a:focus-visible,
+  .guide__toc a:focus-visible {
     outline-offset: -3px;
   }
 
-  .docs__toc-title {
+  .guide__toc-title {
     margin-bottom: 0.6rem;
     color: var(--bone);
     font-size: 1rem;
     font-weight: 700;
   }
 
-  .docs__toc a {
+  .guide__toc a {
     display: block;
     padding-block: 0.25rem;
     color: var(--ash);
@@ -203,44 +215,44 @@ const isIndex = !currentId;
     text-decoration: none;
   }
 
-  .docs__toc a:hover,
-  .docs__toc a[aria-current='true'] {
+  .guide__toc a:hover,
+  .guide__toc a[aria-current='true'] {
     color: var(--gold);
   }
 
-  .docs__toc .toc-d3 a {
+  .guide__toc .toc-d3 a {
     padding-left: 0.85rem;
     font-size: 0.875rem;
   }
 
-  .docs__toggle {
+  .guide__toggle {
     display: none;
   }
 
-  @media (max-width: 75rem) {
-    .docs {
-      grid-template-columns: 15rem minmax(0, 46rem);
+  @media (max-width: 76rem) {
+    .guide {
+      grid-template-columns: 16rem minmax(0, 46rem);
     }
 
-    .docs__toc {
+    .guide__toc {
       display: none;
     }
   }
 
-  @media (max-width: 52rem) {
-    .docs {
+  @media (max-width: 54rem) {
+    .guide {
       grid-template-columns: minmax(0, 1fr);
       padding-top: 1.25rem;
     }
 
-    .docs__side {
+    .guide__side {
       position: static;
       margin-bottom: 2rem;
       padding-bottom: 1.25rem;
       border-bottom: 1px solid var(--line);
     }
 
-    .docs__toggle:not([hidden]) {
+    .guide__toggle:not([hidden]) {
       display: inline-flex;
       align-items: center;
       gap: 0.6rem;
@@ -256,7 +268,7 @@ const isIndex = !currentId;
       cursor: pointer;
     }
 
-    .docs__toggle::after {
+    .guide__toggle::after {
       content: '';
       width: 0.55rem;
       height: 0.55rem;
@@ -265,15 +277,15 @@ const isIndex = !currentId;
       transform: translateY(-2px) rotate(45deg);
     }
 
-    .docs__toggle[aria-expanded='true']::after {
+    .guide__toggle[aria-expanded='true']::after {
       transform: translateY(2px) rotate(-135deg);
     }
 
-    :global(html.js) .docs__toggle[aria-expanded='false'] + .docs__nav {
+    :global(html.js) .guide__toggle[aria-expanded='false'] + .guide__nav {
       display: none;
     }
 
-    .docs__nav {
+    .guide__nav {
       max-height: none;
       margin-top: 1.25rem;
       overflow: visible;
@@ -282,7 +294,7 @@ const isIndex = !currentId;
 </style>
 
 <script>
-  const toggle = document.querySelector<HTMLButtonElement>('.docs__toggle');
+  const toggle = document.querySelector<HTMLButtonElement>('.guide__toggle');
   if (toggle) {
     toggle.hidden = false;
     toggle.addEventListener('click', () => {
@@ -292,7 +304,7 @@ const isIndex = !currentId;
   }
 
   // Подсветка текущего пункта оглавления при прокрутке.
-  const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.docs__toc a')];
+  const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.guide__toc a')];
   if (tocLinks.length && 'IntersectionObserver' in window) {
     const byId = new Map(tocLinks.map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
     const observer = new IntersectionObserver(

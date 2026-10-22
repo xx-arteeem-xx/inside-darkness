@@ -51,7 +51,7 @@ export function remarkFacts(options = {}) {
       } else if ((child.type === 'text' || child.type === 'inlineCode') && /\}\}/.test(child.value ?? '')) {
         fail(file, new Error(`обрывок подстановки «${child.value.slice(0, 60)}…» — в ячейке таблицы фильтр пишут через \\|`));
       }
-      if (child.type === 'link' && child.url?.includes('%7B%7B')) {
+      if (child.type === 'link' && (child.url?.includes('%7B%7B') || child.url?.includes('{{'))) {
         try {
           child.url = F.fill(decodeURIComponent(child.url));
         } catch (e) {

@@ -1,19 +1,20 @@
 import type { APIRoute } from 'astro';
 import { render } from 'astro:content';
-import { getDocSections, flatten } from '../../lib/docs';
+import { getGuideSections, flatten } from '../../lib/guide';
 import { F } from '../../lib/site-facts';
 
 const { fill } = F;
 
 /**
- * Индекс для поиска по документации. Лёгкий JSON: заголовки, описание и текст без разметки.
+ * Индекс для поиска по гайду. Лёгкий JSON: заголовки, описание и текст без разметки.
  * Браузер загружает его только когда человек начинает искать.
  */
 function plain(md: string): string {
   return md
     .replace(/^---[\s\S]*?---/, '')
     .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|NEW|SOON|VETERAN)\]/gi, ' ')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     .replace(/^\s*\|?\s*:?-{3,}.*$/gm, ' ')
@@ -23,7 +24,7 @@ function plain(md: string): string {
 }
 
 export const GET: APIRoute = async () => {
-  const docs = flatten(await getDocSections());
+  const docs = flatten(await getGuideSections());
   const index = await Promise.all(
     docs.map(async (doc) => {
       const { headings } = await render(doc);

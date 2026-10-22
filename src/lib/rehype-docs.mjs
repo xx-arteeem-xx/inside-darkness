@@ -1,11 +1,12 @@
 import { docSlug } from './slug.mjs';
 
 /**
- * Обработка HTML документации:
+ * Обработка HTML гайда:
  * - таблицы оборачиваются в прокручиваемый контейнер (на телефоне не ломают вёрстку);
- * - цитаты вида `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`... превращаются во врезки;
- * - ссылки `/docs/x/`, `x.md`, `/rp/...` получают префикс base (`/inside-darkness`);
- * - ведущий `# Заголовок` убирается: h1 страницы рисуется из frontmatter.
+ * - цитаты вида `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`, `> [!NEW]` (новое в выпуске), `> [!VETERAN]`... — во врезки;
+ * - ссылки `x.md`, `/guide/x/`, `/rp/...` получают префикс base (`/inside-darkness`);
+ * - ведущий `# Заголовок` убирается: h1 страницы рисуется из frontmatter;
+ * - HTML-комментарии (пометки авторов, например «числа позже») вырезаются.
  */
 const CALLOUTS = {
   NOTE: 'Заметка',
@@ -13,9 +14,12 @@ const CALLOUTS = {
   IMPORTANT: 'Важно',
   WARNING: 'Осторожно',
   CAUTION: 'Опасно',
+  NEW: 'Новое в краю',
+  SOON: 'Скоро в краю',
+  VETERAN: 'Ветерану',
 };
 
-const MARKER = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\r?\n?/i;
+const MARKER = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|NEW|SOON|VETERAN)\][ \t]*\r?\n?/i;
 
 export function rehypeDocs(options = {}) {
   const base = String(options.base ?? '').replace(/\/+$/, '');
@@ -25,10 +29,10 @@ export function rehypeDocs(options = {}) {
     // внешние ссылки, mailto:, tel:, //host и якоря не трогаем
     if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) return href;
 
-    const md = href.match(/^(?:\.\/|\/?docs\/|\.\.\/)*([^?#]+?)\.(?:md|mdx)((?:\?[^#]*)?(?:#.*)?)$/i);
+    const md = href.match(/^(?:\.\/|\/?guide\/|\.\.\/)*([^?#]+?)\.(?:md|mdx)((?:\?[^#]*)?(?:#.*)?)$/i);
     if (md) {
       const slug = docSlug(md[1]);
-      return `${base}/docs/${slug ? slug + '/' : ''}${md[2] ?? ''}`;
+      return `${base}/guide/${slug ? slug + '/' : ''}${md[2] ?? ''}`;
     }
     if (href.startsWith('/')) {
       if (base && (href === base || href.startsWith(base + '/'))) return href;
@@ -41,6 +45,12 @@ export function rehypeDocs(options = {}) {
     if (!node || !Array.isArray(node.children)) return;
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i];
+      // служебные пометки авторов (<!-- … -->) на страницу не попадают
+      if (child.type === 'comment' || (child.type === 'raw' && /^\s*<!--[\s\S]*?-->\s*$/.test(child.value))) {
+        node.children.splice(i, 1);
+        i--;
+        continue;
+      }
       if (child.type !== 'element') continue;
       const props = (child.properties ??= {});
 

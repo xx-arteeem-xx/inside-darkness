@@ -1,7 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { url } from './url';
 
-export type Doc = CollectionEntry<'docs'>;
+export type Doc = CollectionEntry<'guide'>;
 export interface DocSection {
   name: string;
   docs: Doc[];
@@ -10,11 +9,11 @@ export interface DocSection {
 const byOrder = (a: Doc, b: Doc) =>
   a.data.order - b.data.order || a.data.title.localeCompare(b.data.title, 'ru');
 
-/** Разделы документации: по минимальному order внутри раздела, затем по имени. */
-export async function getDocSections(): Promise<DocSection[]> {
+/** Части гайда: по минимальному order внутри части, затем по имени. */
+export async function getGuideSections(): Promise<DocSection[]> {
   let all: Doc[] = [];
   try {
-    all = await getCollection('docs');
+    all = await getCollection('guide');
   } catch {
     all = [];
   }
@@ -35,18 +34,4 @@ export async function getDocSections(): Promise<DocSection[]> {
 
 export function flatten(sections: DocSection[]): Doc[] {
   return sections.flatMap((s) => s.docs);
-}
-
-/**
- * Ссылка на страницу документации по её id. Документацию пишет отдельный процесс:
- * если страницу переименуют или уберут, ссылка ведёт на оглавление, а не в 404.
- */
-export async function docHref(id: string): Promise<string> {
-  let ids: string[] = [];
-  try {
-    ids = (await getCollection('docs')).map((d) => d.id);
-  } catch {
-    ids = [];
-  }
-  return ids.includes(id) ? url(`/docs/${id}/`) : url('/docs/');
 }
