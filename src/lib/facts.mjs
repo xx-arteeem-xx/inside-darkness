@@ -322,6 +322,39 @@ const TABLES = {
   healer: (G) => mdTable(['Зелье', 'Цена'], G.market.shops.healer.rows.flatMap((r) => r.items.map((it) => [it.label, fmt(it.price)]))),
   races: (G) => mdTable(['Народ', 'Кто', 'Что даёт'], G.races.list.map((r) => [`**${r.name}**`, r.who, r.bonus])),
   people: (G, ...args) => peopleHtml(G, select(G, args)),
+  sets: (G) => mdTable(['Комплект', 'Подземелье', 'Материал', 'За две части', 'За четыре'], G.sets.list.map((x) => [x.name, x.dungeon, x.material, x.two, x.four])),
+  'quality-tiers': (G) =>
+    mdTable(['Качество', 'Прибавок', 'Особых свойств'], Object.values(G.quality.tiers).map((t) => [t.name, fmt(t.bonuses), fmt(t.props)])),
+  upgrade: (G) => {
+    const M = { leather: 'Кожа', golden: 'Золото', chainmail: 'Кольчуга', iron: 'Железо', diamond: 'Алмаз', netherite: 'Незерит' };
+    return mdTable(['Материал вещи', 'До Необычной', 'До Редкой'], Object.entries(G.quality.upgrade).map(([k, v]) => [M[k] ?? k, fmt(v.uncommon), fmt(v.rare)]));
+  },
+  named: (G) => mdTable(['Уровень твари', 'Материал', 'Качество'], G.named.tiers.map((t) => [t.to >= 99 ? `${fmt(t.from)} и выше` : range(t.from, t.to), t.material, t.quality])),
+  'boss-named': (G) => mdTable(['Подземелье', 'Именная вещь хозяина'], G.bossLoot.named.map((x) => [x.dungeon, x.name])),
+  halls: (G) => mdTable(['Подземелье', 'Залов до хозяина', 'Уровни тварей'], G.halls.list.map((h) => [h.dungeon, fmt(h.halls), range(h.from, h.to)])),
+  darkness: (G) =>
+    mdTable(
+      ['Ступень', 'Голод', 'Тьма отнимает урона', 'Замедление'],
+      G.darkness.tiers.map((t) => [t.name[0].toUpperCase() + t.name.slice(1), `−${fmt(t.hunger / 4, 1)} сытости в минуту`, pct(t.damage), t.slow ? pct(t.slow) : '—']),
+    ),
+  cook: (G) => mdTable(['Блюдо', 'Что даёт', 'Готовое', 'Из своих продуктов'], G.cook.dishes.map((d) => [d.name, d.about, fmt(d.price), fmt(d.work)])),
+  reputation: (G) =>
+    mdTable(
+      ['Ступень', 'С заслуг', 'Что даёт'],
+      G.reputation.tiers.map((t) => [
+        t.name,
+        fmt(t.from),
+        [t.shop && `скидка у лавочника ${pct(t.shop)}`, t.tasks > 1 && `поручений в день: ${fmt(t.tasks)}`, t.home && `дом дешевле на ${pct(t.home)}`, t.special && 'особый товар у старосты', t.title && 'титул «Почётный житель…»']
+          .filter(Boolean)
+          .join(', ') || 'как всем',
+      ]),
+    ),
+  feats: (G) => mdTable(['Подвиг', 'Как получить'], G.feats.list.map((f) => [f.name, f.about])),
+  bestiary: (G) => mdTable(['Одолел тварей этого вида', 'Урон по ним'], G.bestiary.steps.map((b) => [fmt(b.kills), plus(b.bonus)])),
+  deeds: (G, kind) =>
+    mdTable(['Дело', 'Монет', 'Опыт'], (kind === 'weekly' ? G.deeds.weekly : G.deeds.daily).map((d) => [d.label, fmt(d.coins), fmt(d.xp)])),
+  'errands-village': (G) => mdTable(['Поручение', 'Кто даёт', 'О чём'], G.errands.village.map((e) => [e.title, e.giver, e.about])),
+  'errands-capital': (G) => mdTable(['Задание', 'Кто даёт', 'Монет'], G.errands.capital.map((e) => [e.title, e.giver, fmt(e.coins)])),
 };
 
 export const TABLE_NAMES = Object.keys(TABLES);
