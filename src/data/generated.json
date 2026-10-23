@@ -9293,9 +9293,14 @@
     "id": "arena",
     "title": "Ристалище",
     "about": "Победы в поединках на ристалище."
+   },
+   {
+    "id": "friends",
+    "title": "Друзья деревень",
+    "about": "Заслуги перед деревнями: заказы, поручения, защита от набегов."
    }
   ],
-  "count": 8,
+  "count": 9,
   "top": 10,
   "titles": [
    "богатейшие",
@@ -9305,7 +9310,8 @@
    "защитники деревень",
    "летописцы",
    "кладоискатели",
-   "ристалище"
+   "ристалище",
+   "друзья деревень"
   ],
   "npc": "Дьяк Мефодий"
  },
@@ -9407,7 +9413,7 @@
  "meta": {
   "generator": "tools/gen_site_data.py",
   "config": "plugin-darklands/src/main/resources/config.yml",
-  "configSha256": "0a209f692768012e8fb749d8dd47e94a693b9f12e77a19e6875c672b81278ada",
+  "configSha256": "cc0454046f76b1b3b957253792a3a0807d2109bfd72c2207f8154b8a4cba7392",
   "fromFragments": {},
   "codeFacts": {
    "bank.max": "Bank.java",
