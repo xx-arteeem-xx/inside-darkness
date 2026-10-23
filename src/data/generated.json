@@ -10086,7 +10086,7 @@
  "meta": {
   "generator": "tools/gen_site_data.py",
   "config": "plugin-darklands/src/main/resources/config.yml",
-  "configSha256": "1c48b7c7184ba2bfe3f875e791fe58facedc274d7cb7ac388f717f10df1c167f",
+  "configSha256": "fd0225e0d3e669cb5e98f87803b1051a3bb302fe3087cb4686c7c43e7a6e69cc",
   "fromFragments": {},
   "codeFacts": {
    "bank.max": "Bank.java",
