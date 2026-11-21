@@ -11,6 +11,7 @@ from urllib.request import Request, urlopen
 
 
 REPOSITORY = 'xx-arteeem-xx/inside-darkness'
+SITE_VERSION = 'https://inside-darkness.ru/version.json'
 ARCHIVE = 'inside-darkness.tar.gz'
 RELEASE_SIZE = 48 * 1024**2
 UNPACKED_SIZE = 96 * 1024**2
@@ -23,7 +24,7 @@ def download(url, limit):
     with urlopen(request, timeout=25) as response:
         content = response.read(limit + 1)
     if len(content) > limit:
-        raise ValueError('GitHub response exceeds the size limit')
+        raise ValueError(f'Response exceeds the size limit: {url}')
     return content
 
 
@@ -47,7 +48,8 @@ def update():
     versions.mkdir(exist_ok=True)
     target = versions / revision
     current = STATE / 'current'
-    if current.is_symlink() and current.resolve() == target:
+    previous_link = os.readlink(current) if current.is_symlink() else None
+    if previous_link == str(target.relative_to(STATE)):
         return
 
     asset = next(item for item in release['assets'] if item['name'] == ARCHIVE)
@@ -80,6 +82,17 @@ def update():
         link = work / 'current'
         link.symlink_to(target.relative_to(STATE))
         os.replace(link, current)
+
+        if previous_link is not None:
+            try:
+                served = json.loads(download(SITE_VERSION, 1024**2))
+                if served['revision'] != revision:
+                    raise ValueError('HTTPS returned a different revision')
+            except Exception:
+                link.symlink_to(previous_link)
+                os.replace(link, current)
+                print(f'Restored {previous_link} after an unsuccessful update', flush=True)
+                raise
 
     previous = sorted(
         (item for item in versions.iterdir() if item.is_dir() and item != target and REVISION.fullmatch(item.name)),

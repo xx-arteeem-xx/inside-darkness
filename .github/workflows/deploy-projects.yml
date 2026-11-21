@@ -16,6 +16,7 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     env:
       INSIDE_DARKNESS_TARGET: projects
     steps:
@@ -40,6 +41,7 @@ jobs:
           printf '{"revision":"%s"}\n' "$GITHUB_SHA" > dist/version.json
           tar -czf inside-darkness.tar.gz -C dist .
       - name: Publish release
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -50,7 +52,27 @@ jobs:
           fi
           tag="projects-$GITHUB_SHA"
           if gh release view "$tag" --json assets --jq '.assets[].name' | grep -Fxq inside-darkness.tar.gz; then
+            echo 'published=true' >> "$GITHUB_OUTPUT"
             exit 0
           fi
           gh release create "$tag" inside-darkness.tar.gz --target "$GITHUB_SHA" --latest \
             --title "Projects landing ${GITHUB_SHA:0:12}" --notes 'Validated static build for inside-darkness.ru.'
+          echo 'published=true' >> "$GITHUB_OUTPUT"
+
+      - name: Verify deployment from the public network
+        if: steps.release.outputs.published == 'true'
+        run: |
+          site=https://inside-darkness.ru
+          for attempt in {1..30}; do
+            if revision=$(curl -fsS --max-time 8 "$site/version.json" | jq -r .revision) && [[ "$revision" == "$GITHUB_SHA" ]]; then
+              for route in / /guide/ /guide/search.json /map/ /rp/inside-darkness-rp.zip.sha1; do
+                curl -fsSL --max-time 10 -o /dev/null -w "%{http_code} %{url_effective}\n" "$site$route"
+              done
+              actual=$(curl -fsSL --max-time 30 "$site/rp/inside-darkness-rp.zip" | sha1sum | cut -d ' ' -f 1)
+              test "$actual" = "$(cat dist/rp/inside-darkness-rp.zip.sha1)"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Projects did not serve revision $GITHUB_SHA in time."
+          exit 1
