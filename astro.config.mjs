@@ -8,7 +8,8 @@ import { remarkFacts } from './src/lib/remark-facts.mjs';
 // Игровые числа документации — из generated.json (tools/gen_site_data.py по config.yml плагина).
 const json = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf-8'));
 const server = json('./src/config/server.json');
-const base = '/inside-darkness';
+const projects = process.env.INSIDE_DARKNESS_TARGET === 'projects';
+const base = projects ? '' : '/inside-darkness';
 const facts = {
   ...json('./src/data/generated.json'),
   server: { ...server, versions: `${server.versionFrom}–${server.versionTo}` },
@@ -17,7 +18,7 @@ const facts = {
 };
 
 export default defineConfig({
-  site: 'https://xx-arteeem-xx.github.io',
+  site: projects ? 'https://inside-darkness.ru' : 'https://xx-arteeem-xx.github.io',
   base,
   trailingSlash: 'ignore',
   // CSS встраивается в страницу: на медленном канале до GitHub Pages это на один-два запроса меньше.

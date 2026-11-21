@@ -1,0 +1,17 @@
+[Unit]
+Description=Fetch the published Inside Darkness landing
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=inside-darkness
+Group=inside-darkness
+StateDirectory=inside-darkness
+UMask=0022
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ExecStart=/usr/bin/python3 /usr/local/libexec/inside-darkness-pull.py
+TimeoutStartSec=3min

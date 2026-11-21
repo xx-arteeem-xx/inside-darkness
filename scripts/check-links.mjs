@@ -10,7 +10,7 @@ import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
-const BASE = '/inside-darkness';
+const BASE = process.env.INSIDE_DARKNESS_TARGET === 'projects' ? '' : '/inside-darkness';
 
 const walk = (dir) =>
   readdirSync(dir).flatMap((f) => {

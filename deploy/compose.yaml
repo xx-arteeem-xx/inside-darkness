@@ -1,0 +1,34 @@
+name: projects-inside-darkness
+
+services:
+  site:
+    image: nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+    entrypoint: ["nginx", "-g", "daemon off;"]
+    user: "101:101"
+    restart: unless-stopped
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /var/lib/inside-darkness:/srv/site:ro
+    networks:
+      caddy_net:
+        aliases: [inside-darkness-site]
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:8080/version.json"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    mem_limit: 48m
+    cpus: 0.20
+    logging:
+      driver: json-file
+      options: {max-size: 3m, max-file: "2"}
+
+networks:
+  caddy_net:
+    external: true
